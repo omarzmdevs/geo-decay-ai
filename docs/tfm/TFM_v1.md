@@ -16,7 +16,11 @@ El proyecto deberá estar desarrollado siguiendo principios de ingeniería del s
 
 # Estructura general del proyecto
 
-El desarrollo se divide en **7 bloques principales**, cada uno compuesto por varios Sprint.
+El desarrollo se divide en dos fases principales:
+
+* **MVP (v1.0)** · Bloques 1–7, Sprints 1–23 → Sistema completo y defendible para el TFM.
+* **Versión extendida (v2.0)** · Bloque 8, Sprints 24–26 → Orquestación agéntica (LangGraph) y RAG (LlamaIndex).
+* **Bloque final** · Optimización general (rendimiento, precisión, escalabilidad).
 
 Cada Sprint debe cumplir tres condiciones:
 
@@ -26,13 +30,17 @@ Cada Sprint debe cumplir tres condiciones:
 
 ---
 
+## Fase 1: MVP (v1.0) — Sprints 1–23
+
+---
+
 # BLOQUE 1 · Arquitectura e infraestructura
 
 ## Objetivo
 
 Construir la base técnica del proyecto.
 
-No se desarrollará todavía ninguna funcionalidad relacionada con IA.
+No se desarrollará todavía ninguna funcionalidad relacionada con IA ni con datos.
 
 ---
 
@@ -103,7 +111,78 @@ Pipeline CI funcionando correctamente.
 
 ---
 
-# BLOQUE 2 · Núcleo GIS
+# BLOQUE 2 · MLOps e infraestructura de datos
+
+## Objetivo
+
+Establecer la infraestructura de tracking de experimentos, versionado de datos y reproducibilidad antes de trabajar con datos o modelos.
+
+Esto garantiza que desde el primer dato descargado y el primer modelo evaluado, todo queda registrado, versionado y es reproducible.
+
+---
+
+## Sprint 4 · MLflow
+
+### Objetivo
+
+Configurar el tracking de experimentos.
+
+### Requisitos
+
+Registrar automáticamente:
+
+* Experimentos.
+* Modelos.
+* Métricas.
+* Hiperparámetros.
+
+### Entregable
+
+MLflow integrado y funcional, listo para registrar cualquier experimento posterior.
+
+---
+
+## Sprint 5 · DVC
+
+### Objetivo
+
+Configurar el versionado de datos y artefactos.
+
+### Requisitos
+
+Versionar:
+
+* Datasets.
+* Pesos.
+* Modelos.
+* Resultados.
+
+### Entregable
+
+DVC configurado y funcional, listo para versionar los datos que se descarguen en bloques posteriores.
+
+---
+
+## Sprint 6 · Reproducibilidad
+
+### Objetivo
+
+Garantizar que cualquier experimento pueda repetirse.
+
+### Requisitos
+
+* Seeds determinísticas.
+* Configuraciones externalizadas.
+* Pipelines DVC reproducibles.
+* Documentación de entornos.
+
+### Entregable
+
+Sistema de reproducibilidad verificado end-to-end.
+
+---
+
+# BLOQUE 3 · Núcleo GIS
 
 ## Objetivo
 
@@ -111,7 +190,7 @@ Construir la infraestructura geoespacial del sistema.
 
 ---
 
-## Sprint 4 · Base de datos espacial
+## Sprint 7 · Base de datos espacial
 
 ### Objetivo
 
@@ -131,7 +210,7 @@ Base espacial completamente funcional.
 
 ---
 
-## Sprint 5 · Descarga de datos
+## Sprint 8 · Descarga de datos
 
 ### Objetivo
 
@@ -147,13 +226,15 @@ Descargar:
 
 El sistema deberá recibir únicamente un Bounding Box.
 
+Todos los datos descargados deberán quedar versionados en DVC.
+
 ### Entregable
 
-Descarga automática funcionando.
+Descarga automática funcionando con versionado integrado.
 
 ---
 
-## Sprint 6 · Procesamiento GIS
+## Sprint 9 · Procesamiento GIS
 
 ### Objetivo
 
@@ -173,7 +254,7 @@ Datos preparados para análisis.
 
 ---
 
-## Sprint 7 · Sistema de tiles
+## Sprint 10 · Sistema de tiles
 
 ### Objetivo
 
@@ -192,7 +273,7 @@ Sistema completo de generación de tiles.
 
 ---
 
-# BLOQUE 3 · Detección de infraestructuras
+# BLOQUE 4 · Detección de infraestructuras
 
 ## Objetivo
 
@@ -200,9 +281,11 @@ Detectar automáticamente infraestructuras.
 
 ---
 
-## Sprint 8 · Investigación comparativa
+## Sprint 11 · Investigación comparativa
 
 Antes de desarrollar el sistema definitivo se realizará una fase experimental.
+
+Todos los experimentos deberán registrarse en MLflow.
 
 ### Objetivo
 
@@ -236,11 +319,11 @@ Modelos IA:
 
 ### Resultado esperado
 
-Seleccionar el modelo definitivo.
+Seleccionar el modelo definitivo con evidencia registrada en MLflow.
 
 ---
 
-## Sprint 9 · Implementación del detector
+## Sprint 12 · Implementación del detector
 
 ### Objetivo
 
@@ -259,7 +342,7 @@ Detector completamente funcional.
 
 ---
 
-## Sprint 10 · Extracción individual
+## Sprint 13 · Extracción individual
 
 ### Objetivo
 
@@ -274,19 +357,25 @@ Cada infraestructura deberá almacenar:
 * Bounding Box.
 * Identificador.
 
+### Entregable
+
+Cada detección almacenada como entidad geoespacial independiente.
+
 ---
 
-# BLOQUE 4 · Valoración del abandono
+# BLOQUE 5 · Valoración del abandono
 
 Este constituye el núcleo científico del proyecto.
 
 ---
 
-## Sprint 11 · Definición de indicadores
+## Sprint 14 · Definición de indicadores
+
+### Objetivo
 
 Definir qué variables describen el abandono.
 
-Ejemplos:
+### Ejemplos
 
 * Vegetación.
 * Estado del tejado.
@@ -295,150 +384,278 @@ Ejemplos:
 * Cambios temporales.
 * Información LiDAR.
 
----
+### Entregable
 
-## Sprint 12 · Extracción automática
-
-Implementar el cálculo automático de dichos indicadores.
+Taxonomía completa de indicadores de abandono documentada.
 
 ---
 
-## Sprint 13 · Motor de valoración
+## Sprint 15 · Extracción automática
+
+### Objetivo
+
+Implementar el cálculo automático de los indicadores definidos.
+
+### Entregable
+
+Pipeline de extracción de indicadores funcional.
+
+---
+
+## Sprint 16 · Motor de valoración
+
+### Objetivo
 
 Construir un sistema capaz de generar un índice de abandono.
 
+### Implementación
+
 Inicialmente mediante:
 
-* reglas heurísticas,
-* ponderaciones,
-* indicadores objetivos.
+* Reglas heurísticas.
+* Ponderaciones.
+* Indicadores objetivos.
 
 Posteriormente podrá compararse con un modelo entrenado.
 
+### Entregable
+
+Motor de valoración generando índices de abandono explicables.
+
 ---
 
-# BLOQUE 5 · Experimentación con IA
+# BLOQUE 6 · Experimentación con IA
 
 ## Objetivo
 
-Comparar distintas aproximaciones.
+Comparar distintas aproximaciones para validar la metodología científica.
+
+Todos los experimentos deberán registrarse en MLflow y los artefactos versionarse con DVC.
 
 ---
 
-## Sprint 14 · Sistema sin entrenamiento
+## Sprint 17 · Sistema sin entrenamiento
 
-Pipeline basado en:
+### Objetivo
 
-* modelos preentrenados,
-* análisis GIS,
-* reglas.
+Construir un pipeline basado en:
 
----
+* Modelos preentrenados.
+* Análisis GIS.
+* Reglas.
 
-## Sprint 15 · Fine-Tuning
+### Entregable
 
-Crear un pequeño dataset propio.
-
-Entrenar únicamente la última etapa.
-
-Comparar resultados.
+Pipeline zero-shot funcional con resultados registrados.
 
 ---
 
-## Sprint 16 · Comparativa científica
+## Sprint 18 · Fine-Tuning
 
-Comparar:
+### Objetivo
 
-Sistema experto
+Entrenar la última etapa del modelo.
 
-vs
+### Requisitos
 
-Modelo entrenado.
+* Crear un pequeño dataset propio.
+* Entrenar únicamente la última etapa.
+* Comparar resultados con el sistema sin entrenamiento.
 
-Obtener conclusiones.
+### Entregable
 
----
-
-# BLOQUE 6 · Plataforma
-
-## Sprint 17 · API
-
-Implementar FastAPI.
-
-Endpoints.
-
-Documentación.
-
-Swagger.
+Modelo fine-tuned con comparativa documentada.
 
 ---
 
-## Sprint 18 · Frontend
+## Sprint 19 · Comparativa científica
 
-Mapa.
+### Objetivo
 
-Selección del área.
+Comparar sistema experto vs modelo entrenado.
 
-Visualización.
+### Requisitos
 
-Marcadores.
+* Evaluación cuantitativa con métricas definidas.
+* Análisis cualitativo.
+* Conclusiones fundamentadas.
 
-Capas.
+### Entregable
+
+Documento de comparativa científica con conclusiones.
 
 ---
 
-## Sprint 19 · Resultados
+# BLOQUE 7 · Plataforma
+
+## Objetivo
+
+Construir la interfaz web que expone toda la funcionalidad del sistema.
+
+---
+
+## Sprint 20 · API
+
+### Objetivo
+
+Implementar la API REST del sistema.
+
+### Requisitos
+
+* FastAPI.
+* Endpoints.
+* Documentación.
+* Swagger.
+
+### Entregable
+
+API funcional y documentada.
+
+---
+
+## Sprint 21 · Frontend
+
+### Objetivo
+
+Construir la interfaz web interactiva.
+
+### Requisitos
+
+* Mapa.
+* Selección del área.
+* Visualización.
+* Marcadores.
+* Capas.
+
+### Entregable
+
+Frontend funcional conectado a la API.
+
+---
+
+## Sprint 22 · Resultados
+
+### Objetivo
+
+Visualizar los resultados del análisis en la plataforma.
+
+### Requisitos
 
 Mostrar:
 
-* infraestructura,
-* índice,
-* confianza,
-* evidencias.
+* Infraestructura detectada.
+* Índice de abandono.
+* Confianza.
+* Evidencias.
+
+### Entregable
+
+Visualización completa de resultados en la plataforma.
 
 ---
 
-## Sprint 20 · Informes
+## Sprint 23 · Informes
 
-Generación automática mediante LLM.
+### Objetivo
 
-Resumen técnico.
+Generar informes automáticos.
 
-Exportación.
+### Requisitos
 
----
+* Generación automática mediante LLM.
+* Resumen técnico.
+* Exportación.
 
-# BLOQUE 7 · MLOps
+### Entregable
 
-## Sprint 21 · MLflow
-
-Registrar automáticamente:
-
-* experimentos,
-* modelos,
-* métricas,
-* hiperparámetros.
+Sistema de generación de informes funcional.
 
 ---
 
-## Sprint 22 · DVC
+---
 
-Versionar:
+## Hito: MVP (v1.0) Completado (Sprint 23)
 
-* datasets,
-* pesos,
-* modelos,
-* resultados.
+El MVP constituye un sistema completo y defendible para el TFM:
+
+* Detección automatizada de infraestructuras con IA.
+* Valoración de abandono con índice compuesto explicable.
+* Experimentación científica completamente reproducible (MLflow + DVC).
+* Plataforma web funcional (FastAPI + React + MapLibre).
+* Pipeline CI/CD completo.
 
 ---
 
-## Sprint 23 · Reproducibilidad
-
-Garantizar que cualquier experimento pueda repetirse.
+## Fase 2: Versión Extendida (v2.0) — Sprints 24–26
 
 ---
 
-# Bloque final · Optimización
+# BLOQUE 8 · Agentes IA y RAG
+
+## Objetivo
+
+Evolucionar el sistema hacia una arquitectura agéntica con orquestación inteligente y generación de informes enriquecida mediante RAG.
+
+---
+
+## Sprint 24 · LangGraph — Orquestador agéntico
+
+### Objetivo
+
+Refactorizar el pipeline como un grafo de agentes.
+
+### Requisitos
+
+* Cada fase del pipeline (descarga, procesamiento, detección, valoración) se convierte en un nodo/herramienta del agente.
+* El agente decide dinámicamente el flujo de ejecución.
+* Gestión de estado y memoria del agente.
+
+### Entregable
+
+Pipeline orquestado por LangGraph funcional.
+
+---
+
+## Sprint 25 · LlamaIndex — RAG sobre documentación
+
+### Objetivo
+
+Indexar documentación técnica para enriquecer el sistema.
+
+### Requisitos
+
+* Indexar documentación PNOA.
+* Indexar documentación LiDAR.
+* Indexar normativa urbanística relevante.
+* Sistema de retrieval funcional.
+
+### Entregable
+
+Sistema RAG funcional con documentación indexada.
+
+---
+
+## Sprint 26 · Informes inteligentes con RAG
+
+### Objetivo
+
+Combinar el motor de informes con RAG.
+
+### Requisitos
+
+* Integrar el motor de informes (Sprint 23) con el sistema RAG (Sprint 25).
+* Generar informes técnicos contextualizados con normativa y documentación relevante.
+* Mejorar la calidad y profundidad de los informes generados.
+
+### Entregable
+
+Sistema de informes enriquecido con RAG funcional.
+
+---
+
+---
+
+## Fase 3: Bloque final de optimización
 
 Una vez exista una versión completamente funcional.
 
@@ -457,11 +674,11 @@ Una vez exista una versión completamente funcional.
 
 Comparar:
 
-* tamaño de tile,
-* resolución,
-* overlap,
-* modelos,
-* hiperparámetros.
+* Tamaño de tile.
+* Resolución.
+* Overlap.
+* Modelos.
+* Hiperparámetros.
 
 ---
 
@@ -469,13 +686,37 @@ Comparar:
 
 Permitir analizar:
 
-* municipios,
-* provincias,
-* comunidades autónomas.
+* Municipios.
+* Provincias.
+* Comunidades autónomas.
 
 ---
 
-# Arquitectura final
+# Arquitectura
+
+## MVP (v1.0)
+
+```text
+Usuario
+    │
+    ▼
+Frontend (React + MapLibre)
+    │
+    ▼
+API (FastAPI)
+    │
+    ├──────── Descarga PNOA
+    ├──────── Descarga LiDAR
+    ├──────── Procesamiento GIS
+    ├──────── Generación de tiles
+    ├──────── Detección
+    ├──────── Valoración
+    ├──────── Base de datos (PostGIS)
+    ├──────── Generación de informes (LLM)
+    └──────── MLOps (MLflow + DVC)
+```
+
+## Versión extendida (v2.0)
 
 ```text
 Usuario
@@ -495,8 +736,10 @@ Agente IA (LangGraph)
     ├──────── Generación de tiles
     ├──────── Detección
     ├──────── Valoración
-    ├──────── Base de datos
-    └──────── Generación de informes
+    ├──────── Base de datos (PostGIS)
+    ├──────── RAG (LlamaIndex)
+    ├──────── Generación de informes (LLM + RAG)
+    └──────── MLOps (MLflow + DVC)
 ```
 
 ---
@@ -514,7 +757,6 @@ Agente IA (LangGraph)
 * YOLO11
 * SAM2 *(fase avanzada)*
 * DINOv2 *(fase avanzada)*
-* LangGraph
 
 ## GIS
 
@@ -557,11 +799,18 @@ Agente IA (LangGraph)
 * MLflow
 * DVC
 
+## v2.0 — Agentes y RAG
+
+* LangGraph
+* LlamaIndex
+
 ---
 
 # Resultado esperado
 
-Al finalizar todos los Sprint se dispondrá de una plataforma funcional capaz de:
+## MVP (v1.0)
+
+Al finalizar el Sprint 23 se dispondrá de una plataforma funcional capaz de:
 
 1. Seleccionar un área geográfica de interés.
 2. Descargar automáticamente las ortofotos PNOA y los datos LiDAR necesarios.
@@ -573,4 +822,13 @@ Al finalizar todos los Sprint se dispondrá de una plataforma funcional capaz de
 8. Registrar experimentos y modelos para garantizar la reproducibilidad del proyecto.
 9. Generar informes automáticos con los resultados obtenidos.
 
-Este enfoque garantiza una evolución incremental del proyecto, permitiendo validar cada fase antes de avanzar a la siguiente y manteniendo en todo momento una arquitectura limpia, escalable y preparada para futuras ampliaciones.
+## Versión extendida (v2.0)
+
+Adicionalmente, tras el Sprint 26:
+
+10. Orquestar el pipeline completo mediante un agente inteligente (LangGraph).
+11. Enriquecer los informes con documentación técnica y normativa recuperada mediante RAG (LlamaIndex).
+
+---
+
+Este enfoque garantiza una evolución incremental del proyecto, permitiendo validar cada fase antes de avanzar a la siguiente y manteniendo en todo momento una arquitectura limpia, escalable y preparada para futuras ampliaciones. La separación explícita entre MVP y versión extendida asegura que el TFM dispone en todo momento de una versión defendible, mientras que las mejoras posteriores elevan el sistema a un nivel de producción profesional.

@@ -19,9 +19,10 @@
 
 ## Backlog
 
-- [ ] Research state-of-the-art for abandoned infrastructure detection (for Sprint 8).
-- [ ] Evaluate PNOA/LiDAR data sources and download APIs (for Sprint 5).
-- [ ] Define abandonment indicators taxonomy (for Sprint 11).
+- [ ] Research state-of-the-art for abandoned infrastructure detection (for Sprint 11).
+- [ ] Evaluate PNOA/LiDAR data sources and download APIs (for Sprint 8).
+- [ ] Define abandonment indicators taxonomy (for Sprint 14).
+- [ ] Setup MLflow and DVC tracking experiments and versioning data (for Sprint 4 and Sprint 5).
 
 ## Last Updated
 

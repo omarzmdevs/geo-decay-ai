@@ -12,7 +12,7 @@ Develop a modular platform capable of automatically detecting, analysing and ass
 
 ## Scope
 
-**In scope:**
+**MVP Scope (v1.0):**
 
 - Automatic download and processing of PNOA orthophotos and LiDAR point clouds for a given bounding box.
 - Infrastructure detection via object detection models (YOLO11, RT-DETR) and classical CV methods.
@@ -20,7 +20,12 @@ Develop a modular platform capable of automatically detecting, analysing and ass
 - Comparative experimentation: pre-trained pipeline vs. fine-tuned model vs. expert system.
 - Web platform (FastAPI + React + MapLibre) for interactive map-based exploration.
 - Automated report generation with LLM assistance.
-- MLOps infrastructure (MLflow, DVC) for reproducibility.
+- MLOps infrastructure (MLflow, DVC) for reproducibility established from the beginning.
+
+**Extended Version Scope (v2.0):**
+
+- Agentic orchestration of the entire pipeline using LangGraph.
+- Retrieval-Augmented Generation (RAG) with LlamaIndex for context-enriched reports incorporating technical and urbanistic documentation.
 
 **Out of scope:**
 
