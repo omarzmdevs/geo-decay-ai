@@ -14,13 +14,21 @@
 2. **Sprint Planning**: When starting a new sprint, create the corresponding sprint log in `docs/sprints/` using the template.
 3. **Architecture Records**: Draft ADRs in `docs/architecture/adr/` when the user makes a technical decision.
 
-## Handoffs to Claude Code
+## Delegation and Orchestration with Claude Code
 
-- When a complex coding task (e.g., GIS processing, ML model training, FastAPI endpoints) is ready for implementation, **delegate it to Claude Code**.
-- **How to handoff**:
-  1. Do not write the code yourself.
-  2. Create a clear, concise handoff prompt in `docs/prompts/` or explicitly output a summary for the user to copy-paste to Claude Code.
-  3. Ensure the handoff specifies exactly which files Claude Code should modify and what tests to run, minimizing the need for Claude to explore the repository blindly.
+- Antigravity acts as the orchestrator: you analyze user tasks, break them down, and decide when, what, and how to delegate implementation to Claude Code.
+- **Dual Delegation Modes**:
+  1. **Autonomous Execution**: You can invoke Claude Code directly via CLI using `run_command` (e.g. `claude -p '<task>' --model <haiku|sonnet>`), inspect the results, verify tests/code, and maintain state automatically.
+  2. **Documented Handoffs**: You also prepare and document structured handoffs in `docs/prompts/` (and/or provide them in chat) specifying:
+     - Recommended model (`--model haiku` vs `--model sonnet`).
+     - Exact CLI command to run.
+     - Files to read/modify.
+     - Tests and acceptance criteria.
+     This ensures full traceability, allows manual execution in terminal whenever desired, and keeps a persistent prompt log.
+- **Automatic Model Selection**:
+  - Use `--model haiku` for structural tasks, boilerplate, file scaffolding, configs, simple scripts, and basic unit tests.
+  - Use `--model sonnet` for core algorithms, complex GIS processing, computer vision pipelines, ML models, and deep refactoring.
+- **Token Efficiency**: Ensure each task or handoff given to Claude Code targets specific files to minimize token consumption and avoid repository-wide indexing.
 
 ## Context Efficiency
 

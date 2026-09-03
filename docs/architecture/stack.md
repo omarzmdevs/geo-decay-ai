@@ -4,36 +4,58 @@
 
 ## Backend
 
-<!-- e.g. Python, FastAPI -->
+* Python
+* FastAPI
 
 ## AI / ML
 
-<!-- e.g. PyTorch, YOLO11, SAM2, DINOv2, LangGraph -->
+* PyTorch
+* YOLO11
+* SAM2 *(fase avanzada)*
+* DINOv2 *(fase avanzada)*
 
 ## GIS
 
-<!-- e.g. GeoPandas, Rasterio, GDAL, PDAL, Shapely -->
+* GeoPandas
+* Rasterio
+* GDAL
+* PDAL
+* Shapely
 
 ## Database
 
-<!-- e.g. PostgreSQL, PostGIS -->
+* PostgreSQL
+* PostGIS
 
 ## Frontend
 
-<!-- e.g. React, MapLibre -->
+* React
+* MapLibre
 
 ## Infrastructure
 
-<!-- e.g. Docker, Docker Compose, Dev Containers -->
+* Docker
+* Docker Compose
+* Dev Containers
 
 ## Code Quality
 
-<!-- e.g. Ruff, Black, MyPy, Pytest, pre-commit -->
+* Ruff
+* Black
+* MyPy
+* Pytest
+* pre-commit
 
 ## CI/CD
 
-<!-- e.g. GitHub Actions -->
+* GitHub Actions
 
 ## MLOps
 
-<!-- e.g. MLflow, DVC -->
+* MLflow
+* DVC
+
+## v2.0 — Agentes y RAG
+
+* LangGraph
+* LlamaIndex

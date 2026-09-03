@@ -81,12 +81,15 @@
 
 ---
 
-## Agent Coordination & Unified Access
+## Agent Coordination & Orchestration
 
-- **Antigravity IDE** is the orchestration environment (project management, task planning, agent coordination).
-- **Claude Code** is the primary implementation agent (coding, refactoring, architecture design, code review).
-- Claude Code receives specific tasks from Antigravity when deeper reasoning or implementation is needed.
-- **Handoffs**: When Antigravity prepares a task for Claude Code, it must leave a clear, concise summary in the active task or prompt log to ensure context is passed efficiently without redundant token usage.
+- **Antigravity IDE** is the orchestration environment (project management, task planning, decision-making, and agent coordination).
+- **Claude Code** is the primary implementation agent (coding, refactoring, architecture design, test execution).
+- **Delegation & Handoffs**:
+  - Antigravity decides when and how to delegate implementation to Claude Code, selecting the optimal model (`--model haiku` or `--model sonnet`) to minimize token consumption.
+  - **Autonomous execution**: Antigravity can invoke Claude Code programmatically via CLI when automatic execution is desired.
+  - **Documented handoffs**: Antigravity maintains documented handoff prompts in `docs/prompts/` (with recommended model, exact command, target files, and acceptance criteria), giving the user full visibility and the option to run/inspect tasks in terminal.
+- The user provides high-level goals; Antigravity handles orchestration, handoff preparation, and execution verification seamlessly.
 
 ---
 

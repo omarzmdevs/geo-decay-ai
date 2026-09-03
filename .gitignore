@@ -1,0 +1,108 @@
+# ==============================================================================
+# Git Ignore - Sistema de Detección y Valoración de Infraestructuras (TFM)
+# ==============================================================================
+
+# --- Secrets and Environment Variables ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+
+# --- Operating System Files ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# --- Python & Bytecode ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# --- Virtual Environments ---
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# --- Testing, Coverage & Static Analysis ---
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+.hypothesis/
+.nox/
+.tox/
+
+# --- IDEs & Editors ---
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# --- AI Agents & Local Sessions ---
+.claude/
+*.log
+logs/
+
+# --- GIS, LiDAR & Heavy Geospatial Data (Managed via DVC) ---
+data/raw/*
+data/processed/*
+data/interim/*
+data/tiles/*
+!data/**/.gitkeep
+*.tif
+*.tiff
+*.laz
+*.las
+*.jp2
+*.geotiff
+*.dem
+*.asc
+*.gpkg
+*.parquet
+
+# --- Machine Learning & MLOps Artifacts ---
+mlruns/
+.mlflow/
+checkpoints/
+models/weights/*
+!models/weights/.gitkeep
+*.pt
+*.pth
+*.onnx
+*.engine
+*.bin
