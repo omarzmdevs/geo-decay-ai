@@ -247,10 +247,11 @@ Preparar los datos para la IA.
 * Gestión CRS.
 * Caché.
 * Optimización.
+* **Depuración visual (QA):** Scripts en Python/Jupyter (con Folium o Matplotlib) para inspeccionar y validar geometrías, solapes de tiles y proyecciones de coordenadas tempranamente, sin depender de la plataforma web.
 
 ### Entregable
 
-Datos preparados para análisis.
+Datos preparados para análisis y scripts de depuración visual.
 
 ---
 
@@ -335,10 +336,11 @@ Construir el sistema definitivo.
 * Detectar otras infraestructuras.
 * Exportar Bounding Boxes.
 * Exportar confianza.
+* **Validación visual:** Exportación de detecciones y bounding boxes a formatos estándar (GeoJSON) para su superposición inmediata sobre ortofotos en herramientas GIS de escritorio (como QGIS) o notebooks.
 
 ### Entregable
 
-Detector completamente funcional.
+Detector completamente funcional con capacidad de exportación para validación en QGIS/Jupyter.
 
 ---
 

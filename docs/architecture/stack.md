@@ -11,8 +11,8 @@
 
 * PyTorch
 * YOLO11
-* SAM2 *(fase avanzada)*
-* DINOv2 *(fase avanzada)*
+* SAM2 (advanced)
+* DINOv2 (advanced)
 
 ## GIS
 

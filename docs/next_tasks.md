@@ -4,26 +4,23 @@
 
 ## High Priority
 
-- [ ] Fill `docs/architecture/architecture.md` with the initial system architecture (component diagram, data flow).
-- [ ] Fill `docs/architecture/stack.md` with the confirmed technology stack.
-- [ ] Begin **Sprint 1 · Initialisation**: create Git repo structure, Dev Container, Docker, Docker Compose, `pyproject.toml`, Python environment, `src/` and `tests/` directories.
+- [ ] **Sprint 1 · Initialisation**: Create Python repository structure, DevContainer (essential for GDAL/PDAL), Docker, Docker Compose, `pyproject.toml`, Python environment, `src/` and `tests/` directories.
 
 ## Medium Priority
 
-- [ ] Begin **Sprint 2 · Code Quality**: configure Ruff, Black, MyPy, Pytest, pre-commit, logging, env vars, centralised config.
-- [ ] Move `herramientasDesarrollo.md` and `TFM_v1.md` from project root to `docs/tfm/` to keep the root clean.
+- [ ] **Sprint 2 · MLOps (Foundations)**: Configure MLflow and DVC for model and dataset versioning.
+- [ ] **Sprint 3 · Code Quality**: Configure Ruff, Black, MyPy, Pytest, pre-commit, logging, env vars, centralised configuration.
 
 ## Low Priority
 
-- [ ] Begin **Sprint 3 · CI/CD**: set up GitHub Actions pipeline (lint, format, type check, tests, Docker build).
+- [ ] **Sprint 4 · CI/CD**: Set up GitHub Actions pipeline (lint, format, type check, tests, Docker build).
 
 ## Backlog
 
 - [ ] Research state-of-the-art for abandoned infrastructure detection (for Sprint 11).
 - [ ] Evaluate PNOA/LiDAR data sources and download APIs (for Sprint 8).
 - [ ] Define abandonment indicators taxonomy (for Sprint 14).
-- [ ] Setup MLflow and DVC tracking experiments and versioning data (for Sprint 4 and Sprint 5).
 
 ## Last Updated
 
-2026-08-11
+2026-09-04

@@ -87,7 +87,9 @@
 - **Claude Code** is the primary implementation agent (coding, refactoring, architecture design, test execution).
 - **Delegation & Handoffs**:
   - Antigravity decides when and how to delegate implementation to Claude Code, selecting the optimal model (`--model haiku` or `--model sonnet`) to minimize token consumption.
-  - **Autonomous execution**: Antigravity can invoke Claude Code programmatically via CLI when automatic execution is desired.
+  - **Autonomous execution**: Antigravity can invoke Claude Code programmatically via CLI using safe execution standards (`claude -p --permission-mode acceptEdits <prompt> < /dev/null`). Antigravity enforces workspace confinement and blocks destructive commands.
+  - **Git Safety Net**: Before invoking autonomous implementation, Antigravity ensures a clean Git state or staging point. After execution, Antigravity verifies `git diff`, ensures only intended files were modified, runs tests, and can revert changes immediately if criteria are not met.
+  - **Failure Handling & Fallback Permission**: If Claude Code fails to execute a delegated task or cannot implement what was requested for any reason (connectivity, environment/sandbox errors, permission denials, etc.), **Antigravity MUST NOT automatically take over the implementation without permission**. Antigravity must stop, explain the failure, and explicitly ask the user for approval before assuming the implementation itself.
   - **Documented handoffs**: Antigravity maintains documented handoff prompts in `docs/prompts/` (with recommended model, exact command, target files, and acceptance criteria), giving the user full visibility and the option to run/inspect tasks in terminal.
 - The user provides high-level goals; Antigravity handles orchestration, handoff preparation, and execution verification seamlessly.
 

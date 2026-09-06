@@ -4,19 +4,19 @@
 
 ## Active Block
 
-BLOCK 0 · Project Scaffolding
+BLOCK 1 · Setup (MVP)
 
 ## Active Sprint
 
-Sprint 0 · Documentation and Agent Setup
+Sprint 1 · Initialisation
 
 ## Completed Sprints
 
-None yet.
+Sprint 0 · Documentation and Agent Setup
 
 ## Current Milestone
 
-Establish the full documentation structure, agent rules, and development methodology so the project is ready to begin **Fase 1: MVP (v1.0)**.
+Establish the project repository structure (Python, pre-commit, DevContainer) and ensure C-dependencies for GDAL/PDAL are properly containerized in Sprint 1.
 
 ## Known Issues
 
@@ -24,4 +24,4 @@ Establish the full documentation structure, agent rules, and development methodo
 
 ## Last Updated
 
-2026-09-02
+2026-09-04

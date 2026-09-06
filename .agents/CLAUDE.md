@@ -26,8 +26,15 @@
 - You will usually be invoked with a specific task or a reference to a prompt in `docs/prompts/`. Read only the files necessary to complete that specific task.
 - If you need architectural context, read `docs/architecture/architecture.md`, but do not load past sprints or research notes.
 
-## Security & Environment
+## Security, Sandbox Confinement & Safe Operations
 
-- **Never** modify the Dev Container, Dockerfiles, or CI/CD pipelines without explicit user approval.
-- **Never** run recursive deletion commands or execute unknown bash scripts.
-- Run tests locally before proposing a commit.
+- **Workspace Confinement**: You are strictly confined to the project root (`/Users/omz/Desktop/TFM_Project`). NEVER attempt to read, edit, or execute commands affecting files, configurations, or directories outside of this workspace.
+- **Protected Files**: NEVER modify or delete `.env`, `.git/`, GitHub workflows, Dev Containers, or Dockerfiles without explicit user approval.
+- **Forbidden Commands**: NEVER run destructive shell commands. Specifically forbidden:
+  - Recursive file deletions (`rm -rf`, `rm -r`)
+  - Destructive Git operations (`git reset --hard`, `git push --force`, `git clean -fd`)
+  - Destructive database commands (`DROP DATABASE`, `TRUNCATE` outside test teardown)
+  - Unknown or external bash scripts
+- **Clean Architecture & Preservation**: When refactoring or updating code, preserve existing functionality, maintain documentation integrity, and ensure all unit tests pass before finishing.
+- **Execution Mode**: Operate under `--permission-mode acceptEdits` to implement code cleanly within the project without destructive escalation.
+
