@@ -1,0 +1,74 @@
+# Write-scope policy for AI agents.
+#
+# Single source of truth for who may change what. Read by agents as reference
+# and, once built, by a staged-diff guard (`guard --role <role>`) that the user
+# or the invoker runs before committing: it fails if the staged files touch a
+# secret, a protected path or a path outside that role's `write` globs.
+# Agents never commit; the user reviews every staged diff and makes every commit.
+
+version: 1
+
+# Never read or written by any agent.
+secrets:
+  include:
+    - ".env"
+    - ".env.*"
+    - "**/*.pem"
+    - "**/*.key"
+    - "**/credentials.json"
+  except:
+    - ".env.example"
+
+# Changed only by the user, or by an agent the user explicitly authorises in an
+# interactive session. Never in a headless run.
+protected:
+  - ".git/**"
+  - ".github/workflows/**"
+  - ".devcontainer/**"
+  - "Dockerfile*"
+  - "docker-compose*.yml"
+  - ".pre-commit-config.yaml"
+  - ".agents/**"
+  - "AGENTS.md"
+  - "docs/tfm/**"
+  # Tool settings directories.
+  - ".claude/**"
+  # Tool-specific instruction files: their presence can stop a tool from
+  # reading AGENTS.md, so none may be created.
+  - "CLAUDE.md"
+  - "CLAUDE.local.md"
+  - "GEMINI.md"
+
+roles:
+  orchestrator:
+    write:
+      - "docs/prompts/**"
+      - "docs/architecture/**"
+      - "docs/project_context.md"
+      - "docs/next_tasks.md"
+      - "docs/experiments/**"
+      - "docs/sprints/**"
+      - "docs/research/**"
+      - "docs/README.md"
+      - "README.md"
+
+  developer:
+    write:
+      - "src/**"
+      - "tests/unit/**"
+      - "tests/conftest.py"
+      - "tests/__init__.py"
+      - "pyproject.toml"
+      - "scripts/**"
+      - ".env.example"
+
+  tester:
+    write:
+      - "tests/acceptance/**"
+
+  documenter:
+    write:
+      - "docs/current_state.md"
+      - "docs/next_tasks.md"
+      - "docs/sprints/**"
+      - "docs/experiments/**"

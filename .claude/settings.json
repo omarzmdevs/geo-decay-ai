@@ -1,10 +1,51 @@
 {
-  "permissionMode": "acceptEdits",
-  "disallowedTools": [
-    "Bash(rm -rf *)",
-    "Bash(rm -r *)",
-    "Bash(git push --force*)",
-    "Bash(git reset --hard*)",
-    "Bash(git clean -f*)"
-  ]
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.local)",
+      "Read(./.env.*.local)",
+      "Read(./.env.development)",
+      "Read(./.env.production)",
+      "Read(./.env.test)",
+      "Read(./**/*.pem)",
+      "Read(./**/*.key)",
+      "Read(./**/credentials.json)",
+      "Edit(./.env)",
+      "Edit(./.env.local)",
+      "Edit(./.env.*.local)",
+      "Edit(./.env.development)",
+      "Edit(./.env.production)",
+      "Edit(./.env.test)",
+      "Edit(./.git/**)",
+      "Edit(./.github/workflows/**)",
+      "Edit(./.devcontainer/**)",
+      "Edit(./Dockerfile*)",
+      "Edit(./docker-compose*.yml)",
+      "Edit(./.pre-commit-config.yaml)",
+      "Edit(./.agents/**)",
+      "Edit(./AGENTS.md)",
+      "Edit(./docs/tfm/**)",
+      "Edit(./.claude/**)",
+      "Edit(./CLAUDE.md)",
+      "Edit(./CLAUDE.local.md)",
+      "Edit(./GEMINI.md)",
+      "Bash(git commit*)",
+      "Bash(git revert*)",
+      "Bash(git push*)",
+      "Bash(git reset --hard*)",
+      "Bash(git clean*)",
+      "Bash(git rebase*)",
+      "Bash(git filter-branch*)",
+      "Bash(git branch -D*)",
+      "Bash(git commit*--no-verify*)",
+      "Bash(rm -r*)",
+      "Bash(rm -fr*)",
+      "Bash(rm -rf*)"
+    ],
+    "defaultMode": "acceptEdits",
+    "allow": []
+  },
+  "sandbox": {
+    "enabled": true
+  }
 }

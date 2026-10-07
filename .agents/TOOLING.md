@@ -1,0 +1,79 @@
+# Tooling
+
+> The **only** file that names concrete tools and models. Everything else refers
+> to roles and tiers. To add or replace a tool, edit this file and that tool's
+> own settings directory.
+
+## Requirements for Any Agent Tool
+
+A tool may fill a role in this repository only if it is configured so that:
+
+1. It reads `AGENTS.md` (natively or through a user-level setting outside the repository) — no instruction file of its own is committed.
+2. It denies reading secrets (`.agents/policy.yaml` → `secrets`), with `.env.example` as the only exception.
+3. It denies writing protected paths (`.agents/policy.yaml` → `protected`).
+4. Shell commands run sandboxed — writes confined to the repository, network limited to an allowlist — or each command is reviewed by the user.
+5. Commands that launch other agents require the user's approval; never auto-approve them.
+6. It never runs with a mode that disables permissions.
+7. No tool-server configuration (e.g. MCP) is committed to the repository.
+8. It cannot commit, revert or discard changes: agents stage with `git add`, and the user makes every commit.
+
+Configuration that lives outside the repository (user-level settings) is the
+user's responsibility; record here only what the repository needs.
+
+## Tier → Model
+
+Use family aliases, not pinned versions, so the mapping survives model releases.
+
+| Tier | Use for | Alias (Claude Code) |
+|---|---|---|
+| `TIER_LIGHT` | Transcription, boilerplate, configuration, simple scripts | `haiku` |
+| `TIER_STANDARD` | Most code and tests, routine handoffs, verification | `sonnet` |
+| `TIER_DEEP` | Sprint planning, architecture, ADRs, hard GIS/CV/ML work | `opus` |
+
+Other tools: map each tier to the model family with equivalent capability.
+
+## Launch Commands (Claude Code)
+
+Claude Code reads `AGENTS.md` natively from v2.1.277 when no `CLAUDE.md`
+exists. Copy the matching command into the handoff's **Launch command** field
+and adjust the allowlist to the task. `dontAsk` denies every tool not
+pre-approved; dry-run a new command on a trivial handoff before relying on it.
+
+**Developer:**
+
+```bash
+claude -p --model sonnet --permission-mode dontAsk \
+  --allowedTools "Read" "Edit" "Write" "Glob" "Grep" \
+    "Bash(pytest *)" "Bash(ruff *)" "Bash(black *)" "Bash(mypy *)" \
+    "Bash(git status*)" "Bash(git diff*)" "Bash(git add *)" \
+  "ROLE: developer. Execute docs/prompts/NNN-short-title.md" < /dev/null
+```
+
+**Tester mode:** same command with
+`"ROLE: developer, tester mode. Execute the acceptance-test part of docs/prompts/NNN-short-title.md"`.
+
+**Documenter:**
+
+```bash
+claude -p --model haiku --permission-mode dontAsk \
+  --allowedTools "Read" "Edit" "Write" "Glob" "Bash(git add docs/*)" "Bash(git log*)" \
+  "ROLE: documenter. Record the verification of docs/prompts/NNN-short-title.md" < /dev/null
+```
+
+Interactive sessions start with the first message `ROLE: <role>`.
+Tasks touching protected paths run only in an interactive session.
+
+## Claude Code Settings — `.claude/settings.json`
+
+Enforces requirements 2–4 and part of 6.
+
+- Only the "nobody touches" list is enforced there. Role scopes are checked by the staged-diff guard, because a deny rule in shared settings would block every role.
+- Deny rules cannot carve exceptions, so `.env` variants are listed one by one to keep `.env.example` readable. Add any new `.env.<name>` file to the list.
+- Bash deny rules match command text only; the sandbox is the OS-level boundary.
+- The sandbox network allowlist starts empty: add package indexes and data domains (PyPI, IGN/CNIG) when Sprint 1 needs them.
+- Infrastructure sprints need the matching deny entries lifted for that session, with the user's approval.
+
+## Pending Verification
+
+- `dontAsk` behaviour in headless runs (dry-run before first real use).
+- Sandbox compatibility with Docker and package installation during Sprint 1.

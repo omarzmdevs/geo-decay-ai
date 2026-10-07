@@ -20,7 +20,16 @@
 - [Experiments](experiments/)
 - [Research](research/)
 
+## Agents
+
+The agent contract lives outside `docs/`, at the repository root:
+
+- `AGENTS.md` — shared rules, roles, task lifecycle, handoff format, security
+- `.agents/roles/` — orchestrator, developer (with tester mode), documenter
+- `.agents/policy.yaml` — secrets, protected paths, write scope per role
+- `.agents/TOOLING.md` — tool requirements, tier → model mapping, launch commands
+
 ## Other
 
-- [Prompts](prompts/)
+- [Prompts & Handoffs](prompts/)
 - [TFM Documents](tfm/)

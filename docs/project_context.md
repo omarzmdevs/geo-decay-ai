@@ -47,8 +47,9 @@ Develop a modular platform capable of automatically detecting, analysing and ass
 ## Repository Structure
 
 ```
-TFM_Project/
-├── .agents/          # AI agent rules (AGENTS.md, ANTIGRAVITY.md, CLAUDE.md)
+geo-decay-ai/
+├── AGENTS.md         # Agent contract: roles, lifecycle, handoffs, security
+├── .agents/          # Role contracts, write-scope policy, tooling
 ├── docs/             # All project documentation (Obsidian vault)
 │   ├── architecture/ # System design, stack, ADRs
 │   ├── experiments/  # ML/GIS experiment logs
