@@ -11,6 +11,7 @@
 
 * PyTorch
 * YOLO11
+* RT-DETR
 * SAM2 (advanced)
 * DINOv2 (advanced)
 

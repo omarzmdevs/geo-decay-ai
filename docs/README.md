@@ -5,6 +5,7 @@
 ## Quick Access
 
 - [Project Context](project_context.md)
+- [Roadmap](roadmap.md) — blocks and sprints; operational source of truth
 - [Current State](current_state.md)
 - [Next Tasks](next_tasks.md)
 

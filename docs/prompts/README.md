@@ -1,9 +1,31 @@
-# Prompts
+# Handoffs
 
-> This directory stores notable prompts used with AI agents during the development of the project. Useful for reproducibility and prompt engineering reference.
+> A handoff is the written specification that moves work from the orchestrator to
+> an implementing role. It is the unit of traceability in this project: what was
+> asked, what was delivered, what ran and whether it was accepted.
+>
+> Format and required fields: `AGENTS.md` → Handoffs. Template:
+> [_template.md](_template.md).
+
+## Naming
+
+`NNN-short-title.md`, numbered sequentially from `001`, never renumbered.
 
 ## Index
 
-<!-- List prompt logs here as they are created -->
-<!-- Example: -->
-<!-- - [Prompt for detection model selection](detection-model-selection.md) -->
+<!-- Add one line per handoff, newest last -->
+<!-- e.g. - [001 · Base pyproject](001-base-pyproject.md) — Sprint 1 — ACCEPTED -->
+
+No handoffs yet: the first ones are written when Sprint 1 is planned.
+
+## Lifecycle
+
+1. The orchestrator writes the handoff; the user commits every handoff of a
+   sprint together, so they are frozen before anything runs.
+2. The implementing role executes it, leaving the work in the working tree.
+3. Whoever launched the task fills `## Run Record`.
+4. The orchestrator verifies independently and fills `## Verification`.
+5. The documenter records the verdict; the user commits the combined diff.
+
+A handoff without acceptance criteria and a verification command must not be
+executed autonomously.

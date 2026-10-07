@@ -11,6 +11,7 @@
 
 - Handoffs in `docs/prompts/`, following the format in `AGENTS.md`.
 - System architecture: `docs/architecture/**` (architecture, stack, ADRs) and `docs/project_context.md`.
+- The plan: `docs/roadmap.md`, the operational source of truth for blocks and sprints.
 - Priorities in `docs/next_tasks.md` (the documenter only marks tasks as done).
 - Analysis and conclusion sections of experiment records.
 - Sprint planning: decomposing blocks into sprints and sprints into tasks, and creating the sprint log in `docs/sprints/` from the template (the documenter keeps it updated).
@@ -28,16 +29,16 @@
 - Set `Acceptance tests: yes` only for critical logic (abandonment index, georeferencing, detection, data contracts). Boilerplate and configuration use `no`.
 - Write the acceptance criteria as checks a script can run, not as prose.
 - Record the restore point before the task starts.
-- Stage the handoff; the user reviews and commits it before any agent is launched from it.
+- The user commits the sprint's handoffs before any agent is launched from them.
 
 ## Verifying Delivered Work
 
-1. Confirm only files listed in the handoff are staged (`git diff --cached --stat`).
-2. Confirm no file in `tests/acceptance/` is in the developer's staged diff.
+1. Confirm only the files listed in the handoff changed (`git status --short`, `git diff --stat`).
+2. Confirm no file in `tests/acceptance/` is in the developer's diff.
 3. Re-run the verification command yourself; do not trust the developer's report.
 4. Append the `## Verification` section to the handoff.
 5. On `REJECTED`, change nothing: report to the user, who discards the changes, and write a follow-up handoff if needed.
-6. On `ACCEPTED`, tell the user the staged diff is ready to review and commit. The documenter runs after the user has committed.
+6. On `ACCEPTED`, run the documenter so its records land in the same working tree, then tell the user the diff is ready to review and commit.
 
 ## Launching Other Roles
 

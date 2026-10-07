@@ -29,8 +29,10 @@
 ## Finishing a Task
 
 1. Run the handoff's verification command and the full quality gate.
-2. Stage only the files named in the handoff with `git add`. Never commit.
-3. End with a short report: proposed commit message, staged files, gate result, deviations from the handoff, open questions.
+2. Leave the work in the working tree. Never stage or commit: the index and
+   `.git/` belong to the user.
+3. End with a short report: proposed commit message, files changed, gate result,
+   deviations from the handoff, open questions.
 
 ## Tester Mode
 
@@ -39,7 +41,7 @@ Used only when the handoff says `Acceptance tests: yes`, in a session separate f
 - Write tests in `tests/acceptance/` from the handoff's acceptance criteria — never from existing code.
 - Tests must fail before implementation; confirm and report the failure.
 - Do not write or edit anything in `src/`.
-- Stage the tests with `git add`; never commit. The user commits them before implementation starts.
+- Leave the tests in the working tree. The user commits them before implementation starts.
 
 ## Protected Paths
 

@@ -4,9 +4,10 @@
 
 ## Index
 
-<!-- List sprint logs here as they are created -->
-<!-- Example: -->
-<!-- - [Sprint 01 · Initialisation](sprint-01-initialisation.md) -->
+- [Sprint 00 · Documentation and Agent Setup](sprint-00-agent-setup.md) — complete
+- [Sprint 01 · Foundations and Quality Gate](sprint-01-foundations.md) — active
+
+The full block and sprint structure is in [roadmap.md](../roadmap.md).
 
 ## Template
 

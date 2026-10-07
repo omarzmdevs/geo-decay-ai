@@ -66,5 +66,6 @@ geo-decay-ai/
 
 - [Architecture](architecture/architecture.md)
 - [Technology Stack](architecture/stack.md)
+- [Roadmap](roadmap.md)
 - [Current State](current_state.md)
 - [Next Tasks](next_tasks.md)

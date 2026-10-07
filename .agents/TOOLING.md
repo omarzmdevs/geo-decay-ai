@@ -15,7 +15,7 @@ A tool may fill a role in this repository only if it is configured so that:
 5. Commands that launch other agents require the user's approval; never auto-approve them.
 6. It never runs with a mode that disables permissions.
 7. No tool-server configuration (e.g. MCP) is committed to the repository.
-8. It cannot commit, revert or discard changes: agents stage with `git add`, and the user makes every commit.
+8. It cannot write to git: agents leave changes in the working tree, and the user stages, commits and pushes. Reading (`status`, `diff`, `log`) is allowed; the index and `.git/` are denied.
 
 Configuration that lives outside the repository (user-level settings) is the
 user's responsibility; record here only what the repository needs.
@@ -45,7 +45,7 @@ pre-approved; dry-run a new command on a trivial handoff before relying on it.
 claude -p --model sonnet --permission-mode dontAsk \
   --allowedTools "Read" "Edit" "Write" "Glob" "Grep" \
     "Bash(pytest *)" "Bash(ruff *)" "Bash(black *)" "Bash(mypy *)" \
-    "Bash(git status*)" "Bash(git diff*)" "Bash(git add *)" \
+    "Bash(git status*)" "Bash(git diff*)" \
   "ROLE: developer. Execute docs/prompts/NNN-short-title.md" < /dev/null
 ```
 
@@ -56,7 +56,7 @@ claude -p --model sonnet --permission-mode dontAsk \
 
 ```bash
 claude -p --model haiku --permission-mode dontAsk \
-  --allowedTools "Read" "Edit" "Write" "Glob" "Bash(git add docs/*)" "Bash(git log*)" \
+  --allowedTools "Read" "Edit" "Write" "Glob" \
   "ROLE: documenter. Record the verification of docs/prompts/NNN-short-title.md" < /dev/null
 ```
 
@@ -67,7 +67,8 @@ Tasks touching protected paths run only in an interactive session.
 
 Enforces requirements 2–4 and part of 6.
 
-- Only the "nobody touches" list is enforced there. Role scopes are checked by the staged-diff guard, because a deny rule in shared settings would block every role.
+- Only the "nobody touches" list is enforced there. Role scopes are checked by the working-tree guard, because a deny rule in shared settings would block every role.
+- `.git/**` is denied for writing, which is what keeps requirement 8 true rather than merely stated. The OS-level sandbox enforces it even for shell commands.
 - Deny rules cannot carve exceptions, so `.env` variants are listed one by one to keep `.env.example` readable. Add any new `.env.<name>` file to the list.
 - Bash deny rules match command text only; the sandbox is the OS-level boundary.
 - The sandbox network allowlist starts empty: add package indexes and data domains (PyPI, IGN/CNIG) when Sprint 1 needs them.

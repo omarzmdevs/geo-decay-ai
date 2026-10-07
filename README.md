@@ -11,6 +11,7 @@ Para el detalle del estado y las próximas tareas, consulta:
 
 - [docs/current_state.md](docs/current_state.md)
 - [docs/next_tasks.md](docs/next_tasks.md)
+- [docs/roadmap.md](docs/roadmap.md)
 - [docs/project_context.md](docs/project_context.md)
 
 ## Idea del proyecto
@@ -31,7 +32,7 @@ El proyecto se desarrolla de forma incremental, comenzando por un producto míni
 
 El desarrollo sigue prácticas cercanas a un entorno de producción:
 
-- **Agentes de IA**: implementación asistida mediante un agente orquestador (planificación, sprints) y un agente de código (implementación, tests), con *handoffs* documentados y verificación de cada cambio.
+- **Agentes de IA**: desarrollo asistido con tres roles —orquestador (planificación, arquitectura, verificación), desarrollador (código y tests, con un modo tester para los tests de aceptación) y documentador (registro de lo verificado)—, con *handoffs* documentados, verificación independiente de cada cambio y revisión humana antes de cada commit.
 - **MLOps**: seguimiento de experimentos y versionado de datos desde el inicio, no como añadido posterior.
 - **Calidad automatizada**: linting, tipado y tests integrados vía *pre-commit* e integración continua.
 - **Trazabilidad**: decisiones técnicas como ADRs y experimentos documentados en [docs/experiments/](docs/experiments/).
@@ -69,7 +70,7 @@ The system computes an **abandonment index**: a composite score estimating the l
 
 Development follows production-grade practices:
 
-- **AI-assisted development**: implementation combines an orchestration agent (planning, sprints) and a code agent (implementation, tests), with documented handoffs and verification of each change.
+- **AI-assisted development**: three agent roles — orchestrator (planning, architecture, verification), developer (code and tests, with a tester mode for acceptance tests) and documenter (recording verified results) — with documented handoffs, independent verification of every change and human review before every commit.
 - **MLOps from day one**: experiment tracking and data versioning from the start, not as an afterthought.
 - **Automated quality**: linting, type checking and tests integrated via pre-commit hooks and CI/CD.
 - **Full traceability**: architectural decisions documented as ADRs and experiments logged in [docs/experiments/](docs/experiments/).

@@ -22,6 +22,11 @@
 
 <!-- What must be working at the end of this sprint? -->
 
+## Handoffs Executed
+
+<!-- List the handoffs run during this sprint, with their verdicts -->
+<!-- e.g. - [001 · Base pyproject](../prompts/001-base-pyproject.md) — ACCEPTED -->
+
 ## Notes
 
 <!-- Any relevant observations, issues encountered, or deviations from the plan -->

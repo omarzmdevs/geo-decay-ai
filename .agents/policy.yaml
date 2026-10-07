@@ -1,10 +1,10 @@
 # Write-scope policy for AI agents.
 #
 # Single source of truth for who may change what. Read by agents as reference
-# and, once built, by a staged-diff guard (`guard --role <role>`) that the user
-# or the invoker runs before committing: it fails if the staged files touch a
-# secret, a protected path or a path outside that role's `write` globs.
-# Agents never commit; the user reviews every staged diff and makes every commit.
+# and, once built, by a working-tree guard (`guard --role <role>`) that the user
+# runs before staging: it fails if the changed files touch a secret, a protected
+# path or a path outside that role's `write` globs.
+# Agents never write to git; the user stages, reviews and commits everything.
 
 version: 1
 
@@ -44,6 +44,7 @@ roles:
     write:
       - "docs/prompts/**"
       - "docs/architecture/**"
+      - "docs/roadmap.md"
       - "docs/project_context.md"
       - "docs/next_tasks.md"
       - "docs/experiments/**"
@@ -61,6 +62,12 @@ roles:
       - "pyproject.toml"
       - "scripts/**"
       - ".env.example"
+      # MLOps artefacts (Block 2): pipelines and tracked-data placeholders.
+      - "dvc.yaml"
+      - "dvc.lock"
+      - ".dvc/**"
+      - "data/**/.gitkeep"
+      - "models/**/.gitkeep"
 
   tester:
     write:
