@@ -60,6 +60,10 @@ roles:
       - "tests/conftest.py"
       - "tests/__init__.py"
       - "pyproject.toml"
+      - "uv.lock"
+      - ".python-version"
+      - ".dockerignore"
+      - "tests/acceptance/.gitkeep"
       - "scripts/**"
       - ".env.example"
       # MLOps artefacts (Block 2): pipelines and tracked-data placeholders.

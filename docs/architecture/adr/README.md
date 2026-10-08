@@ -6,12 +6,12 @@
 
 - [ADR-001 · Agent Governance Model](adr-001-agent-governance.md) — Accepted
 - [ADR-002 · Operational Roadmap and Block 1 Composition](adr-002-operational-roadmap.md) — Accepted
+- [ADR-003 · `src/` Layout and Layer Boundaries](adr-003-src-layout-and-layer-boundaries.md) — Accepted
+- [ADR-005 · Dependency and Environment Manager](adr-005-dependency-and-environment-manager.md) — Accepted
 
-Pending, required before Sprint 1 starts:
+Pending:
 
-- ADR-003 · `src/` layout and layer boundaries
-- ADR-004 · CRS, tiling and data contracts
-- ADR-005 · Dependency and environment manager
+- ADR-004 · CRS, tiling and data contracts — required before the GIS core (Block 3)
 
 ## Naming Convention
 

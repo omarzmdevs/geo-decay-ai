@@ -19,6 +19,13 @@ Four layers, kept independent so that business logic never depends on delivery:
 | **Application** | Detection, indicator extraction, assessment and report generation, orchestrating domain and data. |
 | **Delivery** | FastAPI, the React + MapLibre frontend and the CLI. Interchangeable. |
 
+Each layer is a top-level package under `src/` (`geo_decay_domain`,
+`geo_decay_data`, `geo_decay_application`, `geo_decay_delivery`). Ports are
+defined in the domain; the application uses them and the data layer implements
+them, so application and data never import each other. Delivery is the
+composition root. import-linter enforces these rules in the quality gate
+([ADR-003](adr/adr-003-src-layout-and-layer-boundaries.md)).
+
 MLflow and DVC sit alongside the pipeline rather than inside it: they record
 experiments and version data and artefacts without the pipeline depending on
 them. The build order of these layers is the block order in
@@ -90,14 +97,16 @@ Recorded:
   tiers, security layers.
 - [ADR-002](adr/adr-002-operational-roadmap.md) — operational roadmap and the
   composition of Block 1.
+- [ADR-003](adr/adr-003-src-layout-and-layer-boundaries.md) — `src/` layout and
+  the enforced boundaries between the four layers above.
+- [ADR-005](adr/adr-005-dependency-and-environment-manager.md) — uv, Python
+  3.12 and the quality-gate tooling.
 
-Pending, and required before Sprint 1 writes code:
+Pending:
 
-- **ADR-003** — `src/` layout and the enforced boundaries between the four layers
-  above.
 - **ADR-004** — coordinate reference system, tile size and the data contracts
-  between pipeline stages. The decision most expensive to change later.
-- **ADR-005** — dependency and environment manager.
+  between pipeline stages. The decision most expensive to change later;
+  required before the GIS core (Block 3).
 
 ## Deployment Architecture
 

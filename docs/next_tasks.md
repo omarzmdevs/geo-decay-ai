@@ -8,18 +8,25 @@
 
 - [ ] **Sprint 1 · Foundations and Quality Gate** (Block 1) — folder structure,
   Python environment, `pyproject.toml`, Docker, Docker Compose, DevContainer with
-  GDAL/PDAL; Ruff, Black, strict MyPy, Pytest, pre-commit; `tests/unit/` and
-  `tests/acceptance/`; `scripts/policy_guard.py` with its tests and hook.
+  GDAL/PDAL; Ruff (lint and format), strict MyPy, import-linter, Pytest,
+  pre-commit; `tests/unit/` and `tests/acceptance/`; `scripts/policy_guard.py`
+  with its tests and hook.
   See [sprint-01-foundations.md](sprints/sprint-01-foundations.md).
 
 ## Blocked On
 
-These decisions must be recorded before Sprint 1 starts, because the sprint
-creates `pyproject.toml` and the folder structure and the orchestrator owns
-system-level architecture:
+Sprint 1 handoffs 001–004 are written (`docs/prompts/`). They assume these
+protected-path changes required by ADR-005, which the user applies before
+committing the handoffs and launching any of them:
 
-- [ ] **ADR-003** — `src/` layout and layer boundaries.
-- [ ] **ADR-005** — dependency and environment manager.
+- [ ] `AGENTS.md`, `.agents/roles/developer.md` — Black replaced by Ruff format;
+  import-linter added to the gate.
+- [ ] `.agents/TOOLING.md` — developer launch allowlist uses `Bash(uv run *)`.
+- [ ] `.agents/policy.yaml` — developer scope gains `uv.lock`, `.python-version`,
+  `tests/acceptance/.gitkeep`.
+- [ ] `.claude/settings.json` — sandbox network allowlist for PyPI and Python
+  downloads; infrastructure deny entries lifted for Sprint 1's interactive session.
+- [ ] uv installed on the host.
 
 ## Next Up
 
@@ -34,9 +41,9 @@ system-level architecture:
 
 Tracked findings from the project review, deferred with their identifiers:
 
-- [ ] **E6 / E5 · ADR-003 and ADR-004** — `src/` layout and layer boundaries;
-  CRS, tiling and data contracts. ADR-003 blocks Sprint 1.
-- [ ] **E5 · ADR-005** — dependency manager. Blocks Sprint 1.
+- [x] **E6 · ADR-003** — `src/` layout and layer boundaries (2026-10-08).
+- [ ] **E5 · ADR-004** — CRS, tiling and data contracts. Required before Block 3.
+- [x] **E5 · ADR-005** — dependency manager (2026-10-08).
 - [ ] **E1 · Write-scope enforcement** — `scripts/policy_guard.py` validating the
   working-tree diff against `.agents/policy.yaml`, plus its pre-commit hook. Until it
   exists, role scopes rely on review alone. Scheduled in Sprint 1.
@@ -55,4 +62,4 @@ Tracked findings from the project review, deferred with their identifiers:
 
 ## Last Updated
 
-2026-10-07
+2026-10-08

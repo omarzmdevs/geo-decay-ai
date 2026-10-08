@@ -4,7 +4,8 @@
 
 ## Backend
 
-* Python
+* Python 3.12
+* uv (dependencies, environment, lockfile)
 * FastAPI
 
 ## AI / ML
@@ -41,11 +42,13 @@
 
 ## Code Quality
 
-* Ruff
-* Black
-* MyPy
+* Ruff (linting and formatting)
+* MyPy (strict)
+* import-linter (layer boundaries)
 * Pytest
 * pre-commit
+
+See [ADR-005](adr/adr-005-dependency-and-environment-manager.md).
 
 ## CI/CD
 

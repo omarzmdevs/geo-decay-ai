@@ -44,10 +44,14 @@ pre-approved; dry-run a new command on a trivial handoff before relying on it.
 ```bash
 claude -p --model sonnet --permission-mode dontAsk \
   --allowedTools "Read" "Edit" "Write" "Glob" "Grep" \
-    "Bash(pytest *)" "Bash(ruff *)" "Bash(black *)" "Bash(mypy *)" \
+    "Bash(uv run *)" \
     "Bash(git status*)" "Bash(git diff*)" \
   "ROLE: developer. Execute docs/prompts/NNN-short-title.md" < /dev/null
 ```
+
+Every gate tool runs through `uv run`, so it uses the version locked in `uv.lock`
+(ADR-005). Add `"Bash(uv sync*)"` and `"Bash(uv lock*)"` only when the handoff
+changes dependencies.
 
 **Tester mode:** same command with
 `"ROLE: developer, tester mode. Execute the acceptance-test part of docs/prompts/NNN-short-title.md"`.
@@ -71,7 +75,7 @@ Enforces requirements 2–4 and part of 6.
 - `.git/**` is denied for writing, which is what keeps requirement 8 true rather than merely stated. The OS-level sandbox enforces it even for shell commands.
 - Deny rules cannot carve exceptions, so `.env` variants are listed one by one to keep `.env.example` readable. Add any new `.env.<name>` file to the list.
 - Bash deny rules match command text only; the sandbox is the OS-level boundary.
-- The sandbox network allowlist starts empty: add package indexes and data domains (PyPI, IGN/CNIG) when Sprint 1 needs them.
+- The sandbox network allowlist (`sandbox.network.allowedDomains`) holds only what uv needs: `pypi.org` and `files.pythonhosted.org` for packages; `github.com`, `objects.githubusercontent.com` and `release-assets.githubusercontent.com` for the Python builds uv downloads. Data domains (IGN/CNIG) are added by the sprint that downloads data.
 - Infrastructure sprints need the matching deny entries lifted for that session, with the user's approval.
 
 ## Pending Verification

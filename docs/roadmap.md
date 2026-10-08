@@ -45,9 +45,9 @@ quality gate that every later sprint depends on.
 **Deliverable.** A project that runs with no business logic, whose every commit
 is validated automatically and whose write scopes are enforced.
 
-Scope: folder structure, Python environment, `pyproject.toml`, Docker, Docker
-Compose, DevContainer with GDAL/PDAL at system level; Ruff, Black, strict MyPy,
-Pytest, pre-commit; `tests/unit/` and `tests/acceptance/`;
+Scope: folder structure (ADR-003), Python environment with uv (ADR-005),
+`pyproject.toml`, Docker, Docker Compose, DevContainer with GDAL/PDAL at system
+level; Ruff (lint and format), strict MyPy, import-linter, Pytest, pre-commit; `tests/unit/` and `tests/acceptance/`;
 `scripts/policy_guard.py` with its tests and its hook.
 
 ## Sprint 2 · Runtime Foundations

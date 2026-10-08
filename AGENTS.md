@@ -128,7 +128,7 @@ The final barrier is the user's review of every diff before committing.
 ## Code Quality
 
 - Clean Architecture and SOLID: business logic (ML/GIS) stays independent of delivery (FastAPI, CLI).
-- Ruff, Black, MyPy (strict) and Pytest must pass before an agent reports a task finished; pre-commit enforces it when the user commits.
+- The quality gate must pass before an agent reports a task finished: Ruff (lint and format), MyPy (strict), import-linter (layer contracts) and Pytest, each run through `uv run` (ADR-005). Pre-commit enforces it when the user commits.
 - Each task is one atomic change; the agent proposes a meaningful commit message in its report.
 
 ---
