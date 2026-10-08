@@ -16,7 +16,10 @@
 <!-- Add one line per handoff, newest last -->
 <!-- e.g. - [001 · Base pyproject](001-base-pyproject.md) — Sprint 1 — ACCEPTED -->
 
-No handoffs yet: the first ones are written when Sprint 1 is planned.
+- [001 · Project skeleton and quality gate](001-project-skeleton-and-gate.md) — Sprint 1 — pending
+- [002 · Container image and DevContainer](002-container-and-devcontainer.md) — Sprint 1 — pending
+- [003 · Write-scope policy guard](003-policy-guard.md) — Sprint 1 — pending
+- [004 · Pre-commit quality gate](004-pre-commit-gate.md) — Sprint 1 — pending
 
 ## Lifecycle
 
