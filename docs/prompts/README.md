@@ -20,7 +20,7 @@
 - [002 · Container image and DevContainer](002-container-and-devcontainer.md) — Sprint 1 — pending
 - [003 · Write-scope policy guard](003-policy-guard.md) — Sprint 1 — pending
 - [004 · Pre-commit quality gate](004-pre-commit-gate.md) — Sprint 1 — pending
-- [005 · Restrict Ruff to Python files](005-ruff-python-only.md) — Sprint 1 — pending
+- [005 · Restrict Ruff to Python files](005-ruff-python-only.md) — Sprint 1 — ACCEPTED
 
 ## Lifecycle
 
