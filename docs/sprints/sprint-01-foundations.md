@@ -37,12 +37,15 @@ headless run.
 
 ## Tasks
 
-Execution order: 001 → 002 → 003 (tester mode, user commit, implementation) → 004.
+Execution order: 001 → 005 → 002 → 003 (tester mode, user commit, implementation) → 004.
+005 runs before any other developer task, so that no developer can rewrite Markdown with `ruff format .`.
 
-- [ ] [001](../prompts/001-project-skeleton-and-gate.md) — base `pyproject.toml`
+- [x] [001](../prompts/001-project-skeleton-and-gate.md) — base `pyproject.toml`
       (hatchling, four packages, `dev` group, Ruff/MyPy/import-linter/Pytest
       configuration), `uv.lock`, `.python-version` and the ADR-003 directory
       structure. Headless.
+- [ ] [005](../prompts/005-ruff-python-only.md) — restrict Ruff to Python
+      files; Ruff 0.16 also formats Markdown, protected paths included. Headless.
 - [ ] [002](../prompts/002-container-and-devcontainer.md) — `Dockerfile`,
       `docker-compose.yml` and DevContainer with GDAL and PDAL at system level.
       Interactive.
@@ -64,7 +67,7 @@ automatically, and whose write scopes are enforced rather than merely documented
 
 ## Handoffs Executed
 
-<!-- List the handoffs run during this sprint -->
+- [001 · Project skeleton and quality gate](../prompts/001-project-skeleton-and-gate.md) — ACCEPTED — 2026-10-08
 
 ## Notes
 
@@ -86,7 +89,7 @@ automatically, and whose write scopes are enforced rather than merely documented
 
 ## Date Started
 
-<!-- YYYY-MM-DD -->
+2026-10-08
 
 ## Date Completed
 

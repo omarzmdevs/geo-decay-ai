@@ -8,7 +8,7 @@ Block 1 · Architecture and Infrastructure ([roadmap.md](roadmap.md))
 
 ## Active Sprint
 
-Sprint 1 · Foundations and Quality Gate — not started
+Sprint 1 · Foundations and Quality Gate — in progress (handoff 001 accepted)
 
 ## Completed Sprints
 
@@ -17,7 +17,7 @@ Sprint 0 · Documentation and Agent Setup ([log](sprints/sprint-00-agent-setup.m
 ## Current Milestone
 
 Deliver Sprint 1: project skeleton, containerised environment with GDAL/PDAL, and
-the automated quality gate (Ruff, Black, strict MyPy, Pytest, pre-commit) together
+the automated quality gate (Ruff lint and format, strict MyPy, import-linter, Pytest, pre-commit) together
 with the write-scope guard, so that every later sprint starts from an enforced
 baseline.
 
@@ -32,12 +32,10 @@ See [ADR-001](architecture/adr/adr-001-agent-governance.md) and
 
 ## Known Issues
 
-- `src/`, `tests/` and `scripts/` do not exist yet — created in Sprint 1.
+- `scripts/` does not exist yet — created by handoff 003.
 - Write scopes are not enforced yet: `scripts/policy_guard.py` is a Sprint 1
   deliverable. Until then, role boundaries depend on review.
-- ADR-003 (`src/` layout) and ADR-005 (dependency manager) must be recorded
-  before Sprint 1 starts.
 
 ## Last Updated
 
-2026-10-07
+2026-10-08

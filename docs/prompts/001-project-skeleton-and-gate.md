@@ -126,13 +126,44 @@ claude -p --model sonnet --permission-mode dontAsk \
 
 ## Run Record
 
-Date:
-Tool and model:
-Outcome:
+Date: 2026-10-08
+Tool and model: Claude Code sub-agent (`sonnet`) launched from the orchestrator's
+interactive session at the user's request, instead of the headless `claude -p`
+command above. The sub-agent inherited the session's permissions, deny rules and
+sandbox, not the narrowed allowlist.
+Restore point: c607120
+Outcome: completed
 
 ## Verification
 
-Verdict:
-Files changed:
-Gate:
+Verdict: ACCEPTED
+Files changed: `.python-version`, `pyproject.toml`, `uv.lock`, the four
+`src/geo_decay_*/__init__.py` and `py.typed`, `src/geo_decay_delivery/{api,cli}/__init__.py`,
+`tests/unit/test_packages.py`, `tests/acceptance/.gitkeep`. Exactly the listed
+files. There is no `tests/__init__.py`; with `--import-mode=importlib` it is not
+needed.
+Gate: verification command re-run by the orchestrator, exit 0. lint-imports
+reports `4 kept, 0 broken`, mypy covers 7 source files with no issues, and
+pytest passes 4 tests. Resolved: Python 3.12.13 (Homebrew interpreter, not a uv
+download), ruff 0.16.10, mypy 2.4.0, import-linter 2.15, pytest 9.1.1,
+pre-commit 4.6.2.
 Notes:
+- **Corrected at review.** The first `description` in `pyproject.toml:4` read
+  "agricultural land abandonment", which contradicts `docs/project_context.md`.
+  At the user's request, a developer sub-agent replaced it with "Detection and
+  assessment of potentially abandoned infrastructure from PNOA orthophotos,
+  LiDAR and AI." `uv.lock` is unchanged, and the orchestrator re-ran the gate
+  with exit 0.
+- **Restored before commit.** `tests/unit/test_packages.py` was deleted from the
+  working tree after verification by someone other than the agents of this
+  task, and `pytest` then exited with code 5. A developer sub-agent restored it
+  byte for byte as verified, and the orchestrator re-ran the gate with exit 0
+  (2026-10-11).
+- **Follow-up.** This Ruff version also formats Markdown: `ruff format --check .`
+  counts 42 files, including `docs/` and `AGENTS.md`. Running `ruff format .`
+  would rewrite protected paths such as `AGENTS.md`, `.agents/` and `docs/tfm/`.
+  Restrict Ruff to Python files before handoff 004 wires the commit hook.
+- The `independence` contract overlaps with the `layers` contract, where
+  application and data are siblings. It is kept because ADR-003 states both
+  contracts explicitly.
+- `UV_CACHE_DIR` must point inside `$TMPDIR` when uv runs in the sandbox.

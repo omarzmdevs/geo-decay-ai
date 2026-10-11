@@ -15,18 +15,20 @@
 
 ## Blocked On
 
-Sprint 1 handoffs 001–004 are written (`docs/prompts/`). They assume these
-protected-path changes required by ADR-005, which the user applies before
-committing the handoffs and launching any of them:
+Sprint 1 handoffs 001–004 are written (`docs/prompts/`). The ADR-005
+protected-path changes were applied and uv installed on 2026-10-08. Only the
+per-session lift for the interactive handoffs remains open.
 
-- [ ] `AGENTS.md`, `.agents/roles/developer.md` — Black replaced by Ruff format;
+- [x] `AGENTS.md`, `.agents/roles/developer.md` — Black replaced by Ruff format;
   import-linter added to the gate.
-- [ ] `.agents/TOOLING.md` — developer launch allowlist uses `Bash(uv run *)`.
-- [ ] `.agents/policy.yaml` — developer scope gains `uv.lock`, `.python-version`,
+- [x] `.agents/TOOLING.md` — developer launch allowlist uses `Bash(uv run *)`.
+- [x] `.agents/policy.yaml` — developer scope gains `uv.lock`, `.python-version`,
   `tests/acceptance/.gitkeep`.
-- [ ] `.claude/settings.json` — sandbox network allowlist for PyPI and Python
-  downloads; infrastructure deny entries lifted for Sprint 1's interactive session.
-- [ ] uv installed on the host.
+- [x] `.claude/settings.json` — sandbox network allowlist for PyPI and Python
+  downloads.
+- [ ] Infrastructure deny entries lifted for the interactive session of
+  handoffs 002 and 004 (per session, not in the shared settings).
+- [x] uv installed on the host.
 
 ## Next Up
 
