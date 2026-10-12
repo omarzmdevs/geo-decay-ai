@@ -12,6 +12,8 @@ dev = [
     "import-linter",
     "pytest",
     "pre-commit",
+    "pyyaml",
+    "types-PyYAML",
 ]
 
 [build-system]
@@ -39,7 +41,8 @@ ban-relative-imports = "all"
 [tool.mypy]
 strict = true
 python_version = "3.12"
-files = ["src", "tests"]
+explicit_package_bases = true
+files = ["src", "tests", "scripts"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

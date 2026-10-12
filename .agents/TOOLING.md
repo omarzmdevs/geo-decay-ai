@@ -39,14 +39,18 @@ exists. Copy the matching command into the handoff's **Launch command** field
 and adjust the allowlist to the task. `dontAsk` denies every tool not
 pre-approved; dry-run a new command on a trivial handoff before relying on it.
 
+The prompt goes right after `-p`, before any flag. `--allowedTools` takes a
+variable number of values, so a prompt placed after it is parsed as one more
+tool name and the run aborts with "Input must be provided".
+
 **Developer:**
 
 ```bash
-claude -p --model sonnet --permission-mode dontAsk \
+claude -p "ROLE: developer. Execute docs/prompts/NNN-short-title.md" \
+  --model sonnet --permission-mode dontAsk \
   --allowedTools "Read" "Edit" "Write" "Glob" "Grep" \
     "Bash(uv run *)" \
-    "Bash(git status*)" "Bash(git diff*)" \
-  "ROLE: developer. Execute docs/prompts/NNN-short-title.md" < /dev/null
+    "Bash(git status*)" "Bash(git diff*)" < /dev/null
 ```
 
 Every gate tool runs through `uv run`, so it uses the version locked in `uv.lock`
@@ -59,9 +63,9 @@ changes dependencies.
 **Documenter:**
 
 ```bash
-claude -p --model haiku --permission-mode dontAsk \
-  --allowedTools "Read" "Edit" "Write" "Glob" \
-  "ROLE: documenter. Record the verification of docs/prompts/NNN-short-title.md" < /dev/null
+claude -p "ROLE: documenter. Record the verification of docs/prompts/NNN-short-title.md" \
+  --model haiku --permission-mode dontAsk \
+  --allowedTools "Read" "Edit" "Write" "Glob" < /dev/null
 ```
 
 Interactive sessions start with the first message `ROLE: <role>`.
@@ -82,3 +86,8 @@ Enforces requirements 2–4 and part of 6.
 
 - `dontAsk` behaviour in headless runs (dry-run before first real use).
 - Sandbox compatibility with Docker and package installation during Sprint 1.
+- uv cache inside the sandbox: a sandboxed session may be denied uv's default
+  cache directory. Workaround observed in handoff 003 (tester mode, 2026-10-12):
+  `uv run --offline --cache-dir "$TMPDIR/uv-cache" …`, which leaves the
+  repository untouched. A permanent fix (e.g. `UV_CACHE_DIR` in the tool
+  settings) is the user's decision.

@@ -163,25 +163,27 @@ git diff --quiet HEAD -- tests/acceptance \
 Tester mode, headless:
 
 ```bash
-claude -p --model sonnet --permission-mode dontAsk \
+claude -p "ROLE: developer, tester mode. Execute the acceptance-test part of docs/prompts/003-policy-guard.md" \
+  --model sonnet --permission-mode dontAsk \
   --allowedTools "Read" "Edit" "Write" "Glob" "Grep" "Bash(uv run *)" \
-    "Bash(git status*)" "Bash(git diff*)" \
-  "ROLE: developer, tester mode. Execute the acceptance-test part of docs/prompts/003-policy-guard.md" < /dev/null
+    "Bash(git status*)" "Bash(git diff*)" < /dev/null
 ```
 
 Implementation, headless, after the user commits the failing tests:
 
 ```bash
-claude -p --model sonnet --permission-mode dontAsk \
+claude -p "ROLE: developer. Execute docs/prompts/003-policy-guard.md" \
+  --model sonnet --permission-mode dontAsk \
   --allowedTools "Read" "Edit" "Write" "Glob" "Grep" \
     "Bash(uv lock*)" "Bash(uv sync*)" "Bash(uv run *)" "Bash(mkdir *)" \
-    "Bash(git status*)" "Bash(git diff*)" \
-  "ROLE: developer. Execute docs/prompts/003-policy-guard.md" < /dev/null
+    "Bash(git status*)" "Bash(git diff*)" < /dev/null
 ```
 
 ## Restore Point
 
 <!-- Filled by whoever launches: `git rev-parse HEAD` right before launch -->
+
+Tester mode: 80522d2
 
 ## Follow-ups for the User (protected paths)
 
@@ -194,13 +196,34 @@ Once this handoff is accepted:
 
 ## Run Record
 
-Date:
-Tool and model:
-Outcome:
+Date: 2026-10-12
+Tool and model: Claude Code headless, `claude -p --model sonnet` (tester mode, then
+implementation), launched from an interactive orchestrator session with
+`UV_CACHE_DIR="$TMPDIR/uv-cache"`. The prompt was moved before `--allowedTools`
+(see `.agents/TOOLING.md`). The nested sessions could not start their own
+sandbox and ran their allowlisted commands unsandboxed.
+Outcome: completed
 
 ## Verification
 
-Verdict:
-Files changed:
-Gate:
+Verdict: ACCEPTED (experimental run; criteria 1, 2 and 5 not verifiable)
+Files changed: `scripts/policy_guard.py`, `tests/unit/scripts/test_policy_guard.py`,
+`pyproject.toml`, `uv.lock`; tester: `tests/acceptance/test_policy_guard.py`.
+Gate: `uv sync --locked`, ruff check, ruff format --check, mypy (10 files, incl.
+`scripts/`), lint-imports (4 kept) and pytest (76 passed, 38 acceptance) all pass;
+the three guard checks against the real policy report `SECRET`, `PROTECTED` and
+`OUT_OF_SCOPE` as required.
 Notes:
+- The user authorised an experimental run on a dirty tree with the acceptance
+  tests uncommitted. Criterion 1 (red commit) does not exist; the tests were seen
+  failing (38/38) before implementation, but not committed. Criterion 2 was
+  replaced by a SHA-256 check of the test file, unchanged by the implementation.
+  Criterion 5: `--role developer` on the tree flags only the files outside the
+  developer scope (`.agents/TOOLING.md`, `.claude/settings.json`, this handoff,
+  the acceptance test); every implementation path is in scope.
+- Deviation: `explicit_package_bases = true` added to `[tool.mypy]`, required
+  because the unit and acceptance test modules share a basename.
+- `--role` with `--secrets-only` is rejected by argparse (exit 2); the spec left it open.
+- Follow-ups for the user: protect `scripts/policy_guard.py` (tool deny list,
+  optionally `protected` in `.agents/policy.yaml`); a permanent uv cache fix for
+  sandboxed sessions.

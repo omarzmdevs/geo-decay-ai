@@ -38,6 +38,7 @@ protected:
   - "CLAUDE.md"
   - "CLAUDE.local.md"
   - "GEMINI.md"
+  - "scripts/policy_guard.py"
 
 roles:
   orchestrator:
