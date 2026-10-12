@@ -88,6 +88,8 @@ Interactive session only. First message:
 
 <!-- Filled by whoever launches: `git rev-parse HEAD` right before launch -->
 
+0c9b8a7
+
 ## Follow-up for the User
 
 After acceptance and commit: `uv run pre-commit install`.
@@ -96,13 +98,25 @@ After acceptance and commit: `uv run pre-commit install`.
 
 ## Run Record
 
-Date:
-Tool and model:
-Outcome:
+Date: 2026-10-12
+Tool and model: Claude Code, in-process developer subagent (`haiku`, matching
+`TIER_LIGHT`) launched from the interactive orchestrator session, with the user's
+authorisation for the protected file and the deny entry lifted for the session.
+Outcome: completed
 
 ## Verification
 
-Verdict:
-Files changed:
-Gate:
+Verdict: ACCEPTED
+Files changed: `.pre-commit-config.yaml` (new). `.claude/settings.json` also shows
+as modified: the user's temporary lift of the deny entry, not part of this task.
+Gate: `pre-commit validate-config` passes; one `repo: local` block, every entry
+starts with `uv run`; the six hook ids are present; `pre-commit run --all-files`
+passes all six hooks (ruff check, ruff format --check, mypy, import-linter,
+pytest, policy guard secrets).
 Notes:
+- Run with `UV_CACHE_DIR="$TMPDIR/uv-cache"` and `--offline` because of the sandbox
+  (see `.agents/TOOLING.md` → Pending Verification).
+- Launched as a subagent of the orchestrator session, not as a separate
+  interactive session; verification was run independently by the orchestrator.
+- Follow-ups for the user: restore the `Edit(./.pre-commit-config.yaml)` deny
+  entry, commit, then run `uv run pre-commit install`.

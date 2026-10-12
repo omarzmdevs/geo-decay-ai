@@ -1,0 +1,47 @@
+# Pre-commit quality gate (ADR-005). Every hook runs through `uv run` so the
+# tool versions come from uv.lock alone. Remote hook repositories are not used.
+# Install once with: uv run pre-commit install
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: uv run ruff check .
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: ruff-format
+        name: ruff format --check
+        entry: uv run ruff format --check .
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: mypy
+        name: mypy (strict)
+        entry: uv run mypy
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: lint-imports
+        name: import-linter
+        entry: uv run lint-imports
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: pytest
+        name: pytest
+        entry: uv run pytest
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: policy-guard-secrets
+        name: policy guard (secrets)
+        entry: uv run python scripts/policy_guard.py --secrets-only
+        language: system
+        pass_filenames: true
+        always_run: true
