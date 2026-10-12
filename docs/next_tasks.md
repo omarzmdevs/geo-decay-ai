@@ -49,6 +49,7 @@ Tracked findings from the project review, deferred with their identifiers:
 - [ ] **E1 · Write-scope enforcement** — `scripts/policy_guard.py` validating the
   working-tree diff against `.agents/policy.yaml`, plus its pre-commit hook. Until it
   exists, role scopes rely on review alone. Scheduled in Sprint 1.
+  Guard done (handoff 003, ACCEPTED 2026-10-12); pre-commit hook pending (handoff 004).
 - [ ] **W2 · Secret pattern drift** — the guard must validate the full `.env.*`
   glob; the tool deny list enumerates variants one by one and can fall behind.
 - [ ] **W3 · Permission coverage** — verify empirically whether `Edit(...)` deny
@@ -64,4 +65,4 @@ Tracked findings from the project review, deferred with their identifiers:
 
 ## Last Updated
 
-2026-10-08
+2026-10-12

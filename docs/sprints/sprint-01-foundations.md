@@ -49,11 +49,11 @@ Execution order: 001 → 005 → 002 → 003 (tester mode, user commit, implemen
 - [ ] [002](../prompts/002-container-and-devcontainer.md) — `Dockerfile`,
       `docker-compose.yml` and DevContainer with GDAL and PDAL at system level.
       Interactive.
-- [ ] [003](../prompts/003-policy-guard.md) — `scripts/policy_guard.py` with
+- [x] [003](../prompts/003-policy-guard.md) — `scripts/policy_guard.py` with
       acceptance and unit tests. Headless (tester mode, then implementation).
 - [ ] [004](../prompts/004-pre-commit-gate.md) — `.pre-commit-config.yaml`
       with the full gate and the secret check. Interactive.
-- [ ] User: add `scripts/policy_guard.py` to the tool deny list once 003 is
+- [x] User: add `scripts/policy_guard.py` to the tool deny list once 003 is
       accepted, so no agent can modify its own guard.
 - [ ] Orchestrator: verify the agent environment inside the container. That
       means checking that the most restrictive headless permission mode behaves
@@ -69,6 +69,7 @@ automatically, and whose write scopes are enforced rather than merely documented
 
 - [001 · Project skeleton and quality gate](../prompts/001-project-skeleton-and-gate.md) — ACCEPTED — 2026-10-08
 - [005 · Restrict Ruff to Python files](../prompts/005-ruff-python-only.md) — ACCEPTED — 2026-10-11
+- [003 · Write-scope policy guard](../prompts/003-policy-guard.md) — ACCEPTED (experimental run; criteria 1, 2 and 5 not verifiable as written) — 2026-10-12
 
 ## Notes
 

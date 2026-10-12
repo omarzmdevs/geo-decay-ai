@@ -8,7 +8,7 @@ Block 1 · Architecture and Infrastructure ([roadmap.md](roadmap.md))
 
 ## Active Sprint
 
-Sprint 1 · Foundations and Quality Gate — in progress (handoff 001 accepted)
+Sprint 1 · Foundations and Quality Gate — in progress (handoffs 001, 003 and 005 accepted; 002 and 004 pending)
 
 ## Completed Sprints
 
@@ -32,10 +32,12 @@ See [ADR-001](architecture/adr/adr-001-agent-governance.md) and
 
 ## Known Issues
 
-- `scripts/` does not exist yet — created by handoff 003.
-- Write scopes are not enforced yet: `scripts/policy_guard.py` is a Sprint 1
-  deliverable. Until then, role boundaries depend on review.
+- Write-scope guard exists (`scripts/policy_guard.py`, handoff 003 ACCEPTED,
+  2026-10-12), but it is not yet wired into the commit hook: the pre-commit
+  hook is handoff 004, pending. Until then, role boundaries depend on review.
+- Handoff 003 was run as an experimental, uncommitted tester-mode run; its red
+  commit does not exist. See the verification in `docs/prompts/003-policy-guard.md`.
 
 ## Last Updated
 
-2026-10-08
+2026-10-12

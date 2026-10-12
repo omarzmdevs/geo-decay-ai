@@ -16,6 +16,7 @@
       "Edit(./.env.development)",
       "Edit(./.env.production)",
       "Edit(./.env.test)",
+      "Edit(./scripts/policy_guard.py)",
       "Edit(./.git/**)",
       "Edit(./.github/workflows/**)",
       "Edit(./.devcontainer/**)",
