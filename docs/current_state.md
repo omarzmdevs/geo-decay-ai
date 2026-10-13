@@ -8,7 +8,7 @@ Block 1 · Architecture and Infrastructure ([roadmap.md](roadmap.md))
 
 ## Active Sprint
 
-Sprint 1 · Foundations and Quality Gate — in progress (handoffs 001, 003 and 005 accepted; 002 and 004 pending)
+Sprint 1 · Foundations and Quality Gate — in progress (handoffs 001, 003, 004 and 005 accepted; 002 pending)
 
 ## Completed Sprints
 
@@ -32,12 +32,14 @@ See [ADR-001](architecture/adr/adr-001-agent-governance.md) and
 
 ## Known Issues
 
-- Write-scope guard exists (`scripts/policy_guard.py`, handoff 003 ACCEPTED,
-  2026-10-12), but it is not yet wired into the commit hook: the pre-commit
-  hook is handoff 004, pending. Until then, role boundaries depend on review.
+- Write-scope guard (`scripts/policy_guard.py`, handoff 003 ACCEPTED,
+  2026-10-12) is wired into the commit hook for the secret check (handoff 004
+  ACCEPTED, 2026-10-12; `uv run pre-commit install` run by the user on
+  2026-10-13). Role scopes are not checked at commit time: the orchestrator
+  checks them during verification with `--role`.
 - Handoff 003 was run as an experimental, uncommitted tester-mode run; its red
   commit does not exist. See the verification in `docs/prompts/003-policy-guard.md`.
 
 ## Last Updated
 
-2026-10-12
+2026-10-13
