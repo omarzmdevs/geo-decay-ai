@@ -46,8 +46,8 @@ quality gate that every later sprint depends on.
 is validated automatically and whose write scopes are enforced.
 
 Scope: folder structure (ADR-003), Python environment with uv (ADR-005),
-`pyproject.toml`, Docker, Docker Compose, DevContainer with GDAL/PDAL at system
-level; Ruff (lint and format), strict MyPy, import-linter, Pytest, pre-commit; `tests/unit/` and `tests/acceptance/`;
+`pyproject.toml`, Docker, Docker Compose, DevContainer with GDAL at system
+level (PDAL deferred to Sprint 9, ADR-005 amendment); Ruff (lint and format), strict MyPy, import-linter, Pytest, pre-commit; `tests/unit/` and `tests/acceptance/`;
 `scripts/policy_guard.py` with its tests and its hook.
 
 ## Sprint 2 · Runtime Foundations
@@ -121,6 +121,9 @@ Build the system's geospatial infrastructure.
 **Objective.** Prepare the data for the AI stage.
 
 **Deliverable.** Processed data plus scripts for visual inspection.
+
+Includes PDAL at system level in the container image, built from a pinned
+source release (ADR-005 amendment 2026-10-14).
 
 ## Sprint 10 · Tiling System
 

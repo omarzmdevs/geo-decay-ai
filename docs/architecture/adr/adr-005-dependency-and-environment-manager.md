@@ -74,6 +74,24 @@ Fiona and pyproj also build from source against the system GDAL/PROJ, or use
 their bundled wheels, is decided when the GIS core is built (Block 3), together
 with ADR-004; Sprint 1 only installs the system libraries and proves they load.
 
+## Amendment 2026-10-14 · PDAL Deferred to Block 3
+
+Handoff 002 showed that no current Debian or Ubuntu release ships PDAL:
+`pdal` and `libpdal-dev` are absent from Ubuntu 24.04 and Debian 13 (trixie),
+and adding the UbuntuGIS PPA on arm64 changed neither GDAL nor PDAL availability
+(not investigated further). Ubuntu 22.04 still ships PDAL 2.3 with GDAL 3.4,
+too old for Block 3.
+
+- **Base image:** `debian:trixie`, which ships GDAL 3.10 from the official
+  repositories. The Ubuntu 24.04 base proposed in the handoff (GDAL 3.8) is
+  dropped.
+- **PDAL:** deferred to Sprint 9 (GIS Processing), the first sprint that
+  processes LiDAR. Sprint 1 installs and proves GDAL only.
+- **The system-level decision stands.** When PDAL is added, the preferred route
+  is to build a pinned release from source in a builder stage of the same image,
+  against the system GDAL, with the source checksum verified. conda/pixi stays
+  rejected.
+
 ## Alternatives Considered
 
 **Poetry.** Mature and widely known, but slower, and its dependency groups and
