@@ -6,18 +6,16 @@
 
 ## Active Sprint
 
-- [ ] **Sprint 1 · Foundations and Quality Gate** (Block 1) — folder structure,
-  Python environment, `pyproject.toml`, Docker, Docker Compose, DevContainer with
-  GDAL/PDAL; Ruff (lint and format), strict MyPy, import-linter, Pytest,
-  pre-commit; `tests/unit/` and `tests/acceptance/`; `scripts/policy_guard.py`
-  with its tests and hook.
-  See [sprint-01-foundations.md](sprints/sprint-01-foundations.md).
+- [ ] **Sprint 2 · Runtime Foundations** (Block 1) — logging, environment
+  variables, centralised configuration. Not yet planned: handoffs pending.
+
+Sprint 1 · Foundations and Quality Gate is completed (2026-10-14, see
+[sprint-01-foundations.md](sprints/sprint-01-foundations.md)).
 
 ## Blocked On
 
-Sprint 1 handoffs 001–004 are written (`docs/prompts/`). The ADR-005
-protected-path changes were applied and uv installed on 2026-10-08. Only the
-per-session lift for the interactive handoffs remains open.
+Nothing blocks Sprint 2 planning. The per-session lift of the infrastructure deny
+entries for handoffs 002 and 004 was done.
 
 - [x] `AGENTS.md`, `.agents/roles/developer.md` — Black replaced by Ruff format;
   import-linter added to the gate.
@@ -26,14 +24,12 @@ per-session lift for the interactive handoffs remains open.
   `tests/acceptance/.gitkeep`.
 - [x] `.claude/settings.json` — sandbox network allowlist for PyPI and Python
   downloads.
-- [ ] Infrastructure deny entries lifted for the interactive session of
+- [x] Infrastructure deny entries lifted for the interactive session of
   handoffs 002 and 004 (per session, not in the shared settings).
 - [x] uv installed on the host.
 
 ## Next Up
 
-- [ ] **Sprint 2 · Runtime Foundations** (Block 1) — logging, environment
-  variables, centralised configuration.
 - [ ] **Sprint 3 · CI/CD** (Block 1) — GitHub Actions: lint, format, type check,
   tests, Docker build.
 - [ ] **Block 2 · MLOps and Data Infrastructure** — Sprints 4–6: MLflow, DVC,
@@ -67,4 +63,4 @@ Tracked findings from the project review, deferred with their identifiers:
 
 ## Last Updated
 
-2026-10-13
+2026-10-14
