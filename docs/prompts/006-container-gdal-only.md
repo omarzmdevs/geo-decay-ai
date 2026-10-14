@@ -102,17 +102,29 @@ entries lifted for that session. First message:
 
 <!-- Filled by whoever launches: `git rev-parse HEAD` right before launch -->
 
+0c996d8
+
 ---
 
 ## Run Record
 
-Date:
-Tool and model:
-Outcome:
+Date: 2026-10-14
+Tool and model: Claude Code, in-process developer subagent (`sonnet`, matching
+`TIER_STANDARD`) launched from the interactive orchestrator session, with the
+Docker deny entries lifted by the user. The user ran the Docker steps.
+Outcome: completed
 
 ## Verification
 
-Verdict:
-Files changed:
-Gate:
+Verdict: ACCEPTED
+Files changed: `Dockerfile` (base `debian:trixie`, PDAL packages removed, user
+creation by UID lookup).
+Gate: user-run Docker on macOS arm64 (`docker-verify.log`, EXIT=0):
+`docker compose build` succeeds; `GDAL 3.10.3, released 2025/04/01`; `id -u` = 1000;
+Python 3.12.15; inside the container ruff check, ruff format --check, mypy
+(10 files), lint-imports (4 kept) and pytest (76 passed) all pass. Static checks
+(`.dockerignore` patterns, no `:latest`, valid devcontainer JSON, git status)
+re-run by the orchestrator: pass.
 Notes:
+- Criterion 6: `pdal` appears only in the header comment, no install line.
+- Verified and committed together with handoff 002.

@@ -104,17 +104,39 @@ describes. First message:
 
 <!-- Filled by whoever launches: `git rev-parse HEAD` right before launch -->
 
+e5f4877
+
 ---
 
 ## Run Record
 
-Date:
-Tool and model:
-Outcome:
+Date: 2026-10-14
+Tool and model: Claude Code, in-process developer subagent (`sonnet`, matching
+`TIER_STANDARD`) launched from the interactive orchestrator session, with the
+Docker deny entries lifted by the user. The agent ran no Docker command; the
+user ran the Docker steps.
+Outcome: failed at criterion 1 — `pdal` and `libpdal-dev` do not exist in
+Ubuntu 24.04. Completed through handoff 006.
 
 ## Verification
 
-Verdict:
-Files changed:
-Gate:
+Verdict: ACCEPTED together with handoff 006 (criterion 2 superseded: GDAL only,
+PDAL deferred to Sprint 9 by the ADR-005 amendment of 2026-10-14)
+Files changed: `Dockerfile`, `docker-compose.yml`,
+`.devcontainer/devcontainer.json`, `.dockerignore`.
+Gate: user-run Docker on macOS arm64 (`docker-verify.log`, EXIT=0):
+`docker compose build` succeeds; `GDAL 3.10.3, released 2025/04/01`; `id -u` = 1000;
+Python 3.12.15; inside the container ruff check, ruff format --check, mypy
+(10 files), lint-imports (4 kept) and pytest (76 passed) all pass. Static checks
+(`.dockerignore` patterns, no `:latest`, valid devcontainer JSON, git status)
+re-run by the orchestrator: pass.
 Notes:
+- Orchestrator review before the build: `.dockerignore` excluded secrets only at
+  the root (`sub/.env.prod` would have entered the image) and the runtime cache
+  directories could be root-owned. Both fixed by the developer (`**/.env*`,
+  user-owned `~/.cache/{uv,mypy,ruff}`).
+- External images pinned by tag, not digest; apt packages unpinned. Accepted for
+  now; builds are not bit-reproducible.
+- Each `uv run` re-installs the editable project (~1 s) because the bind-mounted
+  source differs from the copy built into the image. Harmless; can be avoided
+  later with `UV_NO_SYNC=1` in the container if it becomes a nuisance.

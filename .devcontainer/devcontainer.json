@@ -1,0 +1,9 @@
+{
+  "name": "geo-decay-ai",
+  "dockerComposeFile": ["../docker-compose.yml"],
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "remoteUser": "dev",
+  "overrideCommand": true,
+  "shutdownAction": "stopCompose"
+}

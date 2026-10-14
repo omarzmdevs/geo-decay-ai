@@ -1,0 +1,11 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: geo-decay-ai:dev
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+    tty: true
+    stdin_open: true
