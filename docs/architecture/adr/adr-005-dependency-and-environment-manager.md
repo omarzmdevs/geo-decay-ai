@@ -92,6 +92,21 @@ too old for Block 3.
   against the system GDAL, with the source checksum verified. conda/pixi stays
   rejected.
 
+## Amendment 2026-10-15 · PDAL Conditional on ADR-004
+
+The deferral above scheduled PDAL for Sprint 9.
+[ADR-007](adr-007-mvp-1-0-scope.md) makes it conditional instead.
+
+- **Whether PDAL is needed at all is decided by ADR-004**, written from the
+  feasibility experiment. If height information can be derived from raster
+  elevation products, GDAL covers it and PDAL is not required. If point-level
+  features are needed, a pure-Python reader installed as a wheel is tried
+  first, since it adds no system-level dependency.
+- **The system-level route remains the fallback**, unchanged.
+- **Nothing blocks on this.** If no route is available without new system
+  dependencies, the height-derived indicator group is recorded as unavailable
+  and the pipeline continues.
+
 ## Alternatives Considered
 
 **Poetry.** Mature and widely known, but slower, and its dependency groups and

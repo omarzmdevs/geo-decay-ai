@@ -4,15 +4,35 @@
 > [roadmap.md](roadmap.md), which is the operational source of truth.
 > Updated at the end of every sprint.
 
+The executed subset of the plan is MVP 1.0
+([ADR-007](architecture/adr/adr-007-mvp-1-0-scope.md)); the per-sprint status
+table is in [roadmap.md](roadmap.md).
+
 ## Active Sprint
 
-- [ ] **Sprint 2 · Runtime Foundations** (Block 1) — logging, environment
-  variables, centralised configuration. Not yet planned: handoffs pending.
+- [ ] **Sprint 2 · Runtime Foundations** (Block 1) — logging
+  ([ADR-006](architecture/adr/adr-006-logging-strategy.md)), environment
+  variables, centralised configuration, including the target bounding box as a
+  configuration variable. Not yet planned: handoffs pending.
+
+Running in parallel, since it touches no code:
+
+- [ ] **Feasibility experiment → ADR-004** — measure what the data supports for
+  one bounding box: PNOA resolution and available years, which elevation
+  products exist for the extent and in what form, and a manually located set of
+  candidate sites to reuse as a validation reference. Record it in
+  `docs/experiments/exp-001-*.md`; ADR-004 follows from it. Required before
+  Sprint 8, and it also decides the elevation route (Sprint 9), the detection
+  strategy (Sprints 11–12) and whether the fine-tuning arm of Sprint 18 is
+  viable. Handoff pending.
 
 Sprint 1 · Foundations and Quality Gate is completed (2026-10-14, see
 [sprint-01-foundations.md](sprints/sprint-01-foundations.md)).
 
 ## Blocked On
+
+- [ ] **The bounding box to study** — the feasibility experiment cannot start
+  without it. Needed from the user as coordinates or a named extent.
 
 Nothing blocks Sprint 2 planning. The per-session lift of the infrastructure deny
 entries for handoffs 002 and 004 was done.
@@ -31,23 +51,28 @@ entries for handoffs 002 and 004 was done.
 ## Next Up
 
 - [ ] **Sprint 3 · CI/CD** (Block 1) — GitHub Actions: lint, format, type check,
-  tests, Docker build.
+  tests, Docker build. Reduced in MVP 1.0 to one workflow running the gate.
 - [ ] **Block 2 · MLOps and Data Infrastructure** — Sprints 4–6: MLflow, DVC,
-  reproducibility.
+  reproducibility. In MVP 1.0 only Sprint 4 runs, reduced to a local file
+  store; DVC is deferred and Sprint 6 is absorbed into Sprint 2.
 
 ## Governance and Architecture Debt
 
 Tracked findings from the project review, deferred with their identifiers:
 
 - [x] **E6 · ADR-003** — `src/` layout and layer boundaries (2026-10-08).
-- [ ] **E5 · ADR-004** — CRS, tiling and data contracts. Required before Block 3.
+- [ ] **E5 · ADR-004** — CRS, tiling and data contracts, plus the elevation
+  route and the detection strategy. Required before Block 3. Now written from
+  the feasibility experiment above rather than decided up front.
 - [x] **E5 · ADR-005** — dependency manager (2026-10-08).
 - [x] **E1 · Write-scope enforcement** — `scripts/policy_guard.py` validating the
   working-tree diff against `.agents/policy.yaml`, plus its pre-commit hook. Scheduled in Sprint 1.
   Guard done (handoff 003, ACCEPTED 2026-10-12); pre-commit hook done (handoff 004, ACCEPTED 2026-10-12).
 - [ ] **PDAL · System-level PDAL** — no current Debian/Ubuntu ships it; deferred
   from Sprint 1 to Sprint 9, built from a pinned source release
-  (ADR-005 amendment 2026-10-14).
+  (ADR-005 amendment 2026-10-14). Whether it is needed at all is now decided by
+  ADR-004: the raster elevation route requires only GDAL
+  (ADR-005 amendment 2026-10-15).
 - [ ] **W2 · Secret pattern drift** — the guard must validate the full `.env.*`
   glob; the tool deny list enumerates variants one by one and can fall behind.
 - [ ] **W3 · Permission coverage** — verify empirically whether `Edit(...)` deny
@@ -57,10 +82,12 @@ Tracked findings from the project review, deferred with their identifiers:
 
 ## Backlog
 
-- [ ] Research state-of-the-art for abandoned infrastructure detection (Sprint 11).
-- [ ] Evaluate PNOA/LiDAR data sources and download APIs (Sprint 8).
+- [ ] Research state-of-the-art for abandoned infrastructure detection (Sprint 11;
+  in MVP 1.0, to the depth the ADR-004 strategy decision needs).
+- [ ] Evaluate PNOA/LiDAR data sources and download APIs (Sprint 8; first pass in
+  the feasibility experiment above).
 - [ ] Define abandonment indicators taxonomy (Sprint 14).
 
 ## Last Updated
 
-2026-10-14
+2026-10-15

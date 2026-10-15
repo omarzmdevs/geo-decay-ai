@@ -22,9 +22,63 @@ Every sprint must:
 
 | Phase | Scope | Sprints |
 |---|---|---|
-| **MVP (v1.0)** | Blocks 1–7 — a complete, defensible system for the thesis | 1–23 |
+| **MVP (v1.0)** | Blocks 1–7 — a complete, defensible system | 1–23 |
 | **Extended (v2.0)** | Block 8 — agentic orchestration and RAG | 24–26 |
 | **Optimisation** | Final block — performance, accuracy, scalability | — |
+
+---
+
+## MVP 1.0 — Active Scope
+
+The plan below is kept in full. **MVP 1.0** is the subset executed now, decided
+in [ADR-007](architecture/adr/adr-007-mvp-1-0-scope.md). Everything else stays
+on record, reduced or deferred to a later iteration; nothing is planned or
+launched from a deferred entry.
+
+**Objective.** Given a bounding box — supplied as a configuration variable, not
+hard-coded — download and prepare the data, tile it, detect built structures
+and compute an explainable abandonment index for each detection, with the
+comparative experiment recorded and reproducible. Detection and the index are
+the core; the rest feeds them or shows their results.
+
+**Two rules that shape it.** Nothing is built before the sprint that first
+needs it. Indicators are a pluggable collection: an input that is unavailable
+removes one indicator group and is recorded as absent, never blocking the
+pipeline.
+
+**Before Sprint 8**, ADR-004 is produced from a feasibility experiment
+(`docs/experiments/exp-001-*.md`) measuring what the data actually supports for
+one bounding box. It fixes the CRS, tiling, the inter-stage data contracts, the
+elevation route and the detection strategy. Tracked in
+[next_tasks.md](next_tasks.md).
+
+| Sprint | Status in MVP 1.0 |
+|---|---|
+| 1 · Foundations and Quality Gate | done, reused unchanged |
+| 2 · Runtime Foundations | **in** — also adds the bounding-box variable |
+| 3 · CI/CD | **in**, reduced to one workflow running the gate |
+| 4 · MLflow | **in**, reduced to a local file store |
+| 5 · DVC | deferred — replaced by the acquisition manifest with checksums in Sprint 8 |
+| 6 · Reproducibility | absorbed — seeds and externalised configuration in Sprint 2; the environment is already fixed by the lockfile and the container |
+| 7 · Spatial Database | deferred — results are files until a query workload exists |
+| 8 · Data Download | **in** — adds the acquisition manifest |
+| 9 · GIS Processing | **in** — PDAL conditional, decided by ADR-004 |
+| 10 · Tiling System | **in** |
+| 11 · Comparative Research | reduced — the detection strategy is chosen in ADR-004 from measured evidence rather than from a full benchmark |
+| 12 · Detector Implementation | **in** |
+| 13 · Individual Extraction | **in** |
+| 14 · Indicator Definition | **in** |
+| 15 · Automatic Extraction | **in** |
+| 16 · Assessment Engine | **in** |
+| 17 · Zero-shot System | absorbed — Sprints 12 and 16 already are the untrained pipeline (pretrained detector, GIS analysis, heuristic rules); Sprint 19 compares against it rather than rebuilding it |
+| 18 · Fine-Tuning | conditional — only if the feasibility experiment shows enough labelled examples can be produced |
+| 19 · Scientific Comparison | **in** — indicator ablation at minimum |
+| 20 · API | **in**, reduced to a small documented endpoint set |
+| 21 · Frontend | reduced — one MapLibre page: draw the bounding box, launch the run, see the results; no React project |
+| 22 · Results | absorbed into Sprint 21 |
+| 23 · Reports | deferred |
+| 24–26 · Agents and RAG | deferred |
+| Final · Optimisation | deferred, including areas larger than one bounding box |
 
 ---
 
@@ -57,7 +111,12 @@ level (PDAL deferred to Sprint 9, ADR-005 amendment); Ruff (lint and format), st
 **Deliverable.** Centralised configuration and logging in place, with no secret
 read from anywhere but the environment.
 
-Scope: logging, environment variables, centralised configuration.
+Scope: logging ([ADR-006](architecture/adr/adr-006-logging-strategy.md)),
+environment variables, centralised configuration — including the target
+bounding box, held as a configuration variable (four coordinates and the CRS
+they are expressed in) so the covered extent is selected without touching code.
+Later entry points fill the same variable: the CLI, the API and the map
+selection of Sprint 21.
 
 ## Sprint 3 · CI/CD
 
@@ -123,7 +182,9 @@ Build the system's geospatial infrastructure.
 **Deliverable.** Processed data plus scripts for visual inspection.
 
 Includes PDAL at system level in the container image, built from a pinned
-source release (ADR-005 amendment 2026-10-14).
+source release (ADR-005 amendment 2026-10-14). Whether PDAL is needed at all is
+decided by ADR-004: the raster elevation route requires only GDAL
+(ADR-005 amendment 2026-10-15).
 
 ## Sprint 10 · Tiling System
 
@@ -216,13 +277,17 @@ Build the web interface that exposes the system's functionality.
 
 **Objective.** Implement the system's REST API.
 
-**Deliverable.** A working, documented API.
+**Deliverable.** A working, documented API, including the endpoint that takes a
+bounding box and launches a run over that extent, and the endpoint that returns
+its results.
 
 ## Sprint 21 · Frontend
 
 **Objective.** Build the interactive web interface.
 
-**Deliverable.** A working frontend connected to the API.
+**Deliverable.** A working frontend connected to the API, on which the user
+draws a bounding box on the map, launches the detection over that extent and
+sees the results drawn back on it.
 
 ## Sprint 22 · Results
 
