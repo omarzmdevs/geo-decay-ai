@@ -16,9 +16,8 @@ table is in [roadmap.md](roadmap.md).
   configuration variable and the deterministic seed absorbed from Sprint 6.
   Planned in [sprint-02-runtime-foundations.md](sprints/sprint-02-runtime-foundations.md):
   handoff [007](prompts/007-bounding-box-and-configuration.md) (bounding box and
-  configuration, acceptance tests first) then
-  [008](prompts/008-logging-configuration.md) (logging), both headless and
-  awaiting the user's commit of the handoffs.
+  configuration, acceptance tests first) ACCEPTED, then
+  [008](prompts/008-logging-configuration.md) (logging), pending.
 
 Running in parallel, since it touches no code:
 
@@ -81,9 +80,11 @@ Tracked findings from the project review, deferred with their identifiers:
   (ADR-005 amendment 2026-10-14). Whether it is needed at all is now decided by
   ADR-004: the raster elevation route requires only GDAL
   (ADR-005 amendment 2026-10-15).
-- [ ] **RUFF-ISORT · `known-first-party` is not declared** — ruff sorts
-  `geo_decay_*` imports into the third-party block. Cosmetic and project-wide;
-  fold into the next handoff that touches `pyproject.toml`.
+- [x] **RUFF-ISORT · `known-first-party` is now declared** — ruff's heuristic
+  classified `geo_decay_*` as third-party while the packages held only
+  `__init__.py` and as first-party once a module existed, so it demanded
+  opposite import grouping before and after handoff 007. Declared explicitly in
+  `pyproject.toml` on 2026-10-16.
 - [ ] **W2 · Secret pattern drift** — the guard must validate the full `.env.*`
   glob; the tool deny list enumerates variants one by one and can fall behind.
 - [ ] **W3 · Permission coverage** — verify empirically whether `Edit(...)` deny

@@ -8,7 +8,7 @@ Block 1 · Architecture and Infrastructure ([roadmap.md](roadmap.md))
 
 ## Active Sprint
 
-Sprint 2 · Runtime Foundations — not yet planned (handoffs pending). Scope: logging
+Sprint 2 · Runtime Foundations — in progress ([log](sprints/sprint-02-runtime-foundations.md)); handoff 007 ACCEPTED, handoff 008 pending. Scope: logging
 ([ADR-006](architecture/adr/adr-006-logging-strategy.md)), environment variables and
 centralised configuration, including the target bounding box as a configuration
 variable (four coordinates and the CRS they are expressed in). Running in parallel:
@@ -22,7 +22,7 @@ Sprint 1 · Foundations and Quality Gate — completed 2026-10-14 ([log](sprints
 
 ## Current Milestone
 
-Deliver Sprint 2 and the feasibility experiment, on top of the Sprint 1 baseline
+Deliver Sprint 2 (007 accepted, 008 pending) and the feasibility experiment, on top of the Sprint 1 baseline
 (skeleton, reference container with GDAL at system level, enforced quality gate,
 write-scope guard and pre-commit hook).
 
@@ -51,8 +51,6 @@ See [ADR-001](architecture/adr/adr-001-agent-governance.md) and
   with GDAL 3.10.3 at system level.
 - External images are pinned by tag, not digest, and apt packages are unpinned,
   so container builds are not bit-reproducible.
-- In sandboxed agent sessions uv cannot use its default cache; workaround
-  `UV_CACHE_DIR="$TMPDIR/uv-cache"` (see `.agents/TOOLING.md` → Pending Verification).
 - The executed subset of the plan is MVP 1.0, decided in
   [ADR-007](architecture/adr/adr-007-mvp-1-0-scope.md), with the per-sprint status
   table in [roadmap.md](roadmap.md). Nothing is deleted from the plan: entries are
@@ -60,4 +58,4 @@ See [ADR-001](architecture/adr/adr-001-agent-governance.md) and
 
 ## Last Updated
 
-2026-10-15
+2026-10-16

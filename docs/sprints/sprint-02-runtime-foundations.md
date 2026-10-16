@@ -57,14 +57,14 @@ Execution order: 007 (tester mode → user commit → implementation) → 008. H
 008 consumes the `Settings` object, so it does not start before 007 is ACCEPTED
 and committed. The experiment runs in parallel and gates nothing in this sprint.
 
-- [ ] [007](../prompts/007-bounding-box-and-configuration.md) — tester mode:
+- [x] [007](../prompts/007-bounding-box-and-configuration.md) — tester mode:
       `tests/acceptance/test_bounding_box_contract.py`, failing. Headless.
-- [ ] User: commit the failing acceptance tests. That commit is the proof they
+- [x] User: commit the failing acceptance tests. That commit is the proof they
       were red before the implementation existed.
-- [ ] [007](../prompts/007-bounding-box-and-configuration.md) — implementation:
+- [x] [007](../prompts/007-bounding-box-and-configuration.md) — implementation:
       `BoundingBox`, `Settings`, unit tests, `.env.example`, and
       `pydantic-settings` added to the lockfile. Headless.
-- [ ] Orchestrator: verify 007 against its criteria, re-run the gate, append the
+- [x] Orchestrator: verify 007 against its criteria, re-run the gate, append the
       `## Verification` section; then run the documenter and hand the diff to
       the user.
 - [ ] [008](../prompts/008-logging-configuration.md) — implementation:
@@ -89,7 +89,7 @@ code.
 
 <!-- Verdicts are transcribed here as each handoff is verified. -->
 
-- [007 · Bounding box and centralised configuration](../prompts/007-bounding-box-and-configuration.md) — PENDING
+- [007 · Bounding box and centralised configuration](../prompts/007-bounding-box-and-configuration.md) — ACCEPTED 2026-10-16, full gate green (167 tests)
 - [008 · Logging configuration](../prompts/008-logging-configuration.md) — PENDING
 
 ## Notes
@@ -129,7 +129,7 @@ code.
 
 - [docs/sprints/README.md](README.md) — directory index
 - [docs/next_tasks.md](../next_tasks.md)
-- [docs/current_state.md](../current_state.md) — PENDING, documenter
+- [docs/current_state.md](../current_state.md) — documenter, 007 verdict recorded
 - [docs/prompts/007-bounding-box-and-configuration.md](../prompts/007-bounding-box-and-configuration.md) — `GEO_DECAY_RANDOM_SEED` added
 - [docs/experiments/exp-001-data-feasibility.md](../experiments/exp-001-data-feasibility.md) — PENDING, blocked on the bounding box
 
