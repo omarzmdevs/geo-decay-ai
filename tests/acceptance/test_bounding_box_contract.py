@@ -8,6 +8,7 @@ plausible and are wrong, so each rule below is pinned individually.
 import dataclasses
 
 import pytest
+
 from geo_decay_domain.bounding_box import BoundingBox
 
 MADRID = (-3.7, 40.4, -3.6, 40.5)

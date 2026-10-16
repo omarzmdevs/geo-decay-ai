@@ -3,7 +3,7 @@ name = "geo-decay"
 version = "0.1.0"
 description = "Detection and assessment of potentially abandoned infrastructure from PNOA orthophotos, LiDAR and AI."
 requires-python = ">=3.12,<3.13"
-dependencies = []
+dependencies = ["pydantic-settings"]
 
 [dependency-groups]
 dev = [
@@ -35,6 +35,9 @@ include = ["*.py", "*.pyi", "**/pyproject.toml"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "TID"]
 
+[tool.ruff.lint.isort]
+known-first-party = ["geo_decay_domain", "geo_decay_application", "geo_decay_data", "geo_decay_delivery"]
+
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
 
@@ -43,6 +46,7 @@ strict = true
 python_version = "3.12"
 explicit_package_bases = true
 files = ["src", "tests", "scripts"]
+mypy_path = "src"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
