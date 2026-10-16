@@ -81,6 +81,9 @@ Tracked findings from the project review, deferred with their identifiers:
   (ADR-005 amendment 2026-10-14). Whether it is needed at all is now decided by
   ADR-004: the raster elevation route requires only GDAL
   (ADR-005 amendment 2026-10-15).
+- [ ] **RUFF-ISORT · `known-first-party` is not declared** — ruff sorts
+  `geo_decay_*` imports into the third-party block. Cosmetic and project-wide;
+  fold into the next handoff that touches `pyproject.toml`.
 - [ ] **W2 · Secret pattern drift** — the guard must validate the full `.env.*`
   glob; the tool deny list enumerates variants one by one and can fall behind.
 - [ ] **W3 · Permission coverage** — verify empirically whether `Edit(...)` deny

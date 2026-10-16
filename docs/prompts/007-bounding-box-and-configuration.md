@@ -189,15 +189,51 @@ dependency.
 
 Baseline for the sprint: `52232d4` (MVP 1.0 re-scope).
 
-- **Tester-mode run:** the commit that lands handoffs 007 and 008, whose parent
-  is `52232d4`.
+- **Tester-mode run:** `0a77325` — the commit that landed handoffs 007 and 008.
 - **Implementation run:** the commit that lands the failing acceptance tests.
-
-<!-- Filled by whoever launches: `git rev-parse HEAD` right before each launch -->
 
 ---
 
 ## Run Record
+
+### Tester mode
+
+Date: 2026-10-16
+Restore point: `0a77325`
+Tool and model: `claude -p` headless, `--model sonnet`,
+`--permission-mode dontAsk`, with the allowlist in the launch command above.
+Two runs: the first wrote the file; the second, same role and allowlist, was
+scoped to the lint and format findings of the first and changed nothing else.
+Outcome: completed.
+
+Files changed: `tests/acceptance/test_bounding_box_contract.py` only — 257
+lines, 23 test functions. The agent could not run the gate itself, so the state
+below was established by the orchestrator.
+
+**Red state, verified by the orchestrator on 2026-10-16:**
+
+| Check | Result |
+|---|---|
+| `uv run pytest tests/acceptance/test_bounding_box_contract.py -q` | **red** — collection error, `ModuleNotFoundError: No module named 'geo_decay_domain.bounding_box'` |
+| `uv run ruff check` | All checks passed! |
+| `uv run ruff format --check` | 1 file already formatted |
+| `uv run mypy` | 3 errors, all in this file |
+| `uv run lint-imports` | Contracts: 4 kept, 0 broken |
+| `uv run pytest` (full suite) | interrupted by the same collection error |
+
+The red is **by collection, not test by test**, because the module does not
+exist yet. It is weaker evidence than 23 individual failures: after the
+implementation run, every one of the 23 must pass on its own.
+
+The three mypy errors are `import-not-found` for the missing module and two
+`unused-ignore`, at the `# type: ignore[call-arg]` of `test_crs_is_required` and
+the `# type: ignore[attr-defined]` of `test_attributes_cannot_be_added`. All
+three are artefacts of the absent module: once `BoundingBox` exists, mypy has a
+real error to suppress at both sites. If any of them survives the
+implementation, the implementation is wrong — the acceptance tests are not
+touched to silence it.
+
+### Implementation
 
 <!-- Filled by whoever launches the task -->
 
