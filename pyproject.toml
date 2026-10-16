@@ -101,3 +101,8 @@ source_modules = [
     "geo_decay_data",
 ]
 forbidden_modules = ["fastapi"]
+
+[tool.uv]
+# Keep uv's cache inside the repository: the agent sandbox cannot write to
+# the default location under $HOME.
+cache-dir = ".uv-cache"
