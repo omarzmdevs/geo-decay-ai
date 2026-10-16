@@ -65,6 +65,15 @@ A clean working tree before step 3 is what makes the diff reviewable: it is the
 only thing separating one task's work from the next.
 
 ---
+## Sprint planning
+
+The **orchestrator** creates the sprint log in `docs/sprints/sprint-NN-short-title.md` from the template and writes every handoff for the sprint in `docs/prompts/NNN-short-title.md`. The **user** commits them in one go. Handoffs are frozen before any agent runs from them.
+
+- Sprints: `docs/sprints/sprint-NN-short-title.md` from `sprint-template.md`,
+  created by the orchestrator at sprint start and kept updated by the documenter.
+- At sprint close, the sprint log is completed with its verdicts and dates, and
+  `docs/current_state.md` and `docs/next_tasks.md` are updated, plus
+  `architecture.md` and an ADR when architecture changed.
 
 ## Handoffs
 

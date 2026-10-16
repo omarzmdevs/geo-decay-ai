@@ -1,11 +1,14 @@
 # Sprints
 
-> This directory contains the log for each sprint. A new file is created at the start of every sprint and updated throughout.
+> This directory contains the log for each sprint. The orchestrator creates the
+> file at sprint start from the template; the documenter keeps it updated as
+> handoffs are verified, and the index below is updated with it.
 
 ## Index
 
 - [Sprint 00 · Documentation and Agent Setup](sprint-00-agent-setup.md) — complete
-- [Sprint 01 · Foundations and Quality Gate](sprint-01-foundations.md) — active
+- [Sprint 01 · Foundations and Quality Gate](sprint-01-foundations.md) — complete
+- [Sprint 02 · Runtime Foundations](sprint-02-runtime-foundations.md) — active
 
 The full block and sprint structure is in [roadmap.md](../roadmap.md).
 

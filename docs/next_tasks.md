@@ -13,7 +13,12 @@ table is in [roadmap.md](roadmap.md).
 - [ ] **Sprint 2 · Runtime Foundations** (Block 1) — logging
   ([ADR-006](architecture/adr/adr-006-logging-strategy.md)), environment
   variables, centralised configuration, including the target bounding box as a
-  configuration variable. Not yet planned: handoffs pending.
+  configuration variable and the deterministic seed absorbed from Sprint 6.
+  Planned in [sprint-02-runtime-foundations.md](sprints/sprint-02-runtime-foundations.md):
+  handoff [007](prompts/007-bounding-box-and-configuration.md) (bounding box and
+  configuration, acceptance tests first) then
+  [008](prompts/008-logging-configuration.md) (logging), both headless and
+  awaiting the user's commit of the handoffs.
 
 Running in parallel, since it touches no code:
 
@@ -24,7 +29,10 @@ Running in parallel, since it touches no code:
   `docs/experiments/exp-001-*.md`; ADR-004 follows from it. Required before
   Sprint 8, and it also decides the elevation route (Sprint 9), the detection
   strategy (Sprints 11–12) and whether the fine-tuning arm of Sprint 18 is
-  viable. Handoff pending.
+  viable. Methodology fixed in
+  [exp-001-data-feasibility.md](experiments/exp-001-data-feasibility.md);
+  measurement pending, and it is manual work by the user and the orchestrator,
+  not a handoff.
 
 Sprint 1 · Foundations and Quality Gate is completed (2026-10-14, see
 [sprint-01-foundations.md](sprints/sprint-01-foundations.md)).
@@ -90,4 +98,4 @@ Tracked findings from the project review, deferred with their identifiers:
 
 ## Last Updated
 
-2026-10-15
+2026-10-16
