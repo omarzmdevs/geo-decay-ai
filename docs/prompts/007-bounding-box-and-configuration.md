@@ -235,17 +235,88 @@ touched to silence it.
 
 ### Implementation
 
-<!-- Filled by whoever launches the task -->
+Date: 2026-10-16
+Restore point: `3757b46`
+Tool and model: `claude -p` headless, `--model sonnet`,
+`--permission-mode dontAsk`, with the allowlist in the launch command above.
+Two runs: the first was interrupted when its session ended, leaving
+`bounding_box.py`, `config.py`, `tests/unit/domain/test_bounding_box.py` and
+the locked dependency but no `.env.example` entries, no delivery test and a
+failing gate. The second, launched by the user from the same handoff with the
+remaining items named, finished the task.
+Outcome: completed.
 
-Date:
-Tool and model:
-Outcome: <!-- completed | failed | aborted -->
+Deviation: the second run started from a working tree that already held the
+first run's partial work, not from a clean one. The two runs are therefore one
+task in the diff, which is what the user reviews.
 
 ## Verification
 
-<!-- Filled by the orchestrator, after re-running the verification command itself -->
+Verdict: **ACCEPTED**
 
-Verdict: <!-- ACCEPTED | REJECTED -->
-Files changed:
-Gate:
+Files changed — exactly the set the handoff lists, and nothing else:
+
+| File | |
+|---|---|
+| `src/geo_decay_domain/bounding_box.py` | new, 77 lines |
+| `src/geo_decay_delivery/config.py` | new, 91 lines |
+| `tests/unit/domain/test_bounding_box.py` | new, 31 lines |
+| `tests/unit/delivery/test_config.py` | new, 218 lines |
+| `.env.example` | six `GEO_DECAY_*` variables appended |
+| `pyproject.toml` | `pydantic-settings` declared; `mypy_path = "src"` |
+| `uv.lock` | relocked |
+
+`git diff tests/acceptance/` is empty: the acceptance tests are untouched. The
+developer reported reverting one blank line `ruff --fix` had added there, and
+the empty diff confirms it.
+
+Gate, re-run by the orchestrator: `ruff format --check` 15 files formatted,
+`mypy` success on 15 source files, `lint-imports` 4 contracts kept,
+`pytest` **167 passed** — the 50 acceptance cases among them. `ruff check`
+first reported one `I001` in `tests/acceptance/test_bounding_box_contract.py`,
+outside the developer's scope; after the two follow-ups in the Notes the whole
+gate is green.
+
+Criteria, checked one by one:
+
+1. Acceptance tests pass unchanged from the tester-mode commit — 50 passed,
+   empty diff. ✔
+2. `BoundingBox` importable from `geo_decay_domain.bounding_box`, frozen, and
+   `ValueError` for every invalid case in the Specification. ✔
+3. `geo_decay_domain` imports nothing outside the standard library — `math`,
+   `re`, `dataclasses`. ✔
+4. `Settings` exposes a `BoundingBox`, and with `GEO_DECAY_BBOX=1,2,3` it
+   fails at construction with the variable named. ✔
+5. No module reads `os.environ` at import time. ✔
+6. `.env.example` declares all six variables with placeholders, no real
+   coordinates. ✔
+7. The full gate passes. ✔ (After the two follow-ups below; the developer's
+   own files were green as delivered.)
+
 Notes:
+
+- **The one ruff finding is not a defect in the delivered work.** Ruff's isort
+  heuristic classified `geo_decay_*` as third-party while the packages held
+  only `__init__.py`, and as first-party once `bounding_box.py` existed, so the
+  import grouping it demanded of the tester in the morning is the opposite of
+  what it demands now. Two one-line follow-ups close it: declare
+  `[tool.ruff.lint.isort] known-first-party` in `pyproject.toml`, so the
+  classification stops depending on what happens to be in the tree, and add the
+  blank line ruff asks for in the acceptance file. Both were applied by the user
+  on 2026-10-16 and the gate is green. The second touches a frozen
+  acceptance test and is authorised here explicitly: it is whitespace inside an
+  import block, it changes no assertion, and it is visible as one blank line in
+  the diff. Suppressing `I001` for `tests/acceptance/**` was the alternative and
+  is worse — it would silence a real rule in the files that matter most, to
+  avoid one blank line.
+- **`GEO_DECAY_LOG_FORMAT` takes `text` and `json`**, not `console`. Handoff 008
+  was written with `console`; ADR-006 names no values. Handoff 008 has been
+  amended to `text` rather than asking for a rename here, because the value is
+  declared, tested and documented in this handoff's deliverables and the naming
+  carries no consequence.
+- The first run left `dependencies = []` although `uv.lock` already carried
+  `pydantic-settings`. The second run declared it and relocked. Had the task
+  stopped at the interruption, the project would have run on a dependency it
+  did not declare.
+- `GEO_DECAY_RANDOM_SEED` is declared and unused, as specified: the seeding
+  function belongs to the first sprint that trains or samples.

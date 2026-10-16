@@ -51,8 +51,10 @@ built from the settings passed in. It takes the settings object as an
 argument; it must not read the environment itself.
 
 - Two formatters, selected by `GEO_DECAY_LOG_FORMAT`:
-  - `console` — human-readable, one line: timestamp, level, logger name,
-    message.
+  - `text` — human-readable, one line: timestamp, level, logger name,
+    message. The value is `text`, not `console`: handoff 007 declared and
+    tested it that way and ADR-006 names no values, so this handoff follows
+    the delivered configuration rather than renaming it.
   - `json` — one JSON object per line, with at least `timestamp`, `level`,
     `logger`, `message`, and the exception text when there is one. Built with
     the standard library; no dependency.
@@ -79,7 +81,7 @@ no — configuration against a decided design.
 2. With `GEO_DECAY_LOG_FORMAT=json`, a record emitted through
    `logging.getLogger("x")` reaches standard output as a single line that
    parses as JSON and carries `level`, `logger` and `message`.
-3. With `GEO_DECAY_LOG_FORMAT=console`, the same record is not JSON and
+3. With `GEO_DECAY_LOG_FORMAT=text`, the same record is not JSON and
    contains the logger name and the message.
 4. The root logger's level matches `GEO_DECAY_LOG_LEVEL`.
 5. `urllib3` is at `WARNING` or higher after configuration.
