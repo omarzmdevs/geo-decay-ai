@@ -71,16 +71,20 @@ and committed. The experiment runs in parallel and gates nothing in this sprint.
       `configure_logging` and its unit test. Headless.
 - [x] Orchestrator: verify 008 against its criteria, re-run the gate, append the
       `## Verification` section; then run the documenter (2026-10-17).
-- [ ] User: review and commit the 008 diff (`logging_config.py`, its unit test,
-      and the handoff's run record and verification).
+- [x] User: review and commit the 008 diff (`logging_config.py`, its unit test,
+      and the handoff's run record and verification). Committed 2026-10-21 as
+      `82fe340`, `0439359` and `994c9d6`.
 - [ ] User: supply the bounding box to study, as four coordinates and their CRS.
-      It unblocks the experiment, not the sprint.
+      It unblocks the experiment, not the sprint. **Carried out of this sprint**
+      and tracked in [next_tasks.md](../next_tasks.md) → Blocked On.
 - [ ] User and orchestrator: run the feasibility measurement recorded in
       [exp-001](../experiments/exp-001-data-feasibility.md) and draft ADR-004
       from it. Required before Sprint 8; may close after this sprint does.
-- [ ] Sprint close: update `current_state.md` and `next_tasks.md`, fill the
+      **Carried out of this sprint** as its own track in
+      [next_tasks.md](../next_tasks.md).
+- [x] Sprint close: update `current_state.md` and `next_tasks.md`, fill the
       dates and the handoff verdicts here, and move this sprint to complete in
-      the directory index.
+      the directory index. Done 2026-10-21.
 
 ## Deliverable
 
@@ -116,6 +120,13 @@ code.
 - **Nothing calls `configure_logging` yet.** There is no entry point until
   Sprints 20 and 21; handoff 008 wires the function and deliberately leaves the
   call site to them.
+- **The sprint closes with the experiment still open, deliberately.** Both
+  handoffs are ACCEPTED and committed, and the sprint's deliverable —
+  configuration and logging — is in place. The feasibility measurement and the
+  bounding box it needs were always a parallel track that, as the Tasks section
+  states, gates nothing here; holding the sprint open for them would misreport
+  when the runtime foundations were finished. They continue as their own entry
+  in `next_tasks.md`, still required before Sprint 8.
 - **The bounding box is held as configuration, not as an argument**, so the
   same value is later filled by the CLI, by the API endpoint of Sprint 20 and by
   the map selection of Sprint 21 without changing the layers below.
@@ -135,6 +146,11 @@ code.
 - [docs/current_state.md](../current_state.md) — documenter, 007 and 008 verdicts recorded
 - [docs/prompts/007-bounding-box-and-configuration.md](../prompts/007-bounding-box-and-configuration.md) — `GEO_DECAY_RANDOM_SEED` added
 - [docs/experiments/exp-001-data-feasibility.md](../experiments/exp-001-data-feasibility.md) — PENDING, blocked on the bounding box
+- [docs/prompts/008-logging-configuration.md](../prompts/008-logging-configuration.md) — run record and verification, ACCEPTED
+- [docs/roadmap.md](../roadmap.md) — Sprint 3 scope aligned with the ADR-007 reduction
+- [docs/architecture/architecture.md](../architecture/architecture.md) — composition root and the CI line
+- [docs/architecture/adr/adr-007-mvp-1-0-scope.md](../architecture/adr/adr-007-mvp-1-0-scope.md) — amendment on Sprint 3
+- [docs/prompts/README.md](../prompts/README.md), [docs/experiments/README.md](../experiments/README.md) — stale indexes corrected at sprint close
 
 ## Date Started
 
@@ -142,4 +158,4 @@ code.
 
 ## Date Completed
 
-<!-- YYYY-MM-DD -->
+2026-10-21
