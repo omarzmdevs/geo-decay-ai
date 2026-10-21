@@ -165,7 +165,9 @@ afterwards.
 
 ## Restore Point
 
-<!-- Filled by whoever launches: `git rev-parse HEAD` right before launch -->
+`d40898d` — `docs(sprint-03): plan Sprint 3 · CI/CD with handoff 009`, the
+commit that froze this sprint's plan. Working tree clean at launch except
+`.claude/settings.json`, which carried the user's lift of the deny entry.
 
 ## Follow-up for the User
 
@@ -178,17 +180,68 @@ afterwards.
 
 ## Run Record
 
-<!-- Filled by whoever launches the task -->
-
-Date:
-Tool and model:
-Outcome: <!-- completed | failed | aborted -->
+Date: 2026-10-21
+Tool and model: in-process developer subagent (`haiku`, matching `TIER_LIGHT`)
+launched from the orchestrator's interactive session, with the user's explicit
+authorisation for the protected path — the same arrangement recorded for
+handoff 004. The user removed the `Edit(./.github/workflows/**)` deny entry
+before the launch and restores it afterwards.
+Restore point: `d40898d`.
+Outcome: completed.
 
 ## Verification
 
-<!-- Filled by the orchestrator, after re-running the verification command itself -->
+Verdict: **ACCEPTED**
 
-Verdict: <!-- ACCEPTED | REJECTED -->
-Files changed:
-Gate:
+Files changed — one, as the handoff lists:
+
+| File | |
+|---|---|
+| `.github/workflows/quality-gate.yml` | new, the only file under `.github/` |
+
+`.claude/settings.json` also shows as modified: the user's temporary lift of
+the deny entry, not part of this task and not to be committed with it. Nothing
+else in the tree changed — no source, test, lockfile or hook configuration.
+
+Gate, re-run by the orchestrator: the handoff's verification command prints
+`workflow ok`, and `pre-commit run --all-files` passes all six hooks (ruff
+check, ruff format --check, strict mypy, import-linter, pytest, policy guard
+secrets).
+
+Criteria, checked one by one:
+
+1. `quality-gate.yml` is the only file in `.github/workflows/` and parses as
+   YAML. ✔
+2. `push` with no branch filter; `pull_request` filtered to `main`. ✔
+3. `permissions` is exactly `contents: read`. ✔
+4. `concurrency.cancel-in-progress` is true, keyed on workflow and ref. ✔
+5. The single job sets `timeout-minutes: 15`. ✔
+6. Both `uses:` values are tag-pinned: `actions/checkout@v5`,
+   `astral-sh/setup-uv@v7`. ✔
+7. `uv sync --frozen` runs before `uv run pre-commit run --all-files`. ✔
+8. No `secrets.`, no `docker build`, no `docker push`, no Python version. ✔
+9. `git status --short` shows only the new workflow, beside the user's lift. ✔
+10. The local gate passes on the tree as delivered. ✔
+
 Notes:
+
+- **The action versions were checked, not taken on trust.** The developer
+  reported pinning `actions/checkout@v5` and `astral-sh/setup-uv@v7`; the
+  orchestrator fetched each `action.yml` independently (both HTTP 200) and
+  confirmed `setup-uv@v7` really exposes `enable-cache`,
+  `cache-dependency-glob` and `cache-local-path`. A tag that does not exist is
+  the cheapest way to make a first run fail, and nothing local would have
+  caught it.
+- **The cache is the one unproven element.** `cache-local-path: .uv-cache`
+  aligns the action with `[tool.uv] cache-dir` in `pyproject.toml`, but whether
+  the cache is actually restored can only be read from a run's log. The
+  handoff allows dropping `enable-cache` if it is not; that is a follow-up, not
+  a defect.
+- **Acceptance is not the same as a working pipeline.** Every criterion here
+  describes the file; none can prove GitHub schedules it. The sprint closes on
+  the first green run on GitHub, which the sprint log carries as the user's
+  task.
+- **Debt W3 was not settled by this task.** The question is whether an
+  `Edit(...)` deny also stops a write issued from a shell command; the deny
+  entry was lifted before the developer ran, so nothing was probed. W3 stands
+  unchanged in `next_tasks.md`.
