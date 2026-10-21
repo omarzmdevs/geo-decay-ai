@@ -127,3 +127,21 @@ that acceptable, and the gaps are recorded rather than hidden.
 - **ADR-004** — pending; CRS, tiling, data contracts, elevation route and
   detection strategy, written from the feasibility experiment
 - [Roadmap](../../roadmap.md) — the per-sprint status table
+
+## Amendment 2026-10-21 · What Sprint 3's Reduction Excludes
+
+The status table reduced Sprint 3 to "one workflow running the gate" while the
+roadmap's own scope line for that sprint still named the Docker build, and
+`architecture.md` still described CI as building the image. Sprint 3 planning
+forced the question; the reduction is now explicit.
+
+- **In:** one workflow, `.github/workflows/quality-gate.yml`, running the
+  ADR-005 gate on every push and on pull requests to `main`, through
+  `uv run pre-commit run --all-files` so the gate keeps a single definition.
+- **Out — the image build.** The DevContainer builds the image daily, so a CI
+  build would spend several minutes on a GDAL image to repeat a signal the
+  developer already has. It enters CI as a paths-triggered workflow the moment
+  that stops holding, tracked as **CI-IMAGE** in `next_tasks.md`.
+- **Out — CD.** Nothing is deployable before Sprints 20 and 21, both of which
+  this ADR reduces or defers. The sprint keeps its "CI/CD" title for
+  traceability with ADR-002; its executed scope is CI.

@@ -124,8 +124,11 @@ selection of Sprint 21.
 
 **Deliverable.** A working CI pipeline.
 
-Scope: GitHub Actions running lint, formatting, type checking, tests and the
-Docker build.
+Scope: GitHub Actions running lint, formatting, type checking and tests.
+*Reduced in MVP 1.0 to one workflow running the quality gate
+([ADR-007](architecture/adr/adr-007-mvp-1-0-scope.md), amendment 2026-10-21):
+the Docker build stays out of CI while the DevContainer builds the image
+daily, and CD has nothing to deploy before Sprints 20 and 21.*
 
 ---
 
