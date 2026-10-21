@@ -133,23 +133,81 @@ No `uv sync` or `uv lock`: this handoff adds no dependency.
 The commit that closes handoff 007. This handoff does not start before
 handoff 007 is ACCEPTED and committed, because it consumes `Settings`.
 
-<!-- Filled by whoever launches: `git rev-parse HEAD` right before launch -->
+`ea8296b` — the commit that closes handoff 007
+(`docs(sprint-02): record handoff 007 accepted and close the RUFF-ISORT debt`).
+Working tree clean at launch, verified by the launcher.
 
 ---
 
 ## Run Record
 
-<!-- Filled by whoever launches the task -->
+Date: 2026-10-17
+Tool and model: `claude -p` headless, `--model haiku`,
+`--permission-mode dontAsk`, with the allowlist in the launch command above.
+Launched by the orchestrator from a clean working tree at `ea8296b`.
+Outcome: completed.
 
-Date:
-Tool and model:
-Outcome: <!-- completed | failed | aborted -->
+The launching shell pipeline exited non-zero, but the agent run itself
+finished: the non-zero status came from the launcher's own `tee`, which the
+sandbox denied because the log path lay outside the repository. Two incidents
+inside the run, both reported by the developer and neither affecting the
+delivered files: its first gate run failed on one `ruff format` nit in its own
+test file, which it fixed and re-ran; and one compound shell command was denied
+by `dontAsk`, which it did not work around.
 
 ## Verification
 
-<!-- Filled by the orchestrator, after re-running the verification command itself -->
+Verdict: **ACCEPTED**
 
-Verdict: <!-- ACCEPTED | REJECTED -->
-Files changed:
-Gate:
+Files changed — exactly the two the handoff lists, both new and untracked:
+
+| File | |
+|---|---|
+| `src/geo_decay_delivery/logging_config.py` | new, 72 lines |
+| `tests/unit/delivery/test_logging_config.py` | new, 143 lines, 8 tests |
+
+`git diff tests/acceptance/` is empty, and `Settings`, `.env.example`,
+`pyproject.toml` and `uv.lock` are untouched: the out-of-scope list holds, and
+the handoff added no dependency.
+
+Gate, re-run by the orchestrator: the handoff's verification command prints
+`logging ok`; the grep finds no `structlog`, `loguru` or file handler in
+`src/`; `ruff check` all checks passed; `ruff format --check` 17 files already
+formatted; `mypy` success on 17 source files; `lint-imports` 4 contracts kept;
+`pytest` **175 passed**, the 8 new ones among them.
+
+Criteria, checked one by one:
+
+1. `configure_logging` imports from `geo_decay_delivery.logging_config` and
+   takes the settings object as its only argument. ✔
+2. With `GEO_DECAY_LOG_FORMAT=json` the record reaches standard output as one
+   line carrying `level`, `logger`, `message` and `timestamp`. ✔
+3. With `text` the same record does not parse as JSON and contains the logger
+   name and the message. ✔
+4. The root logger's level matches `GEO_DECAY_LOG_LEVEL`. ✔
+5. `urllib3` is at `WARNING` or higher after configuration. ✔
+6. Two calls leave exactly one handler on the root logger. ✔
+7. No `structlog`, `loguru` or file handler anywhere under `src/`. ✔
+8. The full ADR-005 gate passes. ✔
+
 Notes:
+
+- **The noisy-logger map sets a level, it does not raise a floor.** With the
+  root at `DEBUG` or `INFO` it behaves as the specification intends: `urllib3`,
+  `botocore`, `matplotlib` and `PIL` stay at `WARNING`. With the root above
+  `WARNING` the same entries let those libraries through while the project's
+  own records are filtered, because a logger's own level, not the root's,
+  decides. The handoff's criterion is met and the case is remote — the root sits
+  at `ERROR` only if someone sets it there — so this is recorded as a known
+  behaviour rather than a defect, for the sprint that adds an entry point to
+  revisit.
+- Idempotency comes from `dictConfig` replacing the handlers it installed, not
+  from a guard flag, which is the standard-library behaviour ADR-006 assumes.
+  The test pins it.
+- `# type: ignore[call-arg]` on `Settings()` in the tests follows the pattern
+  handoff 007 left in `tests/unit/delivery/test_config.py`: strict mypy reads
+  the synthesised `__init__` as requiring the fields that in fact come from the
+  environment.
+- `JsonFormatter` timestamps in UTC with `datetime.fromtimestamp(..., tz=UTC)`.
+  ADR-006 does not fix a time zone; UTC is the defensible default and is now
+  the de facto one for the project.
