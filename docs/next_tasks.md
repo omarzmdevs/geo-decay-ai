@@ -15,11 +15,11 @@ table is in [roadmap.md](roadmap.md).
   `.pre-commit-config.yaml` the commit hook uses, so the gate keeps one
   definition. Reduced by [ADR-007](architecture/adr/adr-007-mvp-1-0-scope.md)
   to one workflow running the gate; the image build and CD stay out
-  (amendment 2026-10-21). Planned in
+  (amendment 2026-10-21). Logged in
   [sprint-03-cicd.md](sprints/sprint-03-cicd.md): handoff
-  [009](prompts/009-ci-quality-gate-workflow.md), **interactive only** because
-  `.github/workflows/**` is protected. Awaiting the user's commit of the
-  sprint plan before it runs.
+  [009](prompts/009-ci-quality-gate-workflow.md) ACCEPTED 2026-10-21, run
+  interactively because `.github/workflows/**` is protected. The sprint stays
+  open until the first green run on GitHub.
 
 Running in parallel, since it touches no code:
 
@@ -45,9 +45,9 @@ handoffs 007 and 008 ACCEPTED). Block 1 closes when Sprint 3 does.
 - [ ] **The bounding box to study** — the feasibility experiment cannot start
   without it. Needed from the user as coordinates or a named extent.
 
-Handoff 009 needs the user to lift the `.github/**` deny entry for its
-interactive session, as was done for handoffs 002, 004 and 006. That is part of
-running the task, not a blocker on planning it.
+Sprint 3 needs the user to restore the `.github/**` deny entry, commit the diff
+and push the branch, so the first run executes on GitHub. That is the user's
+action, not a blocker on the agents' side.
 
 Resolved earlier, kept for traceability:
 

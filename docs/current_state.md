@@ -8,13 +8,15 @@ Block 1 · Architecture and Infrastructure ([roadmap.md](roadmap.md))
 
 ## Active Sprint
 
-Sprint 3 · CI/CD — planned, not started ([log](sprints/sprint-03-cicd.md)). Scope: one
+Sprint 3 · CI/CD — open, in progress ([log](sprints/sprint-03-cicd.md)). Scope: one
 workflow, `.github/workflows/quality-gate.yml`, running the ADR-005 gate on GitHub
 Actions through the same `.pre-commit-config.yaml` the commit hook uses, so the gate
 keeps one definition (reduced by [ADR-007](architecture/adr/adr-007-mvp-1-0-scope.md)).
-Handoff [009](prompts/009-ci-quality-gate-workflow.md) is written and runs
-**interactively only**, because `.github/workflows/**` is protected: the user lifts
-the deny entry for that session. Awaiting the user's commit of the sprint plan.
+Handoff [009](prompts/009-ci-quality-gate-workflow.md) is ACCEPTED 2026-10-21 (local
+gate green, six pre-commit hooks; workflow-shape check passing). It ran
+**interactively only**, because `.github/workflows/**` is protected. The sprint is
+not complete: it closes on the first green run on GitHub, which needs the user to
+restore the `.github/**` deny entry, commit and push the branch.
 
 Running in parallel: the feasibility experiment that produces ADR-004
 (`docs/experiments/exp-001-*.md`), which is blocked until the user supplies the

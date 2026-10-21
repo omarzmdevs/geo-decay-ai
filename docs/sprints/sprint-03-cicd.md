@@ -46,9 +46,9 @@ session, as in handoffs 002, 004 and 006, and restores it afterwards.
 
 ## Tasks
 
-- [ ] [009](../prompts/009-ci-quality-gate-workflow.md) — `quality-gate.yml`.
+- [x] [009](../prompts/009-ci-quality-gate-workflow.md) — `quality-gate.yml`.
       Interactive, protected path.
-- [ ] Orchestrator: verify 009 against its criteria, re-run the local gate,
+- [x] Orchestrator: verify 009 against its criteria, re-run the local gate,
       append the `## Verification` section; then run the documenter.
 - [ ] User: review and commit the diff, restore the deny entry, and push the
       branch so the first run executes on GitHub.
@@ -69,7 +69,7 @@ GitHub Actions and reports pass or fail on the commit.
 
 ## Handoffs Executed
 
-- [009 · CI quality-gate workflow](../prompts/009-ci-quality-gate-workflow.md) — PENDING
+- [009 · CI quality-gate workflow](../prompts/009-ci-quality-gate-workflow.md) — ACCEPTED 2026-10-21 (orchestrator verification). Run by an in-process developer subagent (`haiku`, planned tier `TIER_LIGHT`) from restore point `d40898d`, outcome completed. Gate: `workflow ok` and all six pre-commit hooks passing on the tree as delivered. The sprint stays open until the first green run on GitHub.
 
 ## Notes
 
@@ -99,6 +99,8 @@ GitHub Actions and reports pass or fail on the commit.
 <!-- Completed as the sprint runs. -->
 
 - [docs/sprints/README.md](README.md) — directory index
+- [docs/current_state.md](../current_state.md) — Active Sprint: handoff 009 ACCEPTED, sprint open
+- [docs/next_tasks.md](../next_tasks.md) — Active Sprint and Blocked On: handoff 009 ACCEPTED, remaining user steps
 
 ## Date Started
 
