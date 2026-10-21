@@ -67,9 +67,12 @@ and committed. The experiment runs in parallel and gates nothing in this sprint.
 - [x] Orchestrator: verify 007 against its criteria, re-run the gate, append the
       `## Verification` section; then run the documenter and hand the diff to
       the user.
-- [ ] [008](../prompts/008-logging-configuration.md) — implementation:
+- [x] [008](../prompts/008-logging-configuration.md) — implementation:
       `configure_logging` and its unit test. Headless.
-- [ ] Orchestrator: verify 008, then documenter, then user commit.
+- [x] Orchestrator: verify 008 against its criteria, re-run the gate, append the
+      `## Verification` section; then run the documenter (2026-10-17).
+- [ ] User: review and commit the 008 diff (`logging_config.py`, its unit test,
+      and the handoff's run record and verification).
 - [ ] User: supply the bounding box to study, as four coordinates and their CRS.
       It unblocks the experiment, not the sprint.
 - [ ] User and orchestrator: run the feasibility measurement recorded in
@@ -90,7 +93,7 @@ code.
 <!-- Verdicts are transcribed here as each handoff is verified. -->
 
 - [007 · Bounding box and centralised configuration](../prompts/007-bounding-box-and-configuration.md) — ACCEPTED 2026-10-16, full gate green (167 tests)
-- [008 · Logging configuration](../prompts/008-logging-configuration.md) — PENDING
+- [008 · Logging configuration](../prompts/008-logging-configuration.md) — ACCEPTED 2026-10-17, full gate green (175 tests, 8 new)
 
 ## Notes
 
@@ -129,7 +132,7 @@ code.
 
 - [docs/sprints/README.md](README.md) — directory index
 - [docs/next_tasks.md](../next_tasks.md)
-- [docs/current_state.md](../current_state.md) — documenter, 007 verdict recorded
+- [docs/current_state.md](../current_state.md) — documenter, 007 and 008 verdicts recorded
 - [docs/prompts/007-bounding-box-and-configuration.md](../prompts/007-bounding-box-and-configuration.md) — `GEO_DECAY_RANDOM_SEED` added
 - [docs/experiments/exp-001-data-feasibility.md](../experiments/exp-001-data-feasibility.md) — PENDING, blocked on the bounding box
 

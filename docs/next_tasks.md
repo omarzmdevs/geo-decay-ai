@@ -17,7 +17,9 @@ table is in [roadmap.md](roadmap.md).
   Planned in [sprint-02-runtime-foundations.md](sprints/sprint-02-runtime-foundations.md):
   handoff [007](prompts/007-bounding-box-and-configuration.md) (bounding box and
   configuration, acceptance tests first) ACCEPTED, then
-  [008](prompts/008-logging-configuration.md) (logging), pending.
+  [008](prompts/008-logging-configuration.md) (logging) ACCEPTED 2026-10-17.
+  Sprint close remains open: the user's commit of 008, the bounding box and the
+  feasibility experiment.
 
 Running in parallel, since it touches no code:
 
@@ -102,4 +104,4 @@ Tracked findings from the project review, deferred with their identifiers:
 
 ## Last Updated
 
-2026-10-16
+2026-10-17

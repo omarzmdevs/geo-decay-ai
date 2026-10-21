@@ -8,7 +8,7 @@ Block 1 · Architecture and Infrastructure ([roadmap.md](roadmap.md))
 
 ## Active Sprint
 
-Sprint 2 · Runtime Foundations — in progress ([log](sprints/sprint-02-runtime-foundations.md)); handoff 007 ACCEPTED, handoff 008 pending. Scope: logging
+Sprint 2 · Runtime Foundations — in progress ([log](sprints/sprint-02-runtime-foundations.md)); handoffs 007 and 008 ACCEPTED (008 on 2026-10-17, awaiting the user's commit). Scope: logging
 ([ADR-006](architecture/adr/adr-006-logging-strategy.md)), environment variables and
 centralised configuration, including the target bounding box as a configuration
 variable (four coordinates and the CRS they are expressed in). Running in parallel:
@@ -22,7 +22,7 @@ Sprint 1 · Foundations and Quality Gate — completed 2026-10-14 ([log](sprints
 
 ## Current Milestone
 
-Deliver Sprint 2 (007 accepted, 008 pending) and the feasibility experiment, on top of the Sprint 1 baseline
+Deliver Sprint 2 (007 and 008 accepted) and the feasibility experiment, on top of the Sprint 1 baseline
 (skeleton, reference container with GDAL at system level, enforced quality gate,
 write-scope guard and pre-commit hook).
 
@@ -58,4 +58,4 @@ See [ADR-001](architecture/adr/adr-001-agent-governance.md) and
 
 ## Last Updated
 
-2026-10-16
+2026-10-17
