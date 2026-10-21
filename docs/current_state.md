@@ -8,23 +8,32 @@ Block 1 · Architecture and Infrastructure ([roadmap.md](roadmap.md))
 
 ## Active Sprint
 
-Sprint 2 · Runtime Foundations — in progress ([log](sprints/sprint-02-runtime-foundations.md)); handoffs 007 and 008 ACCEPTED (008 on 2026-10-17, awaiting the user's commit). Scope: logging
-([ADR-006](architecture/adr/adr-006-logging-strategy.md)), environment variables and
-centralised configuration, including the target bounding box as a configuration
-variable (four coordinates and the CRS they are expressed in). Running in parallel:
-the feasibility experiment that produces ADR-004 (`docs/experiments/exp-001-*.md`),
-which is blocked until the user supplies the bounding box.
+Sprint 3 · CI/CD — planned, not started ([log](sprints/sprint-03-cicd.md)). Scope: one
+workflow, `.github/workflows/quality-gate.yml`, running the ADR-005 gate on GitHub
+Actions through the same `.pre-commit-config.yaml` the commit hook uses, so the gate
+keeps one definition (reduced by [ADR-007](architecture/adr/adr-007-mvp-1-0-scope.md)).
+Handoff [009](prompts/009-ci-quality-gate-workflow.md) is written and runs
+**interactively only**, because `.github/workflows/**` is protected: the user lifts
+the deny entry for that session. Awaiting the user's commit of the sprint plan.
+
+Running in parallel: the feasibility experiment that produces ADR-004
+(`docs/experiments/exp-001-*.md`), which is blocked until the user supplies the
+bounding box. The bounding box is already a configuration variable (Sprint 2); only
+its value is missing.
 
 ## Completed Sprints
 
 Sprint 0 · Documentation and Agent Setup ([log](sprints/sprint-00-agent-setup.md))
 Sprint 1 · Foundations and Quality Gate — completed 2026-10-14 ([log](sprints/sprint-01-foundations.md))
+Sprint 2 · Runtime Foundations — completed 2026-10-21 ([log](sprints/sprint-02-runtime-foundations.md)); handoffs 007 (ACCEPTED 2026-10-16) and 008 (ACCEPTED 2026-10-17) committed.
 
 ## Current Milestone
 
-Deliver Sprint 2 (007 and 008 accepted) and the feasibility experiment, on top of the Sprint 1 baseline
-(skeleton, reference container with GDAL at system level, enforced quality gate,
-write-scope guard and pre-commit hook).
+Deliver Sprint 3 (CI/CD), so every push and pull request to `main` is checked by the
+quality gate on GitHub, and the feasibility experiment (ADR-004), on top of the
+Sprint 2 baseline (validated `Settings`, `BoundingBox` configuration, logging
+configured once per process) and the Sprint 1 baseline (skeleton, reference container
+with GDAL at system level, enforced quality gate, write-scope guard and pre-commit hook).
 
 ## Development Model
 
@@ -58,4 +67,4 @@ See [ADR-001](architecture/adr/adr-001-agent-governance.md) and
 
 ## Last Updated
 
-2026-10-17
+2026-10-21

@@ -10,16 +10,16 @@ table is in [roadmap.md](roadmap.md).
 
 ## Active Sprint
 
-- [ ] **Sprint 2 · Runtime Foundations** (Block 1) — logging
-  ([ADR-006](architecture/adr/adr-006-logging-strategy.md)), environment
-  variables, centralised configuration, including the target bounding box as a
-  configuration variable and the deterministic seed absorbed from Sprint 6.
-  Planned in [sprint-02-runtime-foundations.md](sprints/sprint-02-runtime-foundations.md):
-  handoff [007](prompts/007-bounding-box-and-configuration.md) (bounding box and
-  configuration, acceptance tests first) ACCEPTED, then
-  [008](prompts/008-logging-configuration.md) (logging) ACCEPTED 2026-10-17.
-  Sprint close remains open: the user's commit of 008, the bounding box and the
-  feasibility experiment.
+- [ ] **Sprint 3 · CI/CD** (Block 1) — the ADR-005 gate runs on GitHub
+  Actions for every push and every pull request to `main`, through the same
+  `.pre-commit-config.yaml` the commit hook uses, so the gate keeps one
+  definition. Reduced by [ADR-007](architecture/adr/adr-007-mvp-1-0-scope.md)
+  to one workflow running the gate; the image build and CD stay out
+  (amendment 2026-10-21). Planned in
+  [sprint-03-cicd.md](sprints/sprint-03-cicd.md): handoff
+  [009](prompts/009-ci-quality-gate-workflow.md), **interactive only** because
+  `.github/workflows/**` is protected. Awaiting the user's commit of the
+  sprint plan before it runs.
 
 Running in parallel, since it touches no code:
 
@@ -35,16 +35,21 @@ Running in parallel, since it touches no code:
   measurement pending, and it is manual work by the user and the orchestrator,
   not a handoff.
 
-Sprint 1 · Foundations and Quality Gate is completed (2026-10-14, see
-[sprint-01-foundations.md](sprints/sprint-01-foundations.md)).
+Completed sprints of Block 1: Sprint 1 · Foundations and Quality Gate
+(2026-10-14, [log](sprints/sprint-01-foundations.md)) and Sprint 2 · Runtime
+Foundations (2026-10-21, [log](sprints/sprint-02-runtime-foundations.md),
+handoffs 007 and 008 ACCEPTED). Block 1 closes when Sprint 3 does.
 
 ## Blocked On
 
 - [ ] **The bounding box to study** — the feasibility experiment cannot start
   without it. Needed from the user as coordinates or a named extent.
 
-Nothing blocks Sprint 2 planning. The per-session lift of the infrastructure deny
-entries for handoffs 002 and 004 was done.
+Handoff 009 needs the user to lift the `.github/**` deny entry for its
+interactive session, as was done for handoffs 002, 004 and 006. That is part of
+running the task, not a blocker on planning it.
+
+Resolved earlier, kept for traceability:
 
 - [x] `AGENTS.md`, `.agents/roles/developer.md` — Black replaced by Ruff format;
   import-linter added to the gate.
@@ -59,8 +64,6 @@ entries for handoffs 002 and 004 was done.
 
 ## Next Up
 
-- [ ] **Sprint 3 · CI/CD** (Block 1) — GitHub Actions: lint, format, type check,
-  tests, Docker build. Reduced in MVP 1.0 to one workflow running the gate.
 - [ ] **Block 2 · MLOps and Data Infrastructure** — Sprints 4–6: MLflow, DVC,
   reproducibility. In MVP 1.0 only Sprint 4 runs, reduced to a local file
   store; DVC is deferred and Sprint 6 is absorbed into Sprint 2.
@@ -87,6 +90,20 @@ Tracked findings from the project review, deferred with their identifiers:
   `__init__.py` and as first-party once a module existed, so it demanded
   opposite import grouping before and after handoff 007. Declared explicitly in
   `pyproject.toml` on 2026-10-16.
+- [ ] **CI-IMAGE · The Docker image is not built in CI** — out of Sprint 3 by
+  ADR-007 (amendment 2026-10-21): the DevContainer builds it daily, so a CI
+  build would spend minutes on GDAL to repeat a signal already available. It
+  enters CI as a paths-triggered workflow (`Dockerfile`, `docker-compose.yml`,
+  `.devcontainer/**`, `pyproject.toml`, `uv.lock`) the moment that stops being
+  true.
+- [ ] **CI-PIN · GitHub Actions pinned by tag, not by commit SHA** — the same
+  tradeoff the container images already carry. A tag can be moved by its owner.
+  Revisit together with digest-pinning the base image.
+- [ ] **TOOL-VERIF · `.agents/TOOLING.md` → Pending Verification is stale** —
+  `dontAsk` in headless runs has now been exercised by handoffs 007 and 008,
+  and the uv cache question was settled by `[tool.uv] cache-dir = ".uv-cache"`
+  in `pyproject.toml` (commit `dc769b9`). The file is protected, so the user
+  updates it.
 - [ ] **W2 · Secret pattern drift** — the guard must validate the full `.env.*`
   glob; the tool deny list enumerates variants one by one and can fall behind.
 - [ ] **W3 · Permission coverage** — verify empirically whether `Edit(...)` deny
@@ -104,4 +121,4 @@ Tracked findings from the project review, deferred with their identifiers:
 
 ## Last Updated
 
-2026-10-17
+2026-10-21

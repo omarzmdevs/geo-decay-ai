@@ -23,7 +23,11 @@ Each layer is a top-level package under `src/` (`geo_decay_domain`,
 `geo_decay_data`, `geo_decay_application`, `geo_decay_delivery`). Ports are
 defined in the domain; the application uses them and the data layer implements
 them, so application and data never import each other. Delivery is the
-composition root. import-linter enforces these rules in the quality gate
+composition root: it holds the validated settings object that every runtime
+value comes from — the target bounding box included — and configures logging
+once at start-up from it, so no layer below reads the environment
+([ADR-006](adr/adr-006-logging-strategy.md), Sprint 2). import-linter enforces
+these rules in the quality gate
 ([ADR-003](adr/adr-003-src-layout-and-layer-boundaries.md)).
 
 MLflow and DVC (deferred) sit alongside the pipeline rather than inside it:
@@ -140,8 +144,11 @@ Development and execution both run in containers, so the C-level GIS dependencie
 - **Docker Compose** composes the application image with PostgreSQL/PostGIS
   (deferred in MVP 1.0) and the MLflow tracking server (MVP 1.0: a local file
   store, no server).
-- **CI** builds the same image and runs lint, formatting, type checks and tests
-  against it (Sprint 3).
+- **CI** runs the quality gate — lint, formatting, type checks, tests — on
+  every push, through the same `.pre-commit-config.yaml` the commit hook uses
+  (Sprint 3). It does not build the image: that is deferred while the
+  DevContainer builds it daily ([ADR-007](adr/adr-007-mvp-1-0-scope.md),
+  amendment 2026-10-21).
 
 Secrets are supplied through the environment and never committed; `.env.example`
 holds key names and placeholders only.
