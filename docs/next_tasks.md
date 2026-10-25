@@ -10,7 +10,10 @@ table is in [roadmap.md](roadmap.md).
 
 ## Active Sprint
 
-- [ ] **Sprint 3 · CI/CD** (Block 1) — the ADR-005 gate runs on GitHub
+None: Block 1 is closed and the next sprint is set when Block 2 is planned. The
+sprint that closed it stays here until then.
+
+- [x] **Sprint 3 · CI/CD** (Block 1) — the ADR-005 gate runs on GitHub
   Actions for every push and every pull request to `main`, through the same
   `.pre-commit-config.yaml` the commit hook uses, so the gate keeps one
   definition. Reduced by [ADR-007](architecture/adr/adr-007-mvp-1-0-scope.md)
@@ -18,8 +21,9 @@ table is in [roadmap.md](roadmap.md).
   (amendment 2026-10-21). Logged in
   [sprint-03-cicd.md](sprints/sprint-03-cicd.md): handoff
   [009](prompts/009-ci-quality-gate-workflow.md) ACCEPTED 2026-10-21, run
-  interactively because `.github/workflows/**` is protected. The sprint stays
-  open until the first green run on GitHub.
+  interactively because `.github/workflows/**` is protected. Closed 2026-10-25
+  on the first green run on GitHub (run #2, `d061937`, `success`), per the
+  handoff's `## Sprint Closing Evidence`.
 
 Running in parallel, since it touches no code:
 
@@ -36,19 +40,16 @@ Running in parallel, since it touches no code:
   not a handoff.
 
 Completed sprints of Block 1: Sprint 1 · Foundations and Quality Gate
-(2026-10-14, [log](sprints/sprint-01-foundations.md)) and Sprint 2 · Runtime
+(2026-10-14, [log](sprints/sprint-01-foundations.md)), Sprint 2 · Runtime
 Foundations (2026-10-21, [log](sprints/sprint-02-runtime-foundations.md),
-handoffs 007 and 008 ACCEPTED). Block 1 closes when Sprint 3 does.
+handoffs 007 and 008 ACCEPTED) and Sprint 3 · CI/CD (2026-10-25,
+[log](sprints/sprint-03-cicd.md), handoff 009 ACCEPTED). Block 1 closed 2026-10-25.
 
 ## Blocked On
 
 - [ ] **The bounding box to study** — the feasibility experiment cannot start
   without it. Needed from the user as coordinates or a named extent.
-
-Sprint 3 needs the user to restore the `.github/**` deny entry, commit the diff
-and push the branch, so the first run executes on GitHub. That is the user's
-action, not a blocker on the agents' side.
-
+  
 Resolved earlier, kept for traceability:
 
 - [x] `AGENTS.md`, `.agents/roles/developer.md` — Black replaced by Ruff format;
@@ -96,20 +97,32 @@ Tracked findings from the project review, deferred with their identifiers:
   enters CI as a paths-triggered workflow (`Dockerfile`, `docker-compose.yml`,
   `.devcontainer/**`, `pyproject.toml`, `uv.lock`) the moment that stops being
   true.
-- [ ] **CI-PIN · GitHub Actions pinned by tag, not by commit SHA** — the same
-  tradeoff the container images already carry. A tag can be moved by its owner.
-  Revisit together with digest-pinning the base image.
-- [ ] **TOOL-VERIF · `.agents/TOOLING.md` → Pending Verification is stale** —
-  `dontAsk` in headless runs has now been exercised by handoffs 007 and 008,
-  and the uv cache question was settled by `[tool.uv] cache-dir = ".uv-cache"`
-  in `pyproject.toml` (commit `dc769b9`). The file is protected, so the user
-  updates it.
-- [ ] **W2 · Secret pattern drift** — the guard must validate the full `.env.*`
-  glob; the tool deny list enumerates variants one by one and can fall behind.
-- [ ] **W3 · Permission coverage** — verify empirically whether `Edit(...)` deny
-  rules also cover file writes, and record the result in `.agents/TOOLING.md`.
-- [ ] **W12 · Redundant rule** — the `--no-verify` deny entry is covered by the
-  broader commit deny; remove it.
+- [x] **CI-PIN · GitHub Actions pinned by tag, not by commit SHA** — resolved
+  2026-10-25 in `d061937`: `actions/checkout` and `astral-sh/setup-uv` carry a
+  commit digest with the version in a trailing comment, and both move together
+  on a bump. Digest-pinning the container base image is a separate matter, under
+  Known Issues in [current_state.md](current_state.md).
+- [x] **TOOL-VERIF · `.agents/TOOLING.md` → Pending Verification was stale** —
+  updated by the user on 2026-10-25: `dontAsk` (handoffs 007 and 008), the uv
+  cache (`[tool.uv] cache-dir`, commit `dc769b9`) and the W2 and W3 results now
+  sit in a new `## Verified` section. One honest unknown stays there, sandbox
+  compatibility with Docker and package installation, to be confirmed from a
+  container build or dropped.
+- [x] **W2 · Secret pattern drift** — closed 2026-10-25 as resolved by design.
+  The enumerated deny list exists to keep `.env.example` readable, since a deny
+  rule cannot carve an exception, while the full `.env.*` glob is enforced by
+  the working-tree guard from `secrets.include` (checked: `.env.staging` and
+  `.env.whatever` classify as SECRET, `.env.example` does not). A missing deny
+  entry costs a tool-level deny, never the guard's check. Stated in
+  `.agents/TOOLING.md`.
+- [x] **W3 · Permission coverage** — answered 2026-10-25: an `Edit(...)` deny
+  does cover file writes. With `Edit(./.claude/**)` in the deny list and no
+  `Write` rule, a `Write` to `.claude/skills/project-status/SKILL.md` was
+  refused, and the shell route was refused by the sandbox as well. Recorded in
+  `.agents/TOOLING.md` → `## Verified`.
+- [x] **W12 · Redundant rule** — `Bash(git commit*--no-verify*)` was covered by
+  the broader `Bash(git commit*)`; removed from `.claude/settings.json` by the
+  user on 2026-10-25.
 
 ## Backlog
 
@@ -121,4 +134,4 @@ Tracked findings from the project review, deferred with their identifiers:
 
 ## Last Updated
 
-2026-10-21
+2026-10-25

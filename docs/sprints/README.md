@@ -9,7 +9,7 @@
 - [Sprint 00 · Documentation and Agent Setup](sprint-00-agent-setup.md) — complete
 - [Sprint 01 · Foundations and Quality Gate](sprint-01-foundations.md) — complete
 - [Sprint 02 · Runtime Foundations](sprint-02-runtime-foundations.md) — complete
-- [Sprint 03 · CI/CD](sprint-03-cicd.md) — active
+- [Sprint 03 · CI/CD](sprint-03-cicd.md) — complete
 
 The full block and sprint structure is in [roadmap.md](../roadmap.md).
 

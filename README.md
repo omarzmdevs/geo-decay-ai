@@ -2,6 +2,8 @@
 
 [English version below](#english-version)
 
+[![Quality gate](https://github.com/omarzmdevs/geo-decay-ai/actions/workflows/quality-gate.yml/badge.svg)](https://github.com/omarzmdevs/geo-decay-ai/actions/workflows/quality-gate.yml)
+
 > Estado: **en desarrollo**. 
 Este proyecto es un Trabajo de Fin de Máster (TFM) con fines académicos y de investigación.
 

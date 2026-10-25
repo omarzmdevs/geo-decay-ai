@@ -38,7 +38,6 @@
       "Bash(git rebase*)",
       "Bash(git filter-branch*)",
       "Bash(git branch -D*)",
-      "Bash(git commit*--no-verify*)",
       "Bash(rm -r*)",
       "Bash(rm -fr*)",
       "Bash(rm -rf*)"

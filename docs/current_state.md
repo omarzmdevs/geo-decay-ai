@@ -4,19 +4,16 @@
 
 ## Active Block
 
-Block 1 · Architecture and Infrastructure ([roadmap.md](roadmap.md))
+Block 1 · Architecture and Infrastructure — closed 2026-10-25 ([roadmap.md](roadmap.md)).
+Next up: Block 2 · MLOps and Data Infrastructure ([next_tasks.md](next_tasks.md)).
 
 ## Active Sprint
 
-Sprint 3 · CI/CD — open, in progress ([log](sprints/sprint-03-cicd.md)). Scope: one
-workflow, `.github/workflows/quality-gate.yml`, running the ADR-005 gate on GitHub
-Actions through the same `.pre-commit-config.yaml` the commit hook uses, so the gate
-keeps one definition (reduced by [ADR-007](architecture/adr/adr-007-mvp-1-0-scope.md)).
-Handoff [009](prompts/009-ci-quality-gate-workflow.md) is ACCEPTED 2026-10-21 (local
-gate green, six pre-commit hooks; workflow-shape check passing). It ran
-**interactively only**, because `.github/workflows/**` is protected. The sprint is
-not complete: it closes on the first green run on GitHub, which needs the user to
-restore the `.github/**` deny entry, commit and push the branch.
+None. Sprint 3 · CI/CD — complete 2026-10-25 ([log](sprints/sprint-03-cicd.md)). The
+ADR-005 gate runs on GitHub Actions through `.github/workflows/quality-gate.yml`, using
+the same `.pre-commit-config.yaml` the commit hook uses. Closed on the first green run on
+GitHub (run #2, `Quality gate`, branch `bloque-1`, commit `d061937`, `success`), per
+handoff [009](prompts/009-ci-quality-gate-workflow.md) `## Sprint Closing Evidence`.
 
 Running in parallel: the feasibility experiment that produces ADR-004
 (`docs/experiments/exp-001-*.md`), which is blocked until the user supplies the
@@ -28,11 +25,12 @@ its value is missing.
 Sprint 0 · Documentation and Agent Setup ([log](sprints/sprint-00-agent-setup.md))
 Sprint 1 · Foundations and Quality Gate — completed 2026-10-14 ([log](sprints/sprint-01-foundations.md))
 Sprint 2 · Runtime Foundations — completed 2026-10-21 ([log](sprints/sprint-02-runtime-foundations.md)); handoffs 007 (ACCEPTED 2026-10-16) and 008 (ACCEPTED 2026-10-17) committed.
+Sprint 3 · CI/CD — completed 2026-10-25 ([log](sprints/sprint-03-cicd.md)); handoff 009 ACCEPTED 2026-10-21, closed on the first green GitHub run.
 
 ## Current Milestone
 
-Deliver Sprint 3 (CI/CD), so every push and pull request to `main` is checked by the
-quality gate on GitHub, and the feasibility experiment (ADR-004), on top of the
+Block 1 is closed: every push and pull request to `main` is checked by the quality gate
+on GitHub (Sprint 3). The feasibility experiment (ADR-004) is still open, on top of the
 Sprint 2 baseline (validated `Settings`, `BoundingBox` configuration, logging
 configured once per process) and the Sprint 1 baseline (skeleton, reference container
 with GDAL at system level, enforced quality gate, write-scope guard and pre-commit hook).
@@ -69,4 +67,4 @@ See [ADR-001](architecture/adr/adr-001-agent-governance.md) and
 
 ## Last Updated
 
-2026-10-21
+2026-10-25

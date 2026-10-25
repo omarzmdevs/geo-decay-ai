@@ -50,15 +50,19 @@ session, as in handoffs 002, 004 and 006, and restores it afterwards.
       Interactive, protected path.
 - [x] Orchestrator: verify 009 against its criteria, re-run the local gate,
       append the `## Verification` section; then run the documenter.
-- [ ] User: review and commit the diff, restore the deny entry, and push the
-      branch so the first run executes on GitHub.
-- [ ] User: report the run's result — a green run on GitHub is what closes the
-      sprint, since no local check can prove the workflow runs.
-- [ ] Orchestrator: add the status badge to `README.md` once a run is green.
+- [x] User: review and commit the diff, restore the deny entry, and push the
+      branch so the first run executes on GitHub. Run #2 executed on `bloque-1`
+      at `d061937`; the deny entry `Edit(./.github/workflows/**)` is back in
+      the tool settings, checked by the orchestrator on 2026-10-25.
+- [x] User: report the run's result — a green run on GitHub is what closes the
+      sprint, since no local check can prove the workflow runs. Recorded in
+      handoff 009's `## Sprint Closing Evidence`: run #2, `success`.
+- [x] Orchestrator: add the status badge to `README.md` once a run is green.
+      Added 2026-10-25, after run #2.
 - [ ] User, optional: require the check on `main` in the repository's branch
       protection. Outside the repository, so it is the user's action and is
       recorded here, not automated.
-- [ ] Sprint close: fill the dates and the verdict here, update
+- [x] Sprint close: fill the dates and the verdict here, update
       `current_state.md` and `next_tasks.md`, and move the sprint to complete
       in the directory index.
 
@@ -67,9 +71,17 @@ session, as in handoffs 002, 004 and 006, and restores it afterwards.
 A push to any branch, and any pull request to `main`, runs the full gate on
 GitHub Actions and reports pass or fail on the commit.
 
+## Verdict
+
+Complete, 2026-10-25. The closing criterion is met: the first green run of
+`Quality gate` on GitHub — run #2, branch `bloque-1`, commit `d061937`,
+conclusion `success` (2026-10-24T23:04:48Z). Source: handoff
+[009](../prompts/009-ci-quality-gate-workflow.md), `## Sprint Closing Evidence`,
+read by the orchestrator from the GitHub Actions API.
+
 ## Handoffs Executed
 
-- [009 · CI quality-gate workflow](../prompts/009-ci-quality-gate-workflow.md) — ACCEPTED 2026-10-21 (orchestrator verification). Run by an in-process developer subagent (`haiku`, planned tier `TIER_LIGHT`) from restore point `d40898d`, outcome completed. Gate: `workflow ok` and all six pre-commit hooks passing on the tree as delivered. The sprint stays open until the first green run on GitHub.
+- [009 · CI quality-gate workflow](../prompts/009-ci-quality-gate-workflow.md) — ACCEPTED 2026-10-21 (orchestrator verification). Run by an in-process developer subagent (`haiku`, planned tier `TIER_LIGHT`) from restore point `d40898d`, outcome completed. Gate: `workflow ok` and all six pre-commit hooks passing on the tree as delivered. Sprint closed 2026-10-25 on the first green run on GitHub (see Verdict).
 
 ## Notes
 
@@ -94,13 +106,23 @@ GitHub Actions and reports pass or fail on the commit.
   until Sprints 20 and 21, and ADR-007 defers the platform work. The sprint
   keeps the roadmap's "CI/CD" title for traceability; its executed scope is CI.
 
+- **Deviation: run #1 failed.** Run #1 (`410f96f`) failed because the SHA pin of
+  `actions/checkout` was malformed (a stray `v` before the digest), so the ref
+  did not resolve. Fixed in `d061937`, which also pins `astral-sh/setup-uv` by
+  digest. Source: handoff 009, `## Sprint Closing Evidence`.
+- **Open after close:** whether the uv cache is restored can only be read from a
+  run's log (handoff 009, Verification notes); the status badge and the optional
+  branch-protection check above stay open. Debt `CI-PIN` now applies to digests
+  kept in step with their version comments.
+
 ## Documents Updated
 
 <!-- Completed as the sprint runs. -->
 
-- [docs/sprints/README.md](README.md) — directory index
-- [docs/current_state.md](../current_state.md) — Active Sprint: handoff 009 ACCEPTED, sprint open
-- [docs/next_tasks.md](../next_tasks.md) — Active Sprint and Blocked On: handoff 009 ACCEPTED, remaining user steps
+- [README.md](../../README.md) — `Quality gate` status badge (2026-10-25)
+- [docs/sprints/README.md](README.md) — directory index: Sprint 3 marked complete (2026-10-25)
+- [docs/current_state.md](../current_state.md) — Active Sprint, Completed Sprints and Current Milestone: Sprint 3 complete, Block 1 closed (2026-10-25)
+- [docs/next_tasks.md](../next_tasks.md) — Active Sprint, Completed Sprints of Block 1 and Blocked On: Sprint 3 closed (2026-10-25)
 
 ## Date Started
 
@@ -108,4 +130,4 @@ GitHub Actions and reports pass or fail on the commit.
 
 ## Date Completed
 
-<!-- YYYY-MM-DD -->
+2026-10-25

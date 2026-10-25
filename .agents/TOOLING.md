@@ -77,17 +77,19 @@ Enforces requirements 2–4 and part of 6.
 
 - Only the "nobody touches" list is enforced there. Role scopes are checked by the working-tree guard, because a deny rule in shared settings would block every role.
 - `.git/**` is denied for writing, which is what keeps requirement 8 true rather than merely stated. The OS-level sandbox enforces it even for shell commands.
-- Deny rules cannot carve exceptions, so `.env` variants are listed one by one to keep `.env.example` readable. Add any new `.env.<name>` file to the list.
+- Deny rules cannot carve exceptions, so `.env` variants are listed one by one to keep `.env.example` readable. This enumeration is deliberate. The secret glob (`.env.*` in `secrets.include`, with `.env.example` in `except`) is enforced by the working-tree guard, which covers any variant the list does not name. Add any new `.env.<name>` file to the list anyway, as defence in depth, but a missed entry does not leave it unguarded.
 - Bash deny rules match command text only; the sandbox is the OS-level boundary.
 - The sandbox network allowlist (`sandbox.network.allowedDomains`) holds only what uv needs: `pypi.org` and `files.pythonhosted.org` for packages; `github.com`, `objects.githubusercontent.com` and `release-assets.githubusercontent.com` for the Python builds uv downloads. Data domains (IGN/CNIG) are added by the sprint that downloads data.
 - Infrastructure sprints need the matching deny entries lifted for that session, with the user's approval.
 
+## Verified
+
+- `dontAsk` in headless runs: exercised by handoffs 007 and 008 (2026-10-16, 2026-10-17) and by the documenter run of 2026-10-25.
+- `Edit(...)` deny rules cover file writes (2026-10-25, debt W3): with `Edit(./.claude/**)` denied and no `Write` rule, a `Write` to `.claude/skills/project-status/SKILL.md` was refused, and the shell route was refused by the sandbox as well.
+- uv cache inside the sandbox: settled by `[tool.uv] cache-dir = ".uv-cache"` in `pyproject.toml` (commit `dc769b9`). The `--cache-dir "$TMPDIR/uv-cache"` workaround from handoff 003 is no longer needed.
+- Deny-list enumeration of `.env` variants is deliberate (debt W2): it keeps `.env.example` readable, and the full `.env.*` glob is enforced by the working-tree guard.
+
 ## Pending Verification
 
-- `dontAsk` behaviour in headless runs (dry-run before first real use).
-- Sandbox compatibility with Docker and package installation during Sprint 1.
-- uv cache inside the sandbox: a sandboxed session may be denied uv's default
-  cache directory. Workaround observed in handoff 003 (tester mode, 2026-10-12):
-  `uv run --offline --cache-dir "$TMPDIR/uv-cache" …`, which leaves the
-  repository untouched. A permanent fix (e.g. `UV_CACHE_DIR` in the tool
-  settings) is the user's decision.
+- Sandbox compatibility with Docker and package installation: no evidence was recorded here during Sprint 1. Confirm from a container build or drop the entry.
+

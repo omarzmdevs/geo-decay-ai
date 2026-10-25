@@ -245,3 +245,23 @@ Notes:
   `Edit(...)` deny also stops a write issued from a shell command; the deny
   entry was lifted before the developer ran, so nothing was probed. W3 stands
   unchanged in `next_tasks.md`.
+
+## Sprint Closing Evidence
+
+Date: 2026-10-25
+Verdict: the sprint's closing criterion is met.
+
+First green run on GitHub: workflow `Quality gate`, run #2, branch `bloque-1`,
+commit `d061937`, conclusion `success` (2026-10-24T23:04:48Z). Read by the
+orchestrator from the GitHub Actions API, not from the developer's or the user's
+report.
+
+Run #1 (`410f96f`) failed: the SHA pin was malformed — `actions/checkout@v3d3c42e…`
+carried a stray `v` before the digest, so the ref did not resolve. Fixed by the
+user in `d061937`, which also pins `astral-sh/setup-uv` by digest. That is the
+first evidence that the workflow is genuinely scheduled and executed, which no
+local check could produce.
+
+Still open as a follow-up, unchanged by this run: whether the uv cache is
+actually restored can only be read from a run's log (see the note above), and
+debt `CI-PIN` now applies to digests kept in step with their version comments.
