@@ -16,6 +16,7 @@
       "Edit(./.env.development)",
       "Edit(./.env.production)",
       "Edit(./.env.test)",
+      "Edit(./scripts/policy_guard.py)",
       "Edit(./.git/**)",
       "Edit(./.github/workflows/**)",
       "Edit(./.devcontainer/**)",
@@ -37,7 +38,6 @@
       "Bash(git rebase*)",
       "Bash(git filter-branch*)",
       "Bash(git branch -D*)",
-      "Bash(git commit*--no-verify*)",
       "Bash(rm -r*)",
       "Bash(rm -fr*)",
       "Bash(rm -rf*)"
@@ -46,6 +46,15 @@
     "allow": []
   },
   "sandbox": {
-    "enabled": true
+    "enabled": true,
+    "network": {
+      "allowedDomains": [
+        "pypi.org",
+        "files.pythonhosted.org",
+        "github.com",
+        "objects.githubusercontent.com",
+        "release-assets.githubusercontent.com"
+      ]
+    }
   }
 }

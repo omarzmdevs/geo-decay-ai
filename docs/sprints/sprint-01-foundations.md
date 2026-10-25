@@ -19,39 +19,55 @@ headless run.
 ## Requirements
 
 * Standard project structure: `src/`, `tests/unit/`, `tests/acceptance/`, `scripts/`.
-* Python environment and dependency management defined in `pyproject.toml`.
-* Docker, Docker Compose and DevContainer with GDAL, PDAL and Rasterio installed
-  at system level.
-* Quality gate: Ruff, Black, strict MyPy, Pytest, pre-commit.
+* Python 3.12 environment and dependencies managed by uv, declared in
+  `pyproject.toml` and locked in `uv.lock`.
+* Docker, Docker Compose and DevContainer with GDAL and PDAL installed at system
+  level. *Amended 2026-10-14 (ADR-005): GDAL only; PDAL deferred to Sprint 9.*
+* Quality gate: Ruff (lint and format), strict MyPy, import-linter, Pytest,
+  pre-commit with local hooks run through `uv run`.
 * Write-scope guard enforcing `.agents/policy.yaml` on the working-tree diff.
 
 ## Prerequisites
 
-* ADR-003 — `src/` layout and layer boundaries.
-* ADR-005 — dependency and environment manager.
-
-Both must be recorded before implementation starts: the orchestrator owns
-system-level architecture, so the developer must not invent the layout.
+* [ADR-003](../architecture/adr/adr-003-src-layout-and-layer-boundaries.md) —
+  `src/` layout and layer boundaries. Recorded 2026-10-08.
+* [ADR-005](../architecture/adr/adr-005-dependency-and-environment-manager.md) —
+  uv, Python 3.12, gate tooling. Recorded 2026-10-08.
+* The protected-path follow-ups listed in ADR-005, applied by the user.
 
 ## Tasks
 
-- [ ] Define the base `pyproject.toml`, including the dev dependencies and the
-      tool configuration for Ruff, Black, MyPy and Pytest.
-- [ ] Create `Dockerfile` / `docker-compose.yml` and the DevContainer, ensuring
-      GDAL and PDAL are installed at system level.
-- [ ] Create the directory structure: `src/`, `tests/unit/`, `tests/acceptance/`,
-      `scripts/`.
-- [ ] Configure `.pre-commit-config.yaml` with the full gate.
-- [ ] Implement `scripts/policy_guard.py` with unit tests: it reads
-      `.agents/policy.yaml`, takes `--role <role>`, and fails when the changed
-      files touch a secret, a protected path, or a path outside that role's
-      scope. Wire it as a hook.
-- [ ] Add `scripts/policy_guard.py` to the tool deny list once validated, so no
-      agent can modify its own guard.
-- [ ] Verify the agent environment inside the container: the most restrictive
-      headless permission mode behaves as documented, and the sandbox is
-      compatible with Docker and with package installation (see
-      `.agents/TOOLING.md` → Pending Verification).
+Execution order: 001 → 005 → 002 → 003 (tester mode, user commit, implementation) → 004.
+005 runs before any other developer task, so that no developer can rewrite Markdown with `ruff format .`.
+
+- [x] [001](../prompts/001-project-skeleton-and-gate.md) — base `pyproject.toml`
+      (hatchling, four packages, `dev` group, Ruff/MyPy/import-linter/Pytest
+      configuration), `uv.lock`, `.python-version` and the ADR-003 directory
+      structure. Headless.
+- [x] [005](../prompts/005-ruff-python-only.md) — restrict Ruff to Python
+      files; Ruff 0.16 also formats Markdown, protected paths included. Headless.
+- [x] [002](../prompts/002-container-and-devcontainer.md) — `Dockerfile`,
+      `docker-compose.yml` and DevContainer with GDAL and PDAL at system level.
+      Interactive. Accepted together with 006; PDAL deferred to Sprint 9.
+- [x] [006](../prompts/006-container-gdal-only.md) — base image moved to
+      `debian:trixie` with GDAL only (PDAL removed). Interactive.
+- [x] [003](../prompts/003-policy-guard.md) — `scripts/policy_guard.py` with
+      acceptance and unit tests. Headless (tester mode, then implementation).
+- [x] [004](../prompts/004-pre-commit-gate.md) — `.pre-commit-config.yaml`
+      with the full gate and the secret check. Interactive.
+- [x] User: add `scripts/policy_guard.py` to the tool deny list once 003 is
+      accepted, so no agent can modify its own guard.
+- [x] Orchestrator: verify the agent environment inside the container. That
+      means checking that the most restrictive headless permission mode behaves
+      as documented, and that the sandbox works with Docker and with package
+      installation (see `.agents/TOOLING.md` → Pending Verification).
+      Findings (2026-10-12/14): `dontAsk` headless runs honour the allowlist
+      once the prompt precedes `--allowedTools`; a headless session launched
+      from a sandboxed session cannot start its own sandbox and runs its
+      allowlisted commands unsandboxed; uv needs `UV_CACHE_DIR="$TMPDIR/uv-cache"`
+      inside the sandbox; the sandbox blocks the Docker socket, so the user runs
+      Docker commands. `.agents/TOOLING.md` → Pending Verification is to be
+      updated by the user (protected).
 
 ## Deliverable
 
@@ -60,11 +76,25 @@ automatically, and whose write scopes are enforced rather than merely documented
 
 ## Handoffs Executed
 
-<!-- List the handoffs run during this sprint -->
+- [001 · Project skeleton and quality gate](../prompts/001-project-skeleton-and-gate.md) — ACCEPTED — 2026-10-08
+- [005 · Restrict Ruff to Python files](../prompts/005-ruff-python-only.md) — ACCEPTED — 2026-10-11
+- [003 · Write-scope policy guard](../prompts/003-policy-guard.md) — ACCEPTED (experimental run; criteria 1, 2 and 5 not verifiable as written) — 2026-10-12
+- [004 · Pre-commit quality gate](../prompts/004-pre-commit-gate.md) — ACCEPTED — 2026-10-12
+- [002 · Container image and DevContainer](../prompts/002-container-and-devcontainer.md) — ACCEPTED — 2026-10-14 (002 criterion 2 superseded by 006: GDAL only, PDAL deferred to Sprint 9)
+- [006 · Container on Debian Trixie with GDAL only](../prompts/006-container-gdal-only.md) — ACCEPTED — 2026-10-14
 
 ## Notes
 
-<!-- Any relevant observations, issues encountered, or deviations from the plan -->
+- Black is not part of the stack (ADR-005): Ruff format is the only formatter;
+  strict MyPy stays in the gate.
+- The skeleton and the tool configuration are merged into one handoff (001),
+  because `mypy`, `lint-imports` and `pytest` cannot pass without the packages.
+- The commit hook runs the policy guard with `--secrets-only`. A commit
+  legitimately combines several roles and authorised protected changes, so role
+  scopes are checked by the orchestrator at verification time
+  (`--role <role>`), not at commit time.
+- Handoff 003 uses `Acceptance tests: yes` although the guard is not domain
+  logic: it is the only automatic enforcement of write scopes.
 
 ## Documents Updated
 
@@ -73,8 +103,8 @@ automatically, and whose write scopes are enforced rather than merely documented
 
 ## Date Started
 
-<!-- YYYY-MM-DD -->
+2026-10-08
 
 ## Date Completed
 
-<!-- YYYY-MM-DD -->
+2026-10-14

@@ -39,15 +39,23 @@ exists. Copy the matching command into the handoff's **Launch command** field
 and adjust the allowlist to the task. `dontAsk` denies every tool not
 pre-approved; dry-run a new command on a trivial handoff before relying on it.
 
+The prompt goes right after `-p`, before any flag. `--allowedTools` takes a
+variable number of values, so a prompt placed after it is parsed as one more
+tool name and the run aborts with "Input must be provided".
+
 **Developer:**
 
 ```bash
-claude -p --model sonnet --permission-mode dontAsk \
+claude -p "ROLE: developer. Execute docs/prompts/NNN-short-title.md" \
+  --model sonnet --permission-mode dontAsk \
   --allowedTools "Read" "Edit" "Write" "Glob" "Grep" \
-    "Bash(pytest *)" "Bash(ruff *)" "Bash(black *)" "Bash(mypy *)" \
-    "Bash(git status*)" "Bash(git diff*)" \
-  "ROLE: developer. Execute docs/prompts/NNN-short-title.md" < /dev/null
+    "Bash(uv run *)" \
+    "Bash(git status*)" "Bash(git diff*)" < /dev/null
 ```
+
+Every gate tool runs through `uv run`, so it uses the version locked in `uv.lock`
+(ADR-005). Add `"Bash(uv sync*)"` and `"Bash(uv lock*)"` only when the handoff
+changes dependencies.
 
 **Tester mode:** same command with
 `"ROLE: developer, tester mode. Execute the acceptance-test part of docs/prompts/NNN-short-title.md"`.
@@ -55,9 +63,9 @@ claude -p --model sonnet --permission-mode dontAsk \
 **Documenter:**
 
 ```bash
-claude -p --model haiku --permission-mode dontAsk \
-  --allowedTools "Read" "Edit" "Write" "Glob" \
-  "ROLE: documenter. Record the verification of docs/prompts/NNN-short-title.md" < /dev/null
+claude -p "ROLE: documenter. Record the verification of docs/prompts/NNN-short-title.md" \
+  --model haiku --permission-mode dontAsk \
+  --allowedTools "Read" "Edit" "Write" "Glob" < /dev/null
 ```
 
 Interactive sessions start with the first message `ROLE: <role>`.
@@ -69,12 +77,19 @@ Enforces requirements 2–4 and part of 6.
 
 - Only the "nobody touches" list is enforced there. Role scopes are checked by the working-tree guard, because a deny rule in shared settings would block every role.
 - `.git/**` is denied for writing, which is what keeps requirement 8 true rather than merely stated. The OS-level sandbox enforces it even for shell commands.
-- Deny rules cannot carve exceptions, so `.env` variants are listed one by one to keep `.env.example` readable. Add any new `.env.<name>` file to the list.
+- Deny rules cannot carve exceptions, so `.env` variants are listed one by one to keep `.env.example` readable. This enumeration is deliberate. The secret glob (`.env.*` in `secrets.include`, with `.env.example` in `except`) is enforced by the working-tree guard, which covers any variant the list does not name. Add any new `.env.<name>` file to the list anyway, as defence in depth, but a missed entry does not leave it unguarded.
 - Bash deny rules match command text only; the sandbox is the OS-level boundary.
-- The sandbox network allowlist starts empty: add package indexes and data domains (PyPI, IGN/CNIG) when Sprint 1 needs them.
+- The sandbox network allowlist (`sandbox.network.allowedDomains`) holds only what uv needs: `pypi.org` and `files.pythonhosted.org` for packages; `github.com`, `objects.githubusercontent.com` and `release-assets.githubusercontent.com` for the Python builds uv downloads. Data domains (IGN/CNIG) are added by the sprint that downloads data.
 - Infrastructure sprints need the matching deny entries lifted for that session, with the user's approval.
+
+## Verified
+
+- `dontAsk` in headless runs: exercised by handoffs 007 and 008 (2026-10-16, 2026-10-17) and by the documenter run of 2026-10-25.
+- `Edit(...)` deny rules cover file writes (2026-10-25, debt W3): with `Edit(./.claude/**)` denied and no `Write` rule, a `Write` to `.claude/skills/project-status/SKILL.md` was refused, and the shell route was refused by the sandbox as well.
+- uv cache inside the sandbox: settled by `[tool.uv] cache-dir = ".uv-cache"` in `pyproject.toml` (commit `dc769b9`). The `--cache-dir "$TMPDIR/uv-cache"` workaround from handoff 003 is no longer needed.
+- Deny-list enumeration of `.env` variants is deliberate (debt W2): it keeps `.env.example` readable, and the full `.env.*` glob is enforced by the working-tree guard.
 
 ## Pending Verification
 
-- `dontAsk` behaviour in headless runs (dry-run before first real use).
-- Sandbox compatibility with Docker and package installation during Sprint 1.
+- Sandbox compatibility with Docker and package installation: no evidence was recorded here during Sprint 1. Confirm from a container build or drop the entry.
+

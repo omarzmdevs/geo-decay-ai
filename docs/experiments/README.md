@@ -5,8 +5,10 @@
 ## Index
 
 <!-- List experiment logs here as they are created -->
-<!-- Example: -->
-<!-- - [EXP-001: YOLO11 vs RT-DETR comparison](exp-001-detection-comparison.md) -->
+
+- [EXP-001 · Data feasibility](exp-001-data-feasibility.md) — methodology fixed
+  2026-10-15, measurement pending; blocked on the bounding box. Produces
+  [ADR-004](../architecture/adr/).
 
 ## Template
 

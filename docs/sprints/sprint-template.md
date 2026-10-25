@@ -8,9 +8,18 @@
 
 <!-- What is the sprint objective? -->
 
+## Execution Mode
+
+<!-- Headless or interactive, and why. Sprints touching protected paths
+     (`.agents/policy.yaml`) cannot run headless. Omit if there is nothing to say -->
+
 ## Requirements
 
 <!-- List the specific deliverables and acceptance criteria -->
+
+## Prerequisites
+
+<!-- ADRs, earlier sprints or user actions this sprint depends on. Omit if none -->
 
 ## Tasks
 

@@ -1,0 +1,57 @@
+# Build context exclusions. The repository is bind-mounted at run time; this
+# only keeps the image build context small and free of secrets and heavy data.
+
+# --- Version control and agent sessions ---
+.git
+.claude
+
+# --- Secrets (every pattern of .agents/policy.yaml) ---
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+*.pem
+*.key
+credentials.json
+**/*.pem
+**/*.key
+**/credentials.json
+
+# --- Virtual environments and caches ---
+.venv
+**/.venv
+**/__pycache__
+**/*.py[cod]
+.mypy_cache
+.ruff_cache
+.pytest_cache
+.import_linter_cache
+.coverage
+.coverage.*
+htmlcov
+.DS_Store
+**/.DS_Store
+
+# --- Heavy geospatial data and ML artifacts ---
+data
+models
+mlruns
+.mlflow
+checkpoints
+**/*.tif
+**/*.tiff
+**/*.laz
+**/*.las
+**/*.jp2
+**/*.geotiff
+**/*.dem
+**/*.asc
+**/*.gpkg
+**/*.parquet
+**/*.pt
+**/*.pth
+**/*.onnx
+**/*.engine
+**/*.bin

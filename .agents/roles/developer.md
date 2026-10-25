@@ -21,7 +21,7 @@
 
 ## Implementation Guidelines
 
-1. **Quality**: Black formatting, Ruff linting, strict MyPy typing, Pytest coverage for all logic.
+1. **Quality**: Ruff linting and formatting, strict MyPy typing, import-linter layer contracts, Pytest coverage for all logic. Every tool runs through `uv run`.
 2. **Execution over planning**: no long theoretical plans unless asked; write, test, iterate.
 3. **Clean Architecture**: ML/GIS logic decoupled from FastAPI/CLI delivery; SOLID.
 4. **Preservation**: keep existing behaviour and passing tests when refactoring.

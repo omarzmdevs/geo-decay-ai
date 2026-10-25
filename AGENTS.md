@@ -65,6 +65,15 @@ A clean working tree before step 3 is what makes the diff reviewable: it is the
 only thing separating one task's work from the next.
 
 ---
+## Sprint planning
+
+The **orchestrator** creates the sprint log in `docs/sprints/sprint-NN-short-title.md` from the template and writes every handoff for the sprint in `docs/prompts/NNN-short-title.md`. The **user** commits them in one go. Handoffs are frozen before any agent runs from them.
+
+- Sprints: `docs/sprints/sprint-NN-short-title.md` from `sprint-template.md`,
+  created by the orchestrator at sprint start and kept updated by the documenter.
+- At sprint close, the sprint log is completed with its verdicts and dates, and
+  `docs/current_state.md` and `docs/next_tasks.md` are updated, plus
+  `architecture.md` and an ADR when architecture changed.
 
 ## Handoffs
 
@@ -128,7 +137,7 @@ The final barrier is the user's review of every diff before committing.
 ## Code Quality
 
 - Clean Architecture and SOLID: business logic (ML/GIS) stays independent of delivery (FastAPI, CLI).
-- Ruff, Black, MyPy (strict) and Pytest must pass before an agent reports a task finished; pre-commit enforces it when the user commits.
+- The quality gate must pass before an agent reports a task finished: Ruff (lint and format), MyPy (strict), import-linter (layer contracts) and Pytest, each run through `uv run` (ADR-005). Pre-commit enforces it when the user commits.
 - Each task is one atomic change; the agent proposes a meaningful commit message in its report.
 
 ---
