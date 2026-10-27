@@ -10,8 +10,21 @@ table is in [roadmap.md](roadmap.md).
 
 ## Active Sprint
 
-None: Block 1 is closed and the next sprint is set when Block 2 is planned. The
-sprint that closed it stays here until then.
+- [ ] **Sprint 4 · MLflow** (Block 2) — experiment tracking in place before the
+  first experiment exists: a tracking port in the domain, an MLflow adapter
+  confined to the data layer, a null adapter, and composition in delivery with
+  the store addressed by a configuration string. Reduced by
+  [ADR-007](architecture/adr/adr-007-mvp-1-0-scope.md) to a local file store;
+  the decisions are in
+  [ADR-008](architecture/adr/adr-008-experiment-tracking.md). Planned in
+  [sprint-04-mlflow.md](sprints/sprint-04-mlflow.md) with handoffs
+  [010](prompts/010-experiment-tracking-port-and-config.md),
+  [011](prompts/011-mlflow-adapter-and-import-contract.md) and
+  [012](prompts/012-tracking-composition-and-cli.md), run in that order, each
+  committed separately. Sprint 4 is the only sprint of Block 2 that MVP 1.0
+  executes, so the block closes with it.
+
+Closed, kept here until Block 2 records its first verdict:
 
 - [x] **Sprint 3 · CI/CD** (Block 1) — the ADR-005 gate runs on GitHub
   Actions for every push and every pull request to `main`, through the same
@@ -25,7 +38,8 @@ sprint that closed it stays here until then.
   on the first green run on GitHub (run #2, `d061937`, `success`), per the
   handoff's `## Sprint Closing Evidence`.
 
-Running in parallel, since it touches no code:
+**Reserved by the user on 2026-10-26**, so it is out of the active slice until
+the bounding box exists. Block 2 proceeds without it:
 
 - [ ] **Feasibility experiment → ADR-004** — measure what the data supports for
   one bounding box: PNOA resolution and available years, which elevation
@@ -49,6 +63,9 @@ handoffs 007 and 008 ACCEPTED) and Sprint 3 · CI/CD (2026-10-25,
 
 - [ ] **The bounding box to study** — the feasibility experiment cannot start
   without it. Needed from the user as coordinates or a named extent.
+  Reserved by the user on 2026-10-26: nothing in Block 2 depends on its value —
+  Sprint 4's smoke run supplies a throwaway extent — and it becomes blocking
+  again before Block 3, which needs ADR-004.
   
 Resolved earlier, kept for traceability:
 
@@ -65,9 +82,11 @@ Resolved earlier, kept for traceability:
 
 ## Next Up
 
-- [ ] **Block 2 · MLOps and Data Infrastructure** — Sprints 4–6: MLflow, DVC,
-  reproducibility. In MVP 1.0 only Sprint 4 runs, reduced to a local file
-  store; DVC is deferred and Sprint 6 is absorbed into Sprint 2.
+- [ ] **Block 3 · GIS Core** — Sprints 7–10. Sprint 7 (spatial database) is
+  deferred by ADR-007; Sprints 8–10 (data download, GIS processing, tiling) all
+  depend on ADR-004, so the block cannot be planned until the feasibility
+  experiment above has run. Block 2 needs no further planning: DVC is deferred
+  and Sprint 6 is absorbed into Sprint 2, so it closes with Sprint 4.
 
 ## Governance and Architecture Debt
 
@@ -134,4 +153,4 @@ Tracked findings from the project review, deferred with their identifiers:
 
 ## Last Updated
 
-2026-10-25
+2026-10-26

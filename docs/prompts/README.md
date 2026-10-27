@@ -24,7 +24,10 @@
 - [006 · Container image with GDAL only](006-container-gdal-only.md) — Sprint 1 — ACCEPTED 2026-10-14
 - [007 · Bounding box and centralised configuration](007-bounding-box-and-configuration.md) — Sprint 2 — ACCEPTED 2026-10-16
 - [008 · Logging configuration](008-logging-configuration.md) — Sprint 2 — ACCEPTED 2026-10-17
-- [009 · CI quality-gate workflow](009-ci-quality-gate-workflow.md) — Sprint 3 — PENDING
+- [009 · CI quality-gate workflow](009-ci-quality-gate-workflow.md) — Sprint 3 — ACCEPTED 2026-10-21; sprint closed 2026-10-25 on the first green run
+- [010 · Experiment-tracking port and configuration](010-experiment-tracking-port-and-config.md) — Sprint 4 — PENDING
+- [011 · MLflow adapter, null adapter and the import contract](011-mlflow-adapter-and-import-contract.md) — Sprint 4 — PENDING
+- [012 · Tracking composition root and the first CLI command](012-tracking-composition-and-cli.md) — Sprint 4 — PENDING
 
 ## Lifecycle
 

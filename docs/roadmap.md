@@ -145,6 +145,14 @@ first evaluated model everything is recorded, versioned and reproducible.
 **Deliverable.** MLflow integrated and ready to record any later experiment,
 logging experiments, models, metrics and hyperparameters.
 
+Scope: a tracking port in the domain, an MLflow adapter confined to the data
+layer, a null adapter, and composition in delivery with the store addressed by a
+configuration string.
+*Reduced in MVP 1.0 to a local file store
+([ADR-007](architecture/adr/adr-007-mvp-1-0-scope.md)); every decision —
+including the minimum key set every run records and why the model registry stays
+out — is in [ADR-008](architecture/adr/adr-008-experiment-tracking.md).*
+
 ## Sprint 5 · DVC
 
 **Objective.** Configure versioning of data and artefacts.

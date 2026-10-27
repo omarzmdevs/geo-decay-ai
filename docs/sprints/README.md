@@ -10,6 +10,7 @@
 - [Sprint 01 · Foundations and Quality Gate](sprint-01-foundations.md) — complete
 - [Sprint 02 · Runtime Foundations](sprint-02-runtime-foundations.md) — complete
 - [Sprint 03 · CI/CD](sprint-03-cicd.md) — complete
+- [Sprint 04 · MLflow](sprint-04-mlflow.md) — active
 
 The full block and sprint structure is in [roadmap.md](../roadmap.md).
 
