@@ -19,9 +19,22 @@ from geo_decay_domain.bounding_box import BoundingBox
 
 _BBOX_VAR = "GEO_DECAY_BBOX"
 _BBOX_CRS_VAR = "GEO_DECAY_BBOX_CRS"
+_TRACKING_URI_VAR = "GEO_DECAY_TRACKING_URI"
+_TRACKING_EXPERIMENT_VAR = "GEO_DECAY_TRACKING_EXPERIMENT"
 
 LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 LogFormat = Literal["text", "json"]
+TrackingBackend = Literal["mlflow", "none"]
+
+
+def _non_blank(value: object, variable: str) -> object:
+    """Strip a string setting and reject it when nothing is left."""
+    if not isinstance(value, str):
+        return value
+    stripped = value.strip()
+    if not stripped:
+        raise ValueError(f"{variable} must not be empty")
+    return stripped
 
 
 class Settings(BaseSettings):
@@ -52,6 +65,18 @@ class Settings(BaseSettings):
     )
     data_dir: Path = Field(default=Path("data"), validation_alias="GEO_DECAY_DATA_DIR")
     random_seed: int = Field(default=42, validation_alias="GEO_DECAY_RANDOM_SEED")
+    tracking_backend: TrackingBackend = Field(
+        default="mlflow", validation_alias="GEO_DECAY_TRACKING_BACKEND"
+    )
+    tracking_uri: str = Field(
+        default="file:./mlruns", validation_alias=_TRACKING_URI_VAR
+    )
+    tracking_experiment: str = Field(
+        default="geo-decay", validation_alias=_TRACKING_EXPERIMENT_VAR
+    )
+    container_image_digest: str | None = Field(
+        default=None, validation_alias="GEO_DECAY_CONTAINER_IMAGE_DIGEST"
+    )
 
     @field_validator("log_level", mode="before")
     @classmethod
@@ -62,6 +87,28 @@ class Settings(BaseSettings):
     @classmethod
     def _lower_log_format(cls, value: object) -> object:
         return value.strip().lower() if isinstance(value, str) else value
+
+    @field_validator("tracking_backend", mode="before")
+    @classmethod
+    def _lower_tracking_backend(cls, value: object) -> object:
+        return value.strip().lower() if isinstance(value, str) else value
+
+    @field_validator("tracking_uri", mode="before")
+    @classmethod
+    def _strip_tracking_uri(cls, value: object) -> object:
+        return _non_blank(value, _TRACKING_URI_VAR)
+
+    @field_validator("tracking_experiment", mode="before")
+    @classmethod
+    def _strip_tracking_experiment(cls, value: object) -> object:
+        return _non_blank(value, _TRACKING_EXPERIMENT_VAR)
+
+    @field_validator("container_image_digest", mode="before")
+    @classmethod
+    def _empty_digest_is_none(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip() or None
+        return value
 
     @field_validator("bbox", mode="before")
     @classmethod

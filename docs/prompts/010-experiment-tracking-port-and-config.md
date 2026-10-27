@@ -249,14 +249,77 @@ run record and confirms a clean tree first.
 
 ## Run Record
 
-Date:
-Tool and model:
-Restore point:
-Outcome: <!-- completed | failed | aborted -->
+Date: 2026-10-27
+Tool and model: in-process developer subagent (`sonnet`, matching the planned
+`TIER_STANDARD`), launched from the orchestrator's interactive session on the
+user's instruction — the arrangement already recorded for handoffs 004 and 009.
+The headless `claude -p` form in the launch command above was not used; the
+allowlist it carries was enforced instead by the subagent's instructions and by
+the session's own permissions.
+Restore point: `9a0390d` — `docs(sprint-04): plan Sprint 4 · MLflow with ADR-008
+and handoffs 010-012`, the commit that froze this sprint's plan. Working tree
+clean at launch.
+Outcome: completed.
 
 ## Verification
 
-Verdict: <!-- ACCEPTED | REJECTED -->
-Files changed:
-Gate:
+Verdict: **ACCEPTED**
+
+Files changed — six, exactly the list in this handoff:
+
+| File | |
+|---|---|
+| `src/geo_decay_domain/ports/__init__.py` | new, docstring only |
+| `src/geo_decay_domain/ports/experiment_tracker.py` | new, the `ExperimentTracker` protocol |
+| `src/geo_decay_delivery/config.py` | +47, four fields and their validators |
+| `.env.example` | +12 −2, four variables added, two stale ones removed |
+| `tests/unit/domain/test_experiment_tracker_port.py` | new |
+| `tests/unit/delivery/test_config.py` | +83 |
+
+`pyproject.toml`, `uv.lock` and everything under `src/geo_decay_data/`,
+`src/geo_decay_application/` and `tests/acceptance/` are untouched, which is
+criterion 8. `scripts/policy_guard.py --role developer` exits 0: every changed
+file is inside the developer's write scope.
+
+Gate, re-run by the orchestrator rather than taken from the developer's report:
+the verification command prints `port and configuration ok`, and
+`pre-commit run --all-files` passes all six hooks (ruff check, ruff format
+--check, strict mypy, import-linter, pytest, policy guard secrets), 189 tests.
+
+Criteria, checked one by one:
+
+1. `ExperimentTracker` imports, is runtime-checkable and exposes exactly the
+   four methods. ✔
+2. The port's source mentions no `mlflow` and imports only `collections.abc`,
+   `contextlib`, `pathlib` and `typing`. ✔
+3. Defaults are `mlflow`, `file:./mlruns`, `geo-decay` and `None`. ✔
+4. All four variables are read from the environment, and `" MLflow "` normalises
+   to `mlflow`. ✔
+5. `sqlite` as a backend, and a blank URI or experiment, each raise
+   `ValidationError` naming the variable. ✔
+6. A blank digest becomes `None`, for both `""` and whitespace. ✔
+7. `.env.example` carries the four new names and neither
+   `MLFLOW_TRACKING_URI` nor `MLFLOW_EXPERIMENT_NAME`. ✔
+8. No out-of-scope file changed. ✔
+9. `git status --short` lists only the six files. ✔
+10. The full gate passes. ✔
+
 Notes:
+
+- **One declared deviation, accepted.** The developer added a module-level
+  `_non_blank` helper, not named in the specification, shared by the URI and
+  experiment validators. It keeps the error message (`<VAR> must not be empty`)
+  in one place, which is what criterion 5 checks, and it follows the file's
+  existing convention of module-level private helpers.
+- **What this handoff does not prove.** Nothing implements the port and nothing
+  calls it. `isinstance` against a runtime-checkable protocol checks method
+  *names* only; the signatures are checked statically, by strict mypy against
+  the stub in the port's test. The first evidence that the contract is usable in
+  practice arrives with 011's adapter, and the first evidence that it records
+  anything with 012.
+- **The test suite's isolation was checked, not assumed.** The new settings
+  variables were added to `_VARIABLES`, so the file's autouse fixture clears
+  them and `chdir`s into `tmp_path`; a developer's real `.env` therefore cannot
+  change a result.
+- **Cosmetic:** the digest comment in `.env.example` is one long line. No hook
+  checks line length outside Python, so it stands.

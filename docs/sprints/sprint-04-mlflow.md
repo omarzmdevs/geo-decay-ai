@@ -51,7 +51,7 @@ the diff after.
 
 ## Tasks
 
-- [ ] [010](../prompts/010-experiment-tracking-port-and-config.md) — the port
+- [x] [010](../prompts/010-experiment-tracking-port-and-config.md) — the port
       and the configuration. No tracking library enters the codebase.
 - [ ] [011](../prompts/011-mlflow-adapter-and-import-contract.md) — the MLflow
       and null adapters, the dependency and the import contract.
@@ -74,6 +74,8 @@ configured experiment, with the ADR-008 keys; the same command with
 ## Handoffs Executed
 
 <!-- Completed as the sprint runs. -->
+
+- [010 · Experiment-tracking port and configuration](../prompts/010-experiment-tracking-port-and-config.md) — ACCEPTED 2026-10-27 (orchestrator verification). Run by an in-process developer subagent (`sonnet`, planned tier `TIER_STANDARD`; the headless launch form was not used) from restore point `9a0390d`, outcome completed. Gate: `port and configuration ok` and all six pre-commit hooks passing on the tree as delivered (189 tests).
 
 ## Notes
 
