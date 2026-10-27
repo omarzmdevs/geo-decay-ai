@@ -3,7 +3,7 @@ name = "geo-decay"
 version = "0.1.0"
 description = "Detection and assessment of potentially abandoned infrastructure from PNOA orthophotos, LiDAR and AI."
 requires-python = ">=3.12,<3.13"
-dependencies = ["pydantic-settings"]
+dependencies = ["pydantic-settings", "mlflow-skinny"]
 
 [dependency-groups]
 dev = [
@@ -105,6 +105,18 @@ source_modules = [
     "geo_decay_data",
 ]
 forbidden_modules = ["fastapi"]
+
+[[tool.importlinter.contracts]]
+name = "MLflow is confined to its adapter"
+type = "forbidden"
+source_modules = [
+    "geo_decay_domain",
+    "geo_decay_data",
+    "geo_decay_application",
+    "geo_decay_delivery",
+]
+forbidden_modules = ["mlflow"]
+ignore_imports = ["geo_decay_data.tracking.mlflow_tracker -> mlflow"]
 
 [tool.uv]
 # Keep uv's cache inside the repository: the agent sandbox cannot write to

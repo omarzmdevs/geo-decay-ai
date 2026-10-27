@@ -53,7 +53,7 @@ the diff after.
 
 - [x] [010](../prompts/010-experiment-tracking-port-and-config.md) — the port
       and the configuration. No tracking library enters the codebase.
-- [ ] [011](../prompts/011-mlflow-adapter-and-import-contract.md) — the MLflow
+- [x] [011](../prompts/011-mlflow-adapter-and-import-contract.md) — the MLflow
       and null adapters, the dependency and the import contract.
 - [ ] [012](../prompts/012-tracking-composition-and-cli.md) — the composition
       root and the first CLI command, which records a real run.
@@ -76,6 +76,7 @@ configured experiment, with the ADR-008 keys; the same command with
 <!-- Completed as the sprint runs. -->
 
 - [010 · Experiment-tracking port and configuration](../prompts/010-experiment-tracking-port-and-config.md) — ACCEPTED 2026-10-27 (orchestrator verification). Run by an in-process developer subagent (`sonnet`, planned tier `TIER_STANDARD`; the headless launch form was not used) from restore point `9a0390d`, outcome completed. Gate: `port and configuration ok` and all six pre-commit hooks passing on the tree as delivered (189 tests).
+- [011 · MLflow adapter, null adapter and the import contract](../prompts/011-mlflow-adapter-and-import-contract.md) — ACCEPTED 2026-10-27 (orchestrator verification). Run by an in-process developer subagent (`sonnet`, planned tier `TIER_STANDARD`) in two runs: run 1 aborted on two defects of the handoff itself, and run 2 completed after the amendment of the same date. Run 1 from restore point `baef665`, outcome aborted; run 2 continued from run 1's working tree and has no restore point of its own, outcome completed. Gate: `adapters ok` and all six pre-commit hooks passing (200 tests, 5 import-linter contracts kept).
 
 ## Notes
 
@@ -103,6 +104,13 @@ configured experiment, with the ADR-008 keys; the same command with
 * **Sprints 5 and 6 are not executed** and no handoff is written from them:
   deferred and absorbed respectively by ADR-007. Block 2 closes when Sprint 4
   does.
+* **A deliberate tripwire (handoff 011).** `test_a_non_file_uri_fails_with_the_vendor_error`
+  asserts that a `sqlite:` URI raises the vendor's `UnsupportedModelRegistryStoreURIException`,
+  a property of `mlflow-skinny`, not of this code. It will fail when the MLFLOW-STORE
+  migration swaps the distribution, so the test is revisited at that decision.
+* **Run 2 of handoff 011 was launched from an uncommitted amendment.** The gate could not
+  pass before the file-store opt-in existed, and `git commit --no-verify` is forbidden, so
+  the amendment and the code land in one commit.
 
 ## Documents Updated
 
@@ -112,6 +120,7 @@ configured experiment, with the ADR-008 keys; the same command with
 - [ADR-005](../architecture/adr/adr-005-dependency-and-environment-manager.md) — amendment: base image recorded by digest, not pinned (2026-10-26)
 - [docs/roadmap.md](../roadmap.md) — Sprint 4 scope note (2026-10-26)
 - [docs/next_tasks.md](../next_tasks.md) — active sprint set to Sprint 4 (2026-10-26)
+- [ADR-008](../architecture/adr/adr-008-experiment-tracking.md) amendment and [handoff 011](../prompts/011-mlflow-adapter-and-import-contract.md) amendment — `MLFLOW_ALLOW_FILE_STORE` opt-in and corrected criterion 2 (2026-10-27)
 
 ## Date Started
 

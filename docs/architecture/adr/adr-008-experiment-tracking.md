@@ -172,6 +172,87 @@ is a dependency with a large transitive surface even in its skinny form, added
 in a sprint whose consumer is eight sprints away — accepted because the contract
 it anchors is what makes those sprints comparable.
 
+## Amendment 2026-10-27 · The File Store Is in Maintenance Mode
+
+Handoff 011 installed MLflow and three premises of this ADR turned out to be
+wrong. All three were found by running the code, and all three are recorded here
+rather than quietly corrected.
+
+**1. The file store now requires an explicit opt-in.** MLflow 3.17.2 raises
+`MlflowException` when a `FileStore` is constructed: the filesystem tracking
+backend "is in maintenance mode and will not receive further updates". The
+exception names `MLFLOW_ALLOW_FILE_STORE=true` as the opt-out and
+`sqlite:///mlflow.db` as the recommended destination, and points at
+`mlflow migrate-filestore` for migrating existing data losslessly. Verified in
+`mlflow/store/tracking/file_store.py` in the installed distribution.
+
+**2. `mlflow-skinny` cannot use a database backend at all.** A `sqlite:`
+tracking URI fails with `UnsupportedModelRegistryStoreURIException` — the
+supported schemes are `['', 'file', 'databricks', 'databricks-uc', 'uc',
+'http', 'https']` — and it fails even when only tracking is used and the
+registry is never touched. So this ADR's claim that the store is a pure
+configuration change is **true for `http(s)` and false for `sqlite`**: moving to
+SQLite means changing the distribution too. The architectural payoff is smaller
+than claimed, though not absent.
+
+**3. `mlflow-skinny` does carry a web framework.** Version 3.17.2 pulls
+`fastapi`, `starlette` and `uvicorn`. The reason given above for choosing skinny
+— keeping a web framework out of the lockfile — is therefore false. What skinny
+does still avoid is the data-science and database stack, which is the larger
+part of the weight and is measured below. The `Delivery frameworks` contract is unaffected: nothing imports
+`fastapi`, and import-linter confirms it.
+
+**Decision: stay on the file store, opt in explicitly, and record the migration
+as debt with a trigger.**
+
+- **The adapter sets `MLFLOW_ALLOW_FILE_STORE`**, with `setdefault` so an
+  operator can override it, and only when the URI it was handed is a `file:`
+  one. It is set there and nowhere else because the variable name is an MLflow
+  identifier, and the reason this ADR confines MLflow to one module is that
+  MLflow identifiers belong in one module. The composition root and the tests
+  must not name it. This is not a layer below delivery reading project
+  configuration (ADR-006): it is the adapter compensating for a quirk of the
+  library it exists to wrap, derived from a value it was given.
+- **The alternative is the full `mlflow` distribution with `sqlite:///`**, which
+  is the path upstream supports. Rejected for now, on a measurement rather than
+  an impression: that environment resolves to **87 packages**, among them
+  `scikit-learn`, `scipy`, `pyarrow`, `pandas`, `numpy`, `matplotlib`, `flask`,
+  `gunicorn`, `sqlalchemy`, `alembic`, `docker` and `graphene`, none of which
+  skinny installs. `scikit-learn` and `scipy` are the decisive entries: they
+  would enter the lockfile that CI and the container install **in Sprint 4**,
+  and they pin versions that the `torch`/`ultralytics` stack of Block 5 has to
+  coexist with. Paying a data-science stack now for a capability first used in
+  Sprint 12 is what ADR-007 forbids. By then `numpy` and `pandas` are present
+  for other reasons and the trade looks different, which is why the trigger is
+  that sprint and not a date.
+- **The migration is bounded and tooled**, which is the condition that makes
+  deferring legitimate rather than lazy: `mlflow migrate-filestore` is described
+  upstream as lossless. The trigger is Sprint 12, the first real experiment.
+  Tracked as **MLFLOW-STORE** in [next_tasks.md](../../next_tasks.md).
+- `uv.lock` pins 3.17.2, so the backend cannot disappear under the project
+  before then. A version bump is the moment to revisit this, not a date.
+
+**Migration verified, not assumed.** The claim that a database can be adopted
+later *from this architecture* was tested before it was written down. The
+adapter delivered by handoff 011, byte for byte unchanged, was executed against
+`sqlite:///…` under the full distribution: params, metrics with their `step`,
+tags and artifacts all round-trip; `search_registered_models()` responds, so the
+Model Registry becomes available; and the artifact root defaults to
+`./mlruns/<experiment_id>`, a path already gitignored, so no `.gitignore` change
+is needed. The migration is a two-point diff plus a data step, touching neither
+the port, nor the adapter, nor the composition root, nor any call site:
+`mlflow-skinny` → `mlflow` in `pyproject.toml` with a re-lock; the
+`Settings.tracking_uri` default from `file:./mlruns` to
+`sqlite:///mlruns/mlflow.db`; and `mlflow migrate-filestore` for the runs
+already recorded. This is the port-and-adapter decision above paying for itself,
+and it is what makes the deferral legitimate rather than lazy.
+
+**Consequence added.** The Model Registry is unavailable for a second reason
+beyond the backend: skinny rejects every registry URI but the file and remote
+ones. **Risk accepted:** the project now depends on a backend its vendor has
+declared frozen, in exchange for not carrying a dataframe stack eight sprints
+early.
+
 ## Related
 
 - [ADR-003](adr-003-src-layout-and-layer-boundaries.md) — the layer boundaries

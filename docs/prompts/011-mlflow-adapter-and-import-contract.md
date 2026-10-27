@@ -239,17 +239,204 @@ the two tasks are never in the same diff.
 
 ---
 
+## Amendment 2026-10-27 · Corrected Criterion 2 and the File-Store Opt-In
+
+The first run of this handoff stopped on two problems, **both defects of this
+handoff rather than of the delivery**. The developer was right to stop. This
+amendment supersedes what it names; everything else stands. The user commits it
+before the follow-up run, so the specification stays frozen while an agent works
+from it.
+
+### 1. Criterion 2 was a substring check, and it contradicts handoff 010
+
+`src/geo_decay_delivery/config.py` contains the literal `"mlflow"` twice —
+`TrackingBackend = Literal["mlflow", "none"]` and the backend default — because
+handoff 010 specified exactly that. A backend *name* is not an import, and the
+criterion's intent was always that no module **imports** mlflow. Criterion 2 is
+replaced by:
+
+> 2. No module under `src/` other than
+>    `src/geo_decay_data/tracking/mlflow_tracker.py` imports `mlflow`, and no
+>    other module names `MLFLOW_ALLOW_FILE_STORE`.
+
+and the offender block of the verification command is replaced by:
+
+```python
+import re
+adapter = pathlib.Path("src/geo_decay_data/tracking/mlflow_tracker.py")
+imports = re.compile(r"^\s*(?:import\s+mlflow|from\s+mlflow)", re.M)
+offenders = [
+    str(p) for p in pathlib.Path("src").rglob("*.py")
+    if p != adapter and imports.search(p.read_text())
+]
+assert not offenders, offenders
+quirk = [
+    str(p) for p in pathlib.Path("src").rglob("*.py")
+    if p != adapter and "MLFLOW_ALLOW_FILE_STORE" in p.read_text()
+]
+assert not quirk, quirk
+```
+
+The real enforcement was always the import-linter contract, which was checked
+independently: planting `import mlflow` in `geo_decay_application` breaks it.
+
+### 2. The file store needs an opt-in the specification did not know about
+
+MLflow 3.17.2 refuses to construct a `FileStore` without
+`MLFLOW_ALLOW_FILE_STORE=true`; the backend is in maintenance mode. The decision
+and its reasoning are in the
+[ADR-008 amendment of the same date](../architecture/adr/adr-008-experiment-tracking.md).
+Applied here as an added requirement on the adapter:
+
+> `MlflowTracker.__init__` sets `MLFLOW_ALLOW_FILE_STORE` through
+> `os.environ.setdefault`, and only when `tracking_uri` starts with `file:`. The
+> docstring states that this opts into a backend the vendor has frozen, and
+> cites the ADR-008 amendment. No other module in `src/` names the variable, and
+> neither do the tests: the variable name is an MLflow identifier and belongs in
+> the adapter with the rest of them.
+
+New criterion:
+
+> 11. In a process where `MLFLOW_ALLOW_FILE_STORE` is unset, constructing
+>     `MlflowTracker` with a `file:` URI succeeds and a run round-trips. With a
+>     `sqlite:` URI the failure is the vendor's, unhandled and unmasked.
+
+### 3. Tighten the exception test
+
+`test_tracking_failures_are_not_swallowed` currently asserts
+`pytest.raises(Exception, match="missing")` with a `# noqa: B017`. Now that the
+store can be constructed, assert the real exception type and drop the `noqa`. A
+test that accepts any `Exception` would pass even if the adapter raised for the
+wrong reason, which is precisely the property under test.
+
+### Out of scope, still
+
+`src/geo_decay_delivery/config.py` is **not** touched: the `Literal` is correct
+and criterion 2 was wrong. No change to the distribution — `mlflow-skinny`
+stays, per the ADR-008 amendment.
+
+---
+
 ## Run Record
 
-Date:
-Tool and model:
-Restore point:
-Distribution installed and resolved version: <!-- mlflow-skinny or mlflow, and why -->
-Outcome: <!-- completed | failed | aborted -->
+### Run 1 — aborted on two handoff defects
+
+Date: 2026-10-27
+Tool and model: in-process developer subagent (`sonnet`, matching the planned
+`TIER_STANDARD`), launched from the orchestrator's interactive session.
+Restore point: `baef665` — `feat(tracking): declare ExperimentTracker port and
+tracking settings (handoff 010)`. Working tree clean at launch.
+Distribution installed and resolved version: `mlflow-skinny` 3.17.2, never
+swapped and never installed alongside `mlflow`. No mypy override was needed:
+strict mypy reports no issues without one.
+Outcome: **aborted.** The developer stopped and reported rather than
+improvising, which is the correct behaviour: both obstacles were defects of this
+handoff, not of the delivery. It left the seven allowed files in the working
+tree, touched nothing else, and ran no git write.
+
+The two obstacles, verified independently by the orchestrator before any
+decision was taken:
+
+1. MLflow 3.17.2 refuses to construct a `FileStore` without
+   `MLFLOW_ALLOW_FILE_STORE=true`. Reproduced, and the guard read in
+   `mlflow/store/tracking/file_store.py`.
+2. Criterion 2's substring check trips on the `"mlflow"` literal that handoff
+   010 put in `config.py`. Confirmed by reading both files.
+
+Measured before deciding, since the choice of store rested on it:
+
+| Combination | Result |
+|---|---|
+| skinny + `file:`, no opt-in | `MlflowException`, maintenance mode |
+| skinny + `file:`, with opt-in | works; the delivered unit tests pass |
+| skinny + `sqlite:` | `UnsupportedModelRegistryStoreURIException`, even tracking-only |
+| full `mlflow` + `sqlite:` | works; params, metrics and artifact round-trip |
+
+Both defects are settled in the amendment above. Run 2 executes it.
+
+### Run 2 — completed
+
+Date: 2026-10-27
+Tool and model: in-process developer subagent (`sonnet`, planned
+`TIER_STANDARD`), same arrangement as run 1, scoped to two files and three
+changes.
+Restore point: **none.** Run 2 continued from run 1's working tree, with the
+amendment above present but **uncommitted**. The reason is structural and worth
+recording: pre-commit runs the gate, the gate could not pass before the opt-in
+existed, and `git commit --no-verify` is a forbidden operation — so a mid-task
+specification fix is uncommittable while the code is red. The amendment and the
+code therefore land in one commit. This departs from "handoffs are frozen before
+any agent runs from them" (`AGENTS.md`), and it is recorded here rather than
+left implicit.
+Outcome: completed.
 
 ## Verification
 
-Verdict: <!-- ACCEPTED | REJECTED -->
-Files changed:
-Gate:
+Verdict: **ACCEPTED**
+
+Files changed — seven, exactly the handoff's list:
+
+| File | |
+|---|---|
+| `src/geo_decay_data/tracking/__init__.py` | new |
+| `src/geo_decay_data/tracking/mlflow_tracker.py` | new, the adapter and the `file:` opt-in |
+| `src/geo_decay_data/tracking/null_tracker.py` | new |
+| `tests/unit/data/tracking/test_mlflow_tracker.py` | new, 9 tests against a real file store |
+| `tests/unit/data/tracking/test_null_tracker.py` | new |
+| `pyproject.toml` | `mlflow-skinny` plus the confinement contract |
+| `uv.lock` | regenerated, 68 packages |
+
+Nothing under `src/geo_decay_delivery/`, `src/geo_decay_domain/`,
+`.env.example` or `tests/acceptance/` changed. No agent staged anything: the
+three documents in the index were staged by the user before the commit attempt
+the gate blocked.
+
+Gate, re-run by the orchestrator and not taken from the developer's report, with
+`MLFLOW_ALLOW_FILE_STORE` removed from the environment so the opt-in could only
+come from the code: the corrected verification script prints `adapters ok`, and
+`pre-commit run --all-files` passes all six hooks — 200 tests, 5 import-linter
+contracts kept, 0 broken.
+
+Criteria, checked one by one (2 and 11 as the amendment restates them):
+
+1. `MlflowTracker` and `NullTracker` both satisfy `ExperimentTracker`. ✔
+2. No module under `src/` but the adapter imports `mlflow`, and none other
+   names `MLFLOW_ALLOW_FILE_STORE` — two hits, both in the adapter. ✔
+3. The contract exists and `lint-imports` passes. ✔
+4. A run logged into a temporary `file:` store reads back with its params,
+   metrics, metric history and tags. ✔
+5. `NullTracker` performs every call and creates no path. ✔
+6. `mlflow-skinny` is in the dependencies and the lock; `uv sync --frozen`
+   succeeds, so manifest and lock agree. ✔
+7. No out-of-scope file changed. ✔
+8. `git status --short` lists only the seven files. ✔
+9. The full gate passes. ✔
+11. In a process with **every** `MLFLOW_*` variable removed, not merely the
+    opt-in unset, a `file:` tracker constructs and a run round-trips; a
+    `sqlite:` URI surfaces the vendor's own exception unmasked. ✔
+
 Notes:
+
+- **The contract was proved to bite, not merely to pass.** Planting
+  `import mlflow` in `geo_decay_application` turns the report to
+  `MLflow is confined to its adapter BROKEN`; removing the probe returns it to
+  `KEPT`. A contract that only ever passes is indistinguishable from one that
+  checks nothing.
+- **A deliberate tripwire.** `test_a_non_file_uri_fails_with_the_vendor_error`
+  asserts that a `sqlite:` URI raises `UnsupportedModelRegistryStoreURIException`
+  — a property of `mlflow-skinny`, not of this code. It will therefore fail the
+  day the **MLFLOW-STORE** migration swaps the distribution, which is the point:
+  it forces the test to be revisited exactly when the decision is. Recorded in
+  the debt entry so it is not mistaken for a regression in Sprint 12.
+- **The opt-in leaks within a process**, by design: once any `file:` tracker is
+  built, `os.environ` carries the variable for the rest of that interpreter, so
+  no in-process test can prove its absence. The developer declared this and
+  handled it with a subprocess test, which is the right answer.
+- `FileNotFoundError` is the real exception for a missing artifact; the previous
+  `pytest.raises(Exception)` with its `# noqa: B017` is gone.
+- **Minor, not grounds for rejection:** `# noqa: S603` suppresses a rule ruff
+  does not have enabled (`select = ["E", "F", "I", "B", "UP", "TID"]`). It is
+  inert and slightly misleading about what the gate checks; remove it next time
+  the file is touched.
+- `mlruns/` does not exist in the repository root after the runs: the delivered
+  tests write only under `tmp_path`, checked directly.

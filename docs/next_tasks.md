@@ -116,6 +116,20 @@ Tracked findings from the project review, deferred with their identifiers:
   enters CI as a paths-triggered workflow (`Dockerfile`, `docker-compose.yml`,
   `.devcontainer/**`, `pyproject.toml`, `uv.lock`) the moment that stops being
   true.
+- [ ] **MLFLOW-STORE · The MLflow file store is in maintenance mode** — MLflow
+  3.17.2 refuses to construct a `FileStore` without
+  `MLFLOW_ALLOW_FILE_STORE=true` and names `sqlite:///mlflow.db` plus
+  `mlflow migrate-filestore` as the supported destination. Sprint 4 opts in,
+  inside the adapter, rather than carrying the database and dataframe stack
+  eight sprints before its consumer
+  ([ADR-008](architecture/adr/adr-008-experiment-tracking.md), amendment
+  2026-10-27). `mlflow-skinny` cannot use a database backend at all — verified,
+  not assumed — so the migration changes the distribution as well as the URI.
+  Trigger: Sprint 12, the first real experiment, or any MLflow version bump,
+  whichever comes first. Expect
+  `test_a_non_file_uri_fails_with_the_vendor_error` to fail when the
+  distribution is swapped: it asserts skinny's rejection of a `sqlite:` URI on
+  purpose, as a tripwire, and is not a regression.
 - [x] **CI-PIN · GitHub Actions pinned by tag, not by commit SHA** — resolved
   2026-10-25 in `d061937`: `actions/checkout` and `astral-sh/setup-uv` carry a
   commit digest with the version in a trailing comment, and both move together
@@ -153,4 +167,4 @@ Tracked findings from the project review, deferred with their identifiers:
 
 ## Last Updated
 
-2026-10-26
+2026-10-27
