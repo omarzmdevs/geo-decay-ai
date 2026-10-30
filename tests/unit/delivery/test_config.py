@@ -16,6 +16,10 @@ _VARIABLES = (
     "GEO_DECAY_LOG_FORMAT",
     "GEO_DECAY_DATA_DIR",
     "GEO_DECAY_RANDOM_SEED",
+    "GEO_DECAY_TRACKING_BACKEND",
+    "GEO_DECAY_TRACKING_URI",
+    "GEO_DECAY_TRACKING_EXPERIMENT",
+    "GEO_DECAY_CONTAINER_IMAGE_DIGEST",
 )
 
 
@@ -210,6 +214,85 @@ def test_invalid_optional_setting_names_the_variable(
 
     with pytest.raises(ValidationError, match=variable):
         _load_settings()
+
+
+@pytest.mark.usefixtures("valid_bbox")
+def test_tracking_settings_have_defaults() -> None:
+    settings = _load_settings()
+
+    assert settings.tracking_backend == "mlflow"
+    assert settings.tracking_uri == "file:./mlruns"
+    assert settings.tracking_experiment == "geo-decay"
+    assert settings.container_image_digest is None
+
+
+@pytest.mark.usefixtures("valid_bbox")
+def test_tracking_settings_are_read_from_the_environment(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("GEO_DECAY_TRACKING_BACKEND", "none")
+    monkeypatch.setenv("GEO_DECAY_TRACKING_URI", "sqlite:///m.db")
+    monkeypatch.setenv("GEO_DECAY_TRACKING_EXPERIMENT", "run-a")
+    monkeypatch.setenv("GEO_DECAY_CONTAINER_IMAGE_DIGEST", "sha256:ab")
+
+    settings = _load_settings()
+
+    assert settings.tracking_backend == "none"
+    assert settings.tracking_uri == "sqlite:///m.db"
+    assert settings.tracking_experiment == "run-a"
+    assert settings.container_image_digest == "sha256:ab"
+
+
+@pytest.mark.usefixtures("valid_bbox")
+def test_tracking_backend_is_normalised_to_lower_case(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("GEO_DECAY_TRACKING_BACKEND", " MLflow ")
+
+    assert _load_settings().tracking_backend == "mlflow"
+
+
+@pytest.mark.usefixtures("valid_bbox")
+def test_tracking_uri_and_experiment_are_stripped(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("GEO_DECAY_TRACKING_URI", "  file:./elsewhere ")
+    monkeypatch.setenv("GEO_DECAY_TRACKING_EXPERIMENT", " run-a ")
+
+    settings = _load_settings()
+
+    assert settings.tracking_uri == "file:./elsewhere"
+    assert settings.tracking_experiment == "run-a"
+
+
+@pytest.mark.usefixtures("valid_bbox")
+@pytest.mark.parametrize(
+    ("variable", "bad"),
+    [
+        ("GEO_DECAY_TRACKING_BACKEND", "sqlite"),
+        ("GEO_DECAY_TRACKING_URI", ""),
+        ("GEO_DECAY_TRACKING_URI", "   "),
+        ("GEO_DECAY_TRACKING_EXPERIMENT", ""),
+        ("GEO_DECAY_TRACKING_EXPERIMENT", "   "),
+    ],
+)
+def test_invalid_tracking_setting_names_the_variable(
+    monkeypatch: pytest.MonkeyPatch, variable: str, bad: str
+) -> None:
+    monkeypatch.setenv(variable, bad)
+
+    with pytest.raises(ValidationError, match=variable):
+        _load_settings()
+
+
+@pytest.mark.usefixtures("valid_bbox")
+@pytest.mark.parametrize("blank", ["", "   "])
+def test_blank_container_image_digest_becomes_none(
+    monkeypatch: pytest.MonkeyPatch, blank: str
+) -> None:
+    monkeypatch.setenv("GEO_DECAY_CONTAINER_IMAGE_DIGEST", blank)
+
+    assert _load_settings().container_image_digest is None
 
 
 def test_module_defines_no_settings_singleton() -> None:

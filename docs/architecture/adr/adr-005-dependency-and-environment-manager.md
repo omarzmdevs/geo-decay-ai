@@ -107,6 +107,34 @@ The deferral above scheduled PDAL for Sprint 9.
   dependencies, the height-derived indicator group is recorded as unavailable
   and the pipeline continues.
 
+## Amendment 2026-10-26 · Base Image Recorded by Digest, Not Pinned
+
+The original tradeoff was stated as a weakness: external images are pinned by
+tag (`debian:trixie`), not by digest, so container builds are not bit-for-bit
+reproducible. The decision is now deliberate, and it resolves the debt rather
+than deferring it.
+
+- **The tag stays floating.** A digest freezes the image at one build, which
+  means security patches to the base system stop arriving until someone updates
+  the digest by hand. For a project whose container carries GDAL and a system
+  Python, losing automatic patching is the larger risk.
+- **Reproducibility is served by recording, not by freezing.** The digest of the
+  image that produced a result is recorded *with that result*, as the
+  `container_image_digest` tag of the MLflow run
+  ([ADR-008](adr-008-experiment-tracking.md)). A result therefore names the
+  exact image it came from, and that image can be pulled by digest later even
+  though the tag has moved on.
+- **The digest is supplied, not discovered.** A process cannot reliably learn
+  the digest of the image it runs in, so whoever starts the container passes
+  `GEO_DECAY_CONTAINER_IMAGE_DIGEST`
+  (`docker image inspect --format '{{index .RepoDigests 0}}' <image>`). Outside
+  a container the variable is absent and the tag is simply not recorded.
+- **It is recorded when it matters.** Development runs need no digest; a run
+  whose numbers enter the thesis does. Nothing enforces this from inside the
+  process, which is the cost of the choice and is stated in ADR-008's
+  consequences.
+- **apt packages remain unpinned**, unchanged by this amendment.
+
 ## Alternatives Considered
 
 **Poetry.** Mature and widely known, but slower, and its dependency groups and
