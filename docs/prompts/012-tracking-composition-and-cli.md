@@ -228,7 +228,7 @@ confirms a clean tree and records the SHA here.
 
 1. Review the diff and commit it.
 2. Inspect the runs in the UI if you want to see them:
-   `uvx --from mlflow mlflow ui --backend-store-uri ./mlruns`. It needs network
+   `MLFLOW_ALLOW_FILE_STORE=true uvx --from mlflow mlflow ui --backend-store-uri ./mlruns`. It needs network
    access the first time and is deliberately outside the project environment
    (ADR-008).
 3. Confirm `mlruns/` is absent from the commit — it is gitignored, and that is
@@ -236,16 +236,111 @@ confirms a clean tree and records the SHA here.
 
 ---
 
+## Amendment 2026-10-27 · Three Defects in the Verification Command
+
+The delivery was correct; the verification command was not. All three defects
+are the orchestrator's, found by the developer and confirmed independently.
+
+1. **The reader process needs the opt-in.** The script opens the store with a
+   plain `MlflowClient` in a separate process, and only the adapter sets
+   `MLFLOW_ALLOW_FILE_STORE`, so MLflow refuses to open it. The guard is in
+   `FileStore.__init__`, which every reader goes through — verified by
+   constructing `FileStore` without the variable, which raises. The preamble
+   therefore exports `MLFLOW_ALLOW_FILE_STORE=true`. A verification command is
+   not repository code, so the containment rule, which covers `src/**`, is
+   untouched. The same correction applies to the UI command in the follow-up
+   below and in ADR-008.
+2. **`set -e` aborts the script at the exit-code check.**
+   `env -u GEO_DECAY_BBOX uv run geo-decay tracking-smoke; test $? -eq 2` runs a
+   command that is *meant* to fail, so `set -e` ends the script before the test.
+   The check must be wrapped in `set +e` (or written as
+   `if ! …; then`), and the steps after it were never reached.
+3. **`mktemp -d` is unavailable in the agent sandbox**, which ignores `TMPDIR`
+   on macOS. Use `mkdir -p "$TMPDIR/<name>"`.
+
+Criterion 7 was also strengthened when re-run: rather than trusting that no
+secret *can* reach `config.json`, the orchestrator exported four real-looking
+secrets — an API key, a session secret, a database password and a token — and
+asserted that neither their names nor their values appear in the artifact.
+
+---
+
 ## Run Record
 
-Date:
-Tool and model:
-Restore point:
-Outcome: <!-- completed | failed | aborted -->
+Date: 2026-10-27
+Tool and model: in-process developer subagent (`sonnet`, planned
+`TIER_STANDARD`), launched from the orchestrator's interactive session.
+Restore point: `20f9db1` — `feat(tracking): add MLflow and null adapters with an
+import confinement contract (handoff 011)`. Working tree clean at launch.
+Outcome: completed, with the verification command's three defects worked around
+and reported rather than silently patched.
 
 ## Verification
 
-Verdict: <!-- ACCEPTED | REJECTED -->
-Files changed:
-Gate:
+Verdict: **ACCEPTED**
+
+Files changed — five, as the handoff lists:
+
+| File | |
+|---|---|
+| `src/geo_decay_delivery/tracking.py` | new, `build_tracker` on an exhaustive `match` |
+| `src/geo_decay_delivery/cli/main.py` | new, `argparse`, one subcommand |
+| `pyproject.toml` | `[project.scripts]` only, three lines |
+| `tests/unit/delivery/test_tracking.py` | new |
+| `tests/unit/delivery/test_cli.py` | new |
+
+`uv.lock` is unchanged, no dependency was added, and no import-linter contract
+was touched.
+
+Gate, re-run by the orchestrator: all six hooks pass, 213 tests. `grep` over
+`src/` finds `import mlflow` and `MLFLOW_ALLOW_FILE_STORE` in the adapter and
+nowhere else, so delivery composes the adapters without knowing the vendor.
+`mlruns/` does not exist in the repository root.
+
+Criteria, checked one by one with the corrected command:
+
+1. `geo-decay --help` exits 0 and names `tracking-smoke`. ✔
+2. The smoke run exits 0 and creates exactly one run in the configured
+   experiment. ✔
+3. The run carries `bbox`, `bbox_crs`, `random_seed`, the metric `smoke` and
+   `config.json`. ✔
+4. The digest is a tag when the variable is set, and absent when it is not —
+   both directions checked, on two separate runs. ✔
+5. `GEO_DECAY_TRACKING_BACKEND=none` exits 0 and the tracking path is never
+   created. ✔
+6. With `GEO_DECAY_BBOX` unset the command exits 2 and names the variable. ✔
+7. No secret reaches `config.json`: with `ANTHROPIC_API_KEY`, `SECRET_KEY`,
+   `POSTGRES_PASSWORD` and `GITHUB_TOKEN` set in the environment, neither the
+   words `KEY`, `TOKEN`, `SECRET`, `PASSWORD` nor any of their values appear in
+   the artifact. Its keys are exactly the ten-field allowlist. ✔
+8. `pyproject.toml` changed only in `[project.scripts]`. ✔
+9. `git status --short` lists only the five files. ✔
+10. The full gate passes. ✔
+
 Notes:
+
+- **Four deviations, all accepted, two of them improvements on the
+  specification.**
+  - `config.json` is built from an **explicit allowlist** rather than
+    `model_dump()`. The handoff did not say which; the allowlist is the better
+    choice, because a secret added to `Settings` later cannot reach a run by
+    default. The cost — a new field is not recorded until someone lists it — is
+    stated in the function's docstring, which is where a future reader will
+    look.
+  - The recorded `tracking_uri` has any `user:pass@` part **stripped**. Beyond
+    the specification, and right: the day the URI points at a server, the
+    artifact would otherwise carry a credential into every run.
+  - **No run identifier is logged.** The handoff asked for it; the port exposes
+    none, and changing the port was out of scope, so the CLI logs the experiment
+    name instead. The developer reported this rather than importing `mlflow`
+    into delivery to get the id, which would have broken the contract to satisfy
+    a log line. Recorded as **PORT-RUNID** in `next_tasks.md`.
+  - A `mktemp` shim on `PATH` during the run, environmental only, caused by
+    defect 3 above.
+- **The `none` branch was checked for silence, not just for exit 0:** the
+  tracking path is not created at all, and the CLI says in its log that nothing
+  was recorded. That line is the difference between a deliberate unrecorded run
+  and an operator who thinks an experiment exists.
+- `build_tracker` returns the port type and matches exhaustively on a
+  two-value `Literal`, so adding a third backend is a type error at the match
+  rather than a silent `None` at runtime.

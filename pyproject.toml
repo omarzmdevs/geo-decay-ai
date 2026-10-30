@@ -5,6 +5,9 @@ description = "Detection and assessment of potentially abandoned infrastructure 
 requires-python = ">=3.12,<3.13"
 dependencies = ["pydantic-settings", "mlflow-skinny"]
 
+[project.scripts]
+geo-decay = "geo_decay_delivery.cli.main:main"
+
 [dependency-groups]
 dev = [
     "ruff",
