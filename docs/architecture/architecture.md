@@ -30,9 +30,15 @@ once at start-up from it, so no layer below reads the environment
 these rules in the quality gate
 ([ADR-003](adr/adr-003-src-layout-and-layer-boundaries.md)).
 
-MLflow and DVC (deferred) sit alongside the pipeline rather than inside it:
-they record experiments and version data and artefacts without the pipeline
-depending on them. The build order of these layers is the block order in
+Experiment tracking follows the same port rule as the rest (Sprint 4,
+[ADR-008](adr/adr-008-experiment-tracking.md)): `ExperimentTracker` is a
+standard-library-only `Protocol` in the domain, the data layer implements it
+with an MLflow adapter and a null adapter, and delivery chooses between them
+from configuration and injects the result. `mlflow` is importable from the
+adapter alone, enforced by an import-linter contract, so no layer knows which
+tool records a run — or whether one does. The store is a configuration string:
+a local file store today, a database or a server without a code change. DVC
+stays deferred; data traceability is the acquisition manifest of Sprint 8. The build order of these layers is the block order in
 [roadmap.md](../roadmap.md): infrastructure, then MLOps, then the GIS core, then
 detection, assessment, experimentation and the platform. Which sprints are
 executed in MVP 1.0, and which are reduced or deferred, is the status table in

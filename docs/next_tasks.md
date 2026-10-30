@@ -10,7 +10,7 @@ table is in [roadmap.md](roadmap.md).
 
 ## Active Sprint
 
-- [ ] **Sprint 4 · MLflow** (Block 2) — experiment tracking in place before the
+- [x] **Sprint 4 · MLflow** (Block 2) — experiment tracking in place before the
   first experiment exists: a tracking port in the domain, an MLflow adapter
   confined to the data layer, a null adapter, and composition in delivery with
   the store addressed by a configuration string. Reduced by
@@ -22,21 +22,7 @@ table is in [roadmap.md](roadmap.md).
   [011](prompts/011-mlflow-adapter-and-import-contract.md) and
   [012](prompts/012-tracking-composition-and-cli.md), run in that order, each
   committed separately. Sprint 4 is the only sprint of Block 2 that MVP 1.0
-  executes, so the block closes with it.
-
-Closed, kept here until Block 2 records its first verdict:
-
-- [x] **Sprint 3 · CI/CD** (Block 1) — the ADR-005 gate runs on GitHub
-  Actions for every push and every pull request to `main`, through the same
-  `.pre-commit-config.yaml` the commit hook uses, so the gate keeps one
-  definition. Reduced by [ADR-007](architecture/adr/adr-007-mvp-1-0-scope.md)
-  to one workflow running the gate; the image build and CD stay out
-  (amendment 2026-10-21). Logged in
-  [sprint-03-cicd.md](sprints/sprint-03-cicd.md): handoff
-  [009](prompts/009-ci-quality-gate-workflow.md) ACCEPTED 2026-10-21, run
-  interactively because `.github/workflows/**` is protected. Closed 2026-10-25
-  on the first green run on GitHub (run #2, `d061937`, `success`), per the
-  handoff's `## Sprint Closing Evidence`.
+  executes; it closed 2026-10-27, and Block 2 closes with it.
 
 **Reserved by the user on 2026-10-26**, so it is out of the active slice until
 the bounding box exists. Block 2 proceeds without it:
@@ -58,6 +44,20 @@ Completed sprints of Block 1: Sprint 1 · Foundations and Quality Gate
 Foundations (2026-10-21, [log](sprints/sprint-02-runtime-foundations.md),
 handoffs 007 and 008 ACCEPTED) and Sprint 3 · CI/CD (2026-10-25,
 [log](sprints/sprint-03-cicd.md), handoff 009 ACCEPTED). Block 1 closed 2026-10-25.
+
+## Completed Sprints
+
+- [x] **Sprint 3 · CI/CD** (Block 1) — the ADR-005 gate runs on GitHub
+  Actions for every push and every pull request to `main`, through the same
+  `.pre-commit-config.yaml` the commit hook uses, so the gate keeps one
+  definition. Reduced by [ADR-007](architecture/adr/adr-007-mvp-1-0-scope.md)
+  to one workflow running the gate; the image build and CD stay out
+  (amendment 2026-10-21). Logged in
+  [sprint-03-cicd.md](sprints/sprint-03-cicd.md): handoff
+  [009](prompts/009-ci-quality-gate-workflow.md) ACCEPTED 2026-10-21, run
+  interactively because `.github/workflows/**` is protected. Closed 2026-10-25
+  on the first green run on GitHub (run #2, `d061937`, `success`), per the
+  handoff's `## Sprint Closing Evidence`.
 
 ## Blocked On
 
@@ -116,6 +116,14 @@ Tracked findings from the project review, deferred with their identifiers:
   enters CI as a paths-triggered workflow (`Dockerfile`, `docker-compose.yml`,
   `.devcontainer/**`, `pyproject.toml`, `uv.lock`) the moment that stops being
   true.
+- [ ] **PORT-RUNID · The tracking port exposes no run identifier** —
+  `ExperimentTracker.start_run` yields `None`, so a caller cannot cross-
+  reference a run with an experiment record in `docs/experiments/`. Handoff 012
+  logs the experiment name instead of the run id rather than import `mlflow`
+  into delivery to obtain it
+  ([012](prompts/012-tracking-composition-and-cli.md), verification notes).
+  Decide in Sprint 12, when the first real experiment needs that link: either
+  the context manager yields a run id or the port gains a `current_run_id`.
 - [ ] **MLFLOW-STORE · The MLflow file store is in maintenance mode** — MLflow
   3.17.2 refuses to construct a `FileStore` without
   `MLFLOW_ALLOW_FILE_STORE=true` and names `sqlite:///mlflow.db` plus

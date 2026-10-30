@@ -105,7 +105,7 @@ security patches keep arriving automatically, and reproducibility is served by
 **The client is installed, not the server.** `mlflow-skinny` is the project
 dependency: it is the tracking client, without Flask, the web server and the
 model flavours. The UI is a local developer tool, run from an isolated
-environment (`uvx --from mlflow mlflow ui --backend-store-uri ./mlruns`), so a
+environment (`MLFLOW_ALLOW_FILE_STORE=true uvx --from mlflow mlflow ui --backend-store-uri ./mlruns`), so a
 visualisation concern does not add dozens of transitive packages to the lockfile
 that the container and CI install. If the skinny distribution cannot write a
 file store, the full `mlflow` package replaces it and the deviation is recorded
@@ -231,6 +231,15 @@ as debt with a trigger.**
   Tracked as **MLFLOW-STORE** in [next_tasks.md](../../next_tasks.md).
 - `uv.lock` pins 3.17.2, so the backend cannot disappear under the project
   before then. A version bump is the moment to revisit this, not a date.
+
+**The opt-in is a process-level requirement for every reader, not only for the
+writer.** The guard is in `FileStore.__init__`, so any process that opens the
+store needs `MLFLOW_ALLOW_FILE_STORE=true` in its own environment: the UI, a
+notebook, a verification script. Verified by constructing `FileStore` in a
+process without the variable, which raises. Only the adapter sets it, and it can
+only set it for itself — so every documented command that reads `mlruns/`
+carries the variable explicitly. This cost was missed when the decision was
+taken and found by handoff 012.
 
 **Migration verified, not assumed.** The claim that a database can be adopted
 later *from this architecture* was tested before it was written down. The

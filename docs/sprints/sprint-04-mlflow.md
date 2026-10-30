@@ -55,12 +55,12 @@ the diff after.
       and the configuration. No tracking library enters the codebase.
 - [x] [011](../prompts/011-mlflow-adapter-and-import-contract.md) — the MLflow
       and null adapters, the dependency and the import contract.
-- [ ] [012](../prompts/012-tracking-composition-and-cli.md) — the composition
+- [x] [012](../prompts/012-tracking-composition-and-cli.md) — the composition
       root and the first CLI command, which records a real run.
-- [ ] Orchestrator: verify each handoff against its criteria, re-run the gate,
+- [x] Orchestrator: verify each handoff against its criteria, re-run the gate,
       append the `## Verification` section; then run the documenter.
 - [ ] User: review and commit each task's diff separately, in handoff order.
-- [ ] Sprint close: fill the dates and the verdict here, update
+- [x] Sprint close: fill the dates and the verdict here, update
       `current_state.md` and `next_tasks.md`, the `architecture.md` MLOps
       paragraph, and the directory index.
 
@@ -71,12 +71,25 @@ configured experiment, with the ADR-008 keys; the same command with
 `GEO_DECAY_TRACKING_BACKEND=none` succeeds and records nothing; and
 `lint-imports` fails if any module other than the adapter imports `mlflow`.
 
+## Verdict
+
+Complete, 2026-10-27. The closing criterion is met: the verified smoke run. With the
+corrected verification command, `geo-decay tracking-smoke` records exactly one run in
+the configured experiment carrying `bbox`, `bbox_crs`, `random_seed`, the metric
+`smoke` and `config.json`, and the `container_image_digest` tag is present only when
+its variable is set. The `none` backend records nothing, and a missing bounding box
+exits `2`. All ten handoff criteria were checked, and the `MLflow is confined to its
+adapter` contract is green. Source: handoff
+[012](../prompts/012-tracking-composition-and-cli.md), `## Verification`, verdict
+ACCEPTED 2026-10-27.
+
 ## Handoffs Executed
 
 <!-- Completed as the sprint runs. -->
 
 - [010 · Experiment-tracking port and configuration](../prompts/010-experiment-tracking-port-and-config.md) — ACCEPTED 2026-10-27 (orchestrator verification). Run by an in-process developer subagent (`sonnet`, planned tier `TIER_STANDARD`; the headless launch form was not used) from restore point `9a0390d`, outcome completed. Gate: `port and configuration ok` and all six pre-commit hooks passing on the tree as delivered (189 tests).
 - [011 · MLflow adapter, null adapter and the import contract](../prompts/011-mlflow-adapter-and-import-contract.md) — ACCEPTED 2026-10-27 (orchestrator verification). Run by an in-process developer subagent (`sonnet`, planned tier `TIER_STANDARD`) in two runs: run 1 aborted on two defects of the handoff itself, and run 2 completed after the amendment of the same date. Run 1 from restore point `baef665`, outcome aborted; run 2 continued from run 1's working tree and has no restore point of its own, outcome completed. Gate: `adapters ok` and all six pre-commit hooks passing (200 tests, 5 import-linter contracts kept).
+- [012 · Tracking composition root and the first CLI command](../prompts/012-tracking-composition-and-cli.md) — ACCEPTED 2026-10-27 (orchestrator verification). Run by an in-process developer subagent (`sonnet`, planned tier `TIER_STANDARD`) from restore point `20f9db1`, outcome completed, with the verification command's three defects worked around and reported (amendment of the same date). Gate: all six pre-commit hooks passing and 213 tests; `uv.lock` unchanged, no dependency added, no import-linter contract touched. Deviations, all accepted: `config.json` built from an explicit allowlist, the recorded `tracking_uri` stripped of any `user:pass@` part, and no run identifier logged (debt PORT-RUNID).
 
 ## Notes
 
@@ -94,7 +107,7 @@ configured experiment, with the ADR-008 keys; the same command with
   rewrites at sprint close.
 * **The MLflow UI is not a deliverable of this sprint.** It is a local developer
   tool, run from an isolated environment
-  (`uvx --from mlflow mlflow ui --backend-store-uri ./mlruns`), outside the
+  (`MLFLOW_ALLOW_FILE_STORE=true uvx --from mlflow mlflow ui --backend-store-uri ./mlruns`), outside the
   project's lockfile by design (ADR-008).
 * **The bounding box stays reserved** (user, 2026-10-26). The smoke run needs
   *some* value for `GEO_DECAY_BBOX`, since Sprint 2 made it required; the
@@ -121,6 +134,10 @@ configured experiment, with the ADR-008 keys; the same command with
 - [docs/roadmap.md](../roadmap.md) — Sprint 4 scope note (2026-10-26)
 - [docs/next_tasks.md](../next_tasks.md) — active sprint set to Sprint 4 (2026-10-26)
 - [ADR-008](../architecture/adr/adr-008-experiment-tracking.md) amendment and [handoff 011](../prompts/011-mlflow-adapter-and-import-contract.md) amendment — `MLFLOW_ALLOW_FILE_STORE` opt-in and corrected criterion 2 (2026-10-27)
+- [architecture.md](../architecture/architecture.md) — MLOps paragraph (2026-10-27)
+- [sprint-04-mlflow.md](sprint-04-mlflow.md) — this log: handoff 012 entry, verdict and sprint close (2026-10-27)
+- [current_state.md](../current_state.md) — Active Block, Active Sprint, Completed Sprints, Current Milestone and Known Issues: Sprint 4 complete, Block 2 closed (2026-10-27)
+- [next_tasks.md](../next_tasks.md) — Active Sprint: Sprint 4 marked done, Sprint 3 moved to Completed Sprints (2026-10-27)
 
 ## Date Started
 
@@ -128,4 +145,4 @@ configured experiment, with the ADR-008 keys; the same command with
 
 ## Date Completed
 
-<!-- YYYY-MM-DD -->
+2026-10-27

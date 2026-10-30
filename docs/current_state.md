@@ -4,21 +4,21 @@
 
 ## Active Block
 
-Block 1 · Architecture and Infrastructure — closed 2026-10-25 ([roadmap.md](roadmap.md)).
-Next up: Block 2 · MLOps and Data Infrastructure ([next_tasks.md](next_tasks.md)).
+Block 2 · MLOps and Data Infrastructure — closed 2026-10-27 ([roadmap.md](roadmap.md)).
+Next up: Block 3 · GIS Core, which depends on ADR-004 and therefore on the feasibility
+experiment the user has reserved ([next_tasks.md](next_tasks.md)).
 
 ## Active Sprint
 
-None. Sprint 3 · CI/CD — complete 2026-10-25 ([log](sprints/sprint-03-cicd.md)). The
-ADR-005 gate runs on GitHub Actions through `.github/workflows/quality-gate.yml`, using
-the same `.pre-commit-config.yaml` the commit hook uses. Closed on the first green run on
-GitHub (run #2, `Quality gate`, branch `bloque-1`, commit `d061937`, `success`), per
-handoff [009](prompts/009-ci-quality-gate-workflow.md) `## Sprint Closing Evidence`.
+None. Sprint 4 · MLflow — complete 2026-10-27 ([log](sprints/sprint-04-mlflow.md)). It
+delivered a tracking port in the domain, an MLflow adapter and a null adapter in the data
+layer, and `geo-decay tracking-smoke`, which records a run with the ADR-008 keys in a local
+file store.
 
-Running in parallel: the feasibility experiment that produces ADR-004
-(`docs/experiments/exp-001-*.md`), which is blocked until the user supplies the
-bounding box. The bounding box is already a configuration variable (Sprint 2); only
-its value is missing.
+Reserved by the user on 2026-10-26, so out of the active slice: the feasibility experiment
+that produces ADR-004 (`docs/experiments/exp-001-*.md`), and the bounding box it needs.
+ADR-004 still follows from that experiment, and it gates Block 3. The bounding box is
+already a configuration variable (Sprint 2); only its value is missing.
 
 ## Completed Sprints
 
@@ -26,11 +26,15 @@ Sprint 0 · Documentation and Agent Setup ([log](sprints/sprint-00-agent-setup.m
 Sprint 1 · Foundations and Quality Gate — completed 2026-10-14 ([log](sprints/sprint-01-foundations.md))
 Sprint 2 · Runtime Foundations — completed 2026-10-21 ([log](sprints/sprint-02-runtime-foundations.md)); handoffs 007 (ACCEPTED 2026-10-16) and 008 (ACCEPTED 2026-10-17) committed.
 Sprint 3 · CI/CD — completed 2026-10-25 ([log](sprints/sprint-03-cicd.md)); handoff 009 ACCEPTED 2026-10-21, closed on the first green GitHub run.
+Sprint 4 · MLflow — completed 2026-10-27 ([log](sprints/sprint-04-mlflow.md)); handoffs 010, 011 and 012 ACCEPTED 2026-10-27.
 
 ## Current Milestone
 
-Block 1 is closed: every push and pull request to `main` is checked by the quality gate
-on GitHub (Sprint 3). The feasibility experiment (ADR-004) is still open, on top of the
+Experiment tracking is in place before the first experiment exists (Sprint 4): a tracking
+port in the domain, an MLflow adapter confined to the data layer by an import-linter
+contract, a null adapter, and composition in delivery, configured through the
+`GEO_DECAY_TRACKING_*` variables. Blocks 1 and 2 are closed. The feasibility experiment
+(ADR-004) is still open and gates Block 3, on top of the
 Sprint 2 baseline (validated `Settings`, `BoundingBox` configuration, logging
 configured once per process) and the Sprint 1 baseline (skeleton, reference container
 with GDAL at system level, enforced quality gate, write-scope guard and pre-commit hook).
@@ -58,8 +62,13 @@ See [ADR-001](architecture/adr/adr-001-agent-governance.md) and
   route requires only GDAL (ADR-005 amendment 2026-10-15). Handoffs 002 and 006
   were ACCEPTED 2026-10-14 and committed as d983f96. The image is `debian:trixie`
   with GDAL 3.10.3 at system level.
-- External images are pinned by tag, not digest, and apt packages are unpinned,
-  so container builds are not bit-reproducible.
+- External images are referenced by tag, not digest, on purpose: the tag keeps floating
+  so security patches keep arriving (ADR-005 amendment 2026-10-26). The digest of the
+  image that produced a result is recorded per run as `container_image_digest`
+  (ADR-008). Apt packages remain unpinned, so container builds are not bit-reproducible.
+- The MLflow file store is in maintenance mode. MLflow refuses to open it without
+  `MLFLOW_ALLOW_FILE_STORE=true`, which the adapter sets (ADR-008). The migration is
+  tracked as MLFLOW-STORE in [next_tasks.md](next_tasks.md).
 - The executed subset of the plan is MVP 1.0, decided in
   [ADR-007](architecture/adr/adr-007-mvp-1-0-scope.md), with the per-sprint status
   table in [roadmap.md](roadmap.md). Nothing is deleted from the plan: entries are
@@ -67,4 +76,4 @@ See [ADR-001](architecture/adr/adr-001-agent-governance.md) and
 
 ## Last Updated
 
-2026-10-25
+2026-10-27
