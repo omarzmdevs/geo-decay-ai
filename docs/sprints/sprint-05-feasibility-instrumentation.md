@@ -72,7 +72,7 @@ of the sandbox shape the acceptance criteria, and are not defects:
 
 ## Tasks
 
-- [ ] [013 · EDA helper module and provider configuration](../prompts/013-eda-toolkit-and-provider-config.md)
+- [x] [013 · EDA helper module and provider configuration](../prompts/013-eda-toolkit-and-provider-config.md)
 - [ ] [014 · The exploratory analysis notebook](../prompts/014-eda-notebook.md)
 - [ ] The user draws the extent on the map and records it in EXP-001 →
       Configuration from the lines the notebook prints
@@ -93,7 +93,9 @@ when the measurement exists and is recorded.
 
 ## Handoffs Executed
 
-<!-- Filled by the documenter as each handoff is verified -->
+- 013 · EDA helper module and provider configuration — ACCEPTED 2026-11-04
+  ([handoff](../prompts/013-eda-toolkit-and-provider-config.md)); run as a
+  `TIER_STANDARD` subagent launched from the orchestrator session.
 
 ## Notes
 
@@ -114,7 +116,13 @@ portability constraints recorded in EXP-001, not the module.
 
 ## Documents Updated
 
-<!-- Filled by the documenter -->
+- [sprint-05 log](sprint-05-feasibility-instrumentation.md) — created by the orchestrator at sprint start; tasks and handoffs recorded by the documenter.
+- [013 · EDA helper module and provider configuration](../prompts/013-eda-toolkit-and-provider-config.md) — handoff with Run Record and Verification (ACCEPTED 2026-11-04).
+- [014 · The exploratory analysis notebook](../prompts/014-eda-notebook.md) — handoff planned in the sprint-planning commit, not yet executed.
+- [prompts index](../prompts/README.md) — handoffs 013 and 014 listed.
+- [next_tasks.md](../next_tasks.md) — orchestrator edits: active slice updated and debt entries EDA-GSD and SANDBOX-SYNC added (uncommitted).
+- [EXP-001](../experiments/exp-001-data-feasibility.md) — orchestrator edits to Reproduction and Portability Constraints from handoff 013 (uncommitted).
+- [current_state.md](../current_state.md) — updated by the documenter for handoff 013.
 
 ## Date Started
 

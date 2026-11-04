@@ -326,19 +326,99 @@ every criterion is offline by design.
 
 ## Restore Point
 
-`d7984ee7dbcd53f2797943b981a809328b636b83`
+`73ee864a37d4719fc754b9b5aade3198ced5402e` — the commit that froze this sprint's handoffs.
 
 ---
 
 ## Run Record
 
-Date:
-Tool and model:
-Outcome: <!-- completed | failed | aborted -->
+Date: 2026-11-04
+Tool and model: subagent at `TIER_STANDARD`, launched from the orchestrator
+session rather than from a shell, because the agent sandbox refuses
+`api.anthropic.com` and a nested headless launch cannot reach it.
+Outcome: completed
 
 ## Verification
 
-Verdict: <!-- ACCEPTED | REJECTED -->
-Files changed:
-Gate:
+Verdict: **ACCEPTED**
+
+Files changed: `notebooks/eda_helpers.py` (937 lines), `notebooks/README.md`
+(38), `data/interim/.gitkeep`, `pyproject.toml` (+14 lines, the `eda` group
+only), `uv.lock` (regenerated; no existing package version moved). Nothing
+else — no `src/`, no `tests/`, nothing in `tests/acceptance/`, no protected
+path. The only other entry in the working tree is this file's restore-point
+line, which is the orchestrator's.
+
+Gate: `uv run pre-commit run --all-files` re-run by the orchestrator — ruff
+check, ruff format, mypy strict, import-linter, pytest and the secrets guard
+all pass.
+
+Criteria: all twelve re-checked independently, not taken from the developer's
+report. Criterion 2's grep finds nothing. Criterion 3's `ast` check puts
+`PROVIDERS` at lines 75–114 with zero endpoint literals outside it. Criterion 12
+was recomputed from scratch against `pyproj`: `snap_outward` gives
+`(400000.0, 4800000.0, 401024.0, 4801024.0)`, `tiles` `(16, 16)`, `area_km2`
+`1.048576`, `exact_fit` `False` for the 500 m extent, and the geographic box
+carries 30.36 m of skew — the figure that justifies requesting extents in a
+projected CRS. Criterion 8 was exercised with five fixtures (valid, code-first,
+URL literal, coordinate literal, `geo_decay_` import): exit 0, then 1, 1, 1, 1.
+Criterion 9 was re-run in a throwaway environment, where `rasterio`,
+`jupyter_core`, `ipyleaflet` and `pyproj` are all absent after a default sync.
+
 Notes:
+
+1. **Proxy-error handling is an addition the handoff did not ask for, and the
+   right call.** Verified independently: a blocked host does not fail the
+   connection here, it answers `HTTP/1.1 403` with `X-Proxy-Error:
+   blocked-by-allowlist` and a body of the proxy's own. Taken at face value that
+   would have recorded a populated year as `absent` — a false finding in the
+   experiment, not a bug in a helper. Recorded in EXP-001 → Reproduction.
+2. **Three verdicts instead of two**, `present | absent | unknown`, against this
+   handoff's "present or absent". The deviation is more correct than the
+   handoff: a request that never reached the service is not evidence about
+   imagery. EXP-001 → Portability Constraints now says so.
+3. **`save_extent` gained `gsd_m=0.25` and `tile_px=256` as keyword defaults —
+   found, and fixed the same day.** `0.25` is a *provider* value sitting in a
+   function default, which is the one thing criterion 3 exists to prevent, and a
+   numeric default is exactly what its token list cannot catch: for a provider at
+   another ground sample distance it would have produced wrong pixel and tile
+   figures silently rather than failing or reporting absence.
+
+   Corrected on 2026-11-04, after this verdict, **on the user's direct
+   instruction and without a separate handoff** — recorded here because the
+   deviation from the task lifecycle is the kind of thing the thesis methodology
+   depends on not hiding. The developer role made the change, since
+   `notebooks/**` is its write scope and not the orchestrator's. `save_extent`
+   and `extent_report` now both require `gsd_m` and `tile_px`, so the two cannot
+   drift apart, and the selftest reads the value from
+   `PROVIDERS["es-pnoa"].default_gsd_m` instead of retyping a number. Re-verified
+   independently: an `ast` walk over every float constant in the module finds no
+   `0.25` outside the `PROVIDERS` span, both signatures carry no default, the
+   selftest exits 0 and the gate stays green. Diff: 14 lines in
+   `notebooks/eda_helpers.py`, nothing else touched. **EDA-GSD** is closed.
+4. **`extent_report` returns `projected_crs`, `projected_bbox`, `snapped_bbox`
+   and `snapped_tiles`** beyond the keys named here, and measures a geographic
+   extent in the UTM zone of its own centre. Both accepted: additive, and the
+   zone-from-centre rule is provider-agnostic, which is what the portability
+   constraint asks for.
+5. **This handoff's verification command has a hole, found by the developer.**
+   `! cmd` is exempt from `set -e`, so the `! grep` and the `! --check-notebook`
+   steps would report a violation without aborting the script. The criteria were
+   therefore checked by hand as well, which is how the verdict above was
+   reached. Future handoffs use an explicit `if cmd; then exit 1; fi` instead of
+   `! cmd`.
+6. **The provider entry is unverified.** The sandbox cannot reach the hosts, so
+   the layer names, the stored-query identifier and the expected attribute names
+   are the developer's reading of the services, not measurements. Handoff 014's
+   capabilities fetch is where they are confirmed, and a wrong value there is a
+   finding about the entry, not a defect in this module.
+7. **Plain `uv sync` cannot prune the `eda` group inside this sandbox.** It has
+   to delete `.venv/lib/python3.12/site-packages/tornado/test/test.key`, and the
+   sandbox denies `*.key` — confirmed: reading that path is refused. The
+   developer ran the step with `UV_PROJECT_ENVIRONMENT` pointed at a temporary
+   directory instead of bypassing the sandbox, which is the correct response.
+   Tracked as **SANDBOX-SYNC**.
+8. **Size.** 937 lines, of which 742 are code and 181 of those the selftest, for
+   twelve criteria spanning HTTP, a manifest, image statistics, projection
+   arithmetic and a notebook checker. Larger than "light" suggests, and accepted:
+   the selftest is a third of it and is what makes the rest auditable offline.

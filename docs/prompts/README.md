@@ -28,7 +28,7 @@
 - [010 · Experiment-tracking port and configuration](010-experiment-tracking-port-and-config.md) — Sprint 4 — ACCEPTED 2026-10-27
 - [011 · MLflow adapter, null adapter and the import contract](011-mlflow-adapter-and-import-contract.md) — Sprint 4 — ACCEPTED 2026-10-27
 - [012 · Tracking composition root and the first CLI command](012-tracking-composition-and-cli.md) — Sprint 4 — ACCEPTED 2026-10-27
-- [013 · EDA helper module and provider configuration](013-eda-toolkit-and-provider-config.md) — Sprint 5 — PENDING
+- [013 · EDA helper module and provider configuration](013-eda-toolkit-and-provider-config.md) — Sprint 5 — ACCEPTED 2026-11-04
 - [014 · The exploratory analysis notebook](014-eda-notebook.md) — Sprint 5 — PENDING
 
 ## Lifecycle

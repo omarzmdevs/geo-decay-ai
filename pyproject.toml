@@ -18,6 +18,20 @@ dev = [
     "pyyaml",
     "types-PyYAML",
 ]
+# Optional: exploratory tooling for EXP-001 (notebooks/). Not part of the
+# package, the gate or the default `uv sync`; install with `uv sync --group eda`.
+eda = [
+    "jupyterlab",
+    "ipywidgets",
+    "ipyleaflet",
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "pyproj",
+    "requests",
+    "rasterio",
+    "geopandas",
+]
 
 [build-system]
 requires = ["hatchling"]

@@ -4,21 +4,27 @@
 
 ## Active Block
 
-Block 2 · MLOps and Data Infrastructure — closed 2026-10-27 ([roadmap.md](roadmap.md)).
-Next up: Block 3 · GIS Core, which depends on ADR-004 and therefore on the feasibility
-experiment the user has reserved ([next_tasks.md](next_tasks.md)).
+Block 3 · GIS Core, entered through its gate: Sprint 5 · Feasibility Instrumentation is
+active ([log](sprints/sprint-05-feasibility-instrumentation.md)). Block 2 · MLOps and Data
+Infrastructure closed 2026-10-27 ([roadmap.md](roadmap.md)). Block 3 depends on ADR-004,
+which follows from the feasibility experiment ([next_tasks.md](next_tasks.md)).
 
 ## Active Sprint
 
-None. Sprint 4 · MLflow — complete 2026-10-27 ([log](sprints/sprint-04-mlflow.md)). It
+Sprint 5 · Feasibility Instrumentation — active, started 2026-11-04. Handoff 013 (EDA helper
+module and provider configuration) ACCEPTED 2026-11-04; handoff 014 (exploratory notebook)
+is next. The sprint produces no production code: it makes EXP-001 measurable and
+re-measurable by the user's own run. The extent is still open and has no default.
+
+Sprint 4 · MLflow — complete 2026-10-27 ([log](sprints/sprint-04-mlflow.md)). It
 delivered a tracking port in the domain, an MLflow adapter and a null adapter in the data
 layer, and `geo-decay tracking-smoke`, which records a run with the ADR-008 keys in a local
 file store.
 
-Reserved by the user on 2026-10-26, so out of the active slice: the feasibility experiment
-that produces ADR-004 (`docs/experiments/exp-001-*.md`), and the bounding box it needs.
-ADR-004 still follows from that experiment, and it gates Block 3. The bounding box is
-already a configuration variable (Sprint 2); only its value is missing.
+The feasibility experiment that produces ADR-004 (`docs/experiments/exp-001-*.md`) is in
+progress through this sprint. ADR-004 still follows from its measured figures, and it gates
+Block 3. The bounding box is already a configuration variable (Sprint 2); only its value is
+missing.
 
 ## Completed Sprints
 
@@ -33,8 +39,9 @@ Sprint 4 · MLflow — completed 2026-10-27 ([log](sprints/sprint-04-mlflow.md))
 Experiment tracking is in place before the first experiment exists (Sprint 4): a tracking
 port in the domain, an MLflow adapter confined to the data layer by an import-linter
 contract, a null adapter, and composition in delivery, configured through the
-`GEO_DECAY_TRACKING_*` variables. Blocks 1 and 2 are closed. The feasibility experiment
-(ADR-004) is still open and gates Block 3, on top of the
+`GEO_DECAY_TRACKING_*` variables. Blocks 1 and 2 are closed. Sprint 5 has accepted its first
+handoff (013): the EDA helper module and provider configuration under `notebooks/`. The
+feasibility experiment (ADR-004) is still open and gates Block 3, on top of the
 Sprint 2 baseline (validated `Settings`, `BoundingBox` configuration, logging
 configured once per process) and the Sprint 1 baseline (skeleton, reference container
 with GDAL at system level, enforced quality gate, write-scope guard and pre-commit hook).
@@ -69,6 +76,12 @@ See [ADR-001](architecture/adr/adr-001-agent-governance.md) and
 - The MLflow file store is in maintenance mode. MLflow refuses to open it without
   `MLFLOW_ALLOW_FILE_STORE=true`, which the adapter sets (ADR-008). The migration is
   tracked as MLFLOW-STORE in [next_tasks.md](next_tasks.md).
+- A plain `uv sync` cannot prune the `eda` group inside the agent sandbox: it must delete
+  a `tornado` test `*.key` file, which the sandbox denies. Tracked as SANDBOX-SYNC in
+  [next_tasks.md](next_tasks.md); see handoff 013 Verification, note 7.
+- The sandbox proxy answers a blocked host with HTTP 403, not a connection failure, so a
+  refused request is recorded as `unknown`, never `absent`. See handoff 013 Verification,
+  note 1.
 - The executed subset of the plan is MVP 1.0, decided in
   [ADR-007](architecture/adr/adr-007-mvp-1-0-scope.md), with the per-sprint status
   table in [roadmap.md](roadmap.md). Nothing is deleted from the plan: entries are
@@ -76,4 +89,4 @@ See [ADR-001](architecture/adr/adr-001-agent-governance.md) and
 
 ## Last Updated
 
-2026-10-27
+2026-11-04
