@@ -185,6 +185,55 @@ Tracked findings from the project review, deferred with their identifiers:
   the broader `Bash(git commit*)`; removed from `.claude/settings.json` by the
   user on 2026-10-25.
 
+- [ ] **EDA-ELEV · The provider entry describes no elevation service** — so
+  EXP-001 question 2 (which elevation products cover the extent, in what form)
+  **cannot be answered by the instrument as it stands**. `PROVIDERS["es-pnoa"]`
+  holds `ortho`, `ortho_history`, `cadastre_wms` and `buildings_wfs` and nothing
+  else, a gap in handoff 013's specification of the entry rather than a finding
+  about coverage. Section 9 of the notebook already discovers elevation services
+  generically, by token in the entry's logical keys, and reports one row per
+  product category, so it starts probing with no change to the notebook the
+  moment an entry gains one. Found verifying handoff 014, note 3.
+
+  **Narrowed 2026-11-04**, on the user's decision to add the endpoints as a
+  labelled hypothesis: the entry now carries an INSPIRE elevation (MDT) WMS and a
+  terrain layer name, both marked unconfirmed in the data, and section 9's
+  terrain row is probed. Still open: the **surface model and the point cloud**,
+  which come from the CNIG download portal. That portal is deliberately not an
+  endpoint — it has no OGC interface, and because `_resolve_layer` sends an
+  unknown layer name to the `epoch_service`, a lidar-token endpoint would have
+  fired a `GetMap` at the historical orthophoto service and could have recorded
+  the point cloud as *available*. Probing downloads needs either a `downloads`
+  field on `Provider` or a change to section 9, neither of which is authorised
+  yet. Until then EXP-001 question 2 is answerable only in part.
+- [ ] **EDA-WMSVER · The map's orthophoto layer ignores the provider's WMS
+  version** — `ipyleaflet.WMSLayer` (0.20.0) exposes no `version` trait, so the
+  browser requests tiles at the library's default WMS version rather than the
+  entry's `wms_version` (`1.3.0`), and a URL-embedded `VERSION` would collide
+  with the one Leaflet appends. Consequence for reading the map: error or blank
+  tiles under the selector mean *either* a wrong layer name *or* a version
+  mismatch, so section 4's `GetCapabilities` is what distinguishes them. Recorded
+  as a code comment in the notebook's map cell. Closes if a later ipyleaflet
+  exposes the trait, or by serving the preview through a tile endpoint that pins
+  the version.
+- [x] **EDA-OSERROR · A failed request could leave no manifest row** —
+  `fetch` caught `requests.RequestException`, which is a *subclass* of `OSError`
+  rather than the reverse, so a bare `OSError` raised inside `requests` escaped
+  the handler that writes the manifest row. The experiment's audit trail was
+  therefore silently incomplete, against criterion 5 of handoff 013. Not
+  hypothetical: an unreadable CA bundle made two `https://www.ign.es` requests
+  vanish from `manifest.csv` during the handoff 014 verification run. Resolved
+  2026-11-04, on direct instruction without a handoff: the handler covers both
+  exceptions and the selftest now drives a bare `OSError` through `fetch` with a
+  non-existent `REQUESTS_CA_BUNDLE` and asserts that a row is written.
+  Re-verified independently — nothing raised, `status` 0, one manifest row with
+  its `error` column set.
+
+  The lesson behind it stays open, alongside [EDA-GSD]: **handoff 013's criterion
+  5 was checked only against a `RequestException`**, so the selftest could not
+  have caught this. A contract that says "never raises" needs a check per failure
+  *class*, not one representative failure.
+
 - [x] **EDA-GSD · A provider value sat in a function default** — `save_extent`
   in `notebooks/eda_helpers.py` defaulted to `gsd_m=0.25`, the PNOA ground sample
   distance. Criterion 3 of handoff 013 keeps hosts, layers and attributes inside

@@ -108,3 +108,12 @@ models/weights/*
 *.onnx
 *.engine
 *.bin
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+
+# --- EXP-001: self-contained experiment ---
+# Small outputs (manifest, extent, capabilities) are tracked in git.
+notebooks/exp-001/_draft/
+notebooks/exp-001/out/epochs/
+notebooks/exp-001/out/chips/

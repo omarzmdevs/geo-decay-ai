@@ -201,20 +201,189 @@ a rejection of 013, not something to patch here.
 
 ## Restore Point
 
-<!-- `git rev-parse HEAD` immediately before launching; it must be the commit
-     that carries handoff 013's accepted work -->
+`652cf5698aac8b0b26eeff24926445b51661b210` — a clean working tree. It carries
+handoff 013's accepted work and its EDA-GSD correction (`4f5f8a4`), plus what
+verifying them taught the method (`652cf56`).
 
 ---
 
 ## Run Record
 
-Date:
-Tool and model:
-Outcome: <!-- completed | failed | aborted -->
+Date: 2026-11-04
+Tool and model: subagent at `TIER_DEEP`, launched from the orchestrator session,
+because the agent sandbox refuses `api.anthropic.com` and a nested headless
+launch cannot reach it. Three addenda were passed at launch that this frozen
+handoff does not carry: that `gsd_m` and `tile_px` became required keyword
+arguments after the EDA-GSD correction, that the deliverable must be real
+`nbformat` JSON, and that section 4 must name a wrong provider value rather than
+show an empty table.
+Outcome: completed
 
 ## Verification
 
-Verdict: <!-- ACCEPTED | REJECTED -->
-Files changed:
-Gate:
+Verdict: **ACCEPTED**
+
+Files changed: `notebooks/01-pnoa-catastro-eda.ipynb` only — 25 cells, 13
+markdown and 12 code. `notebooks/eda_helpers.py` was not touched: the exception
+in Files to Create or Modify went unused, so no helper turned out to be missing.
+The only other entry in the working tree is this file's restore point, which is
+the orchestrator's.
+
+Gate: `uv run pre-commit run --all-files` re-run by the orchestrator — all six
+hooks pass, and `eda_helpers --selftest` still exits 0.
+
+Criteria: re-checked independently. The checker exits 0. The cell sequence is
+`MMCMCMCMCMCMCMCMCMCMCMCMC` — strict alternation, no two adjacent code cells,
+first cell markdown, every code cell cleared (`execution_count: null`, no stored
+outputs). All 13 markdown cells end with a `**What to look at:**` line. No
+coordinate or endpoint literal outside the first code cell; the one `0.25` in a
+later cell is inside a comment illustrating a regex, not a provider value, and
+the ground sample distance is read from `PROVIDER.default_gsd_m`.
+
+**Criteria 4 and 6 were verified by re-executing the notebook, not by reading
+the report.** 12 code cells executed, none raised, and 22 lines beginning
+`ABSENT: ` were printed, each naming its own reason — starting with
+`ABSENT: no extent selected — draw a rectangle above, or fill EXTENT and
+EXTENT_CRS in section 2`, which is the fall-through of criterion 2 working.
+`manifest.csv`, `candidates.csv` (13 columns, including the four empty labelling
+columns) and `summary.md` all exist; `extent.json` is correctly absent, since
+nothing resolved. `summary.md` reports all four EXP-001 questions as
+`NOT ANSWERED` with the reason beside each, under a heading that separates them
+from an explicitly labelled "Inferred, not measured" list.
+
 Notes:
+
+1. **The verification command's execution step cannot run in this sandbox, and
+   the substitute was re-run by the orchestrator.** `jupyter nbconvert
+   --execute` needs a kernel, a kernel needs a local socket, and local port
+   binding is off here: reproduced twice, first as
+   `PermissionError: Operation not permitted: '/Users/omz/.jupyter'` and then,
+   with the Jupyter directories redirected into `$TMPDIR`, as
+   `jupyter_client/connect.py … tmp_sock.bind((ip, 0))` →
+   `PermissionError: [Errno 1] Operation not permitted`. The developer did not
+   retry outside the sandbox, which was the right call: outside it the data
+   hosts become reachable and criteria 4 and 6 would have been destroyed rather
+   than satisfied. Both the developer and the orchestrator executed the notebook
+   in-process instead, through `InteractiveShell` with the cell sources
+   unchanged. Equivalent in substance, not identical. The literal command runs
+   either with `sandbox.network.allowLocalBinding: true` in the user's settings
+   or on the user's own machine, which is where the measurement happens anyway.
+2. **This handoff contradicts itself on cell layout, and the developer resolved
+   it correctly.** Criterion 3 asks for "one or two code cells" per section while
+   criterion 1's checker rejects any code cell not immediately preceded by a
+   markdown cell — so two in a row is impossible. Section 3 genuinely needs two
+   (draw the rectangle, then run the next cell), and a `### 3.1` markdown cell
+   now sits between them. Section 1 has no code cell at all, which keeps the
+   parameter cell first as criteria 1 and 2 both presuppose. The defect is the
+   orchestrator's, not the delivery's.
+3. **Criterion 3 row 9 could not be satisfied as written, and EXP-001 question 2
+   is unanswerable by this instrument as it stands.** `PROVIDERS["es-pnoa"]`
+   describes no elevation service — its endpoints are `ortho`,
+   `ortho_history`, `cadastre_wms` and `buildings_wfs` — so there was nothing to
+   probe, and inventing a host would have meant writing an unverifiable value
+   into the entry. Section 9 instead discovers elevation services generically by
+   token in the entry's logical keys, reports one row per product category and
+   currently prints `ABSENT: … no endpoint in the provider entry, so nothing was
+   probed` for all three. It will start probing with no change to the notebook
+   the moment an entry gains one. This is a gap in handoff 013's specification
+   of the provider entry, tracked as **EDA-ELEV**.
+4. **A defect in handoff 013's accepted work, found by this task and
+   demonstrated by its run.** `fetch` catches `requests.RequestException`, which
+   is a *subclass* of `OSError` rather than the reverse — confirmed:
+   `issubclass(requests.RequestException, OSError)` is `True` and the converse is
+   `False`. A bare `OSError` therefore escapes `fetch` and **leaves no manifest
+   row**, which breaks criterion 5 of handoff 013. It is not hypothetical: in
+   this sandbox `certifi/cacert.pem` is unreadable, so the two `www.ign.es`
+   requests failed with a TLS CA `OSError`, and `manifest.csv` holds rows for the
+   three proxy-refused Catastro requests and **nothing at all** for those two.
+   The notebook is not at fault — it wraps every fetch site so the failure still
+   surfaces as `ABSENT` — but the audit trail the experiment rests on was
+   silently incomplete. Tracked as **EDA-OSERROR** and fixed the same day, on
+   direct instruction without a handoff: the handler now covers both exceptions
+   and the selftest drives a bare `OSError` through `fetch` and asserts that a
+   manifest row is written. Re-verified independently with a non-existent
+   `REQUESTS_CA_BUNDLE` — nothing raised, `status` 0, one row with its `error`
+   column set. The notebook was not changed for it, so this handoff's delivery
+   stands as verified above.
+5. **Six provider values are suspected wrong**, all unverifiable from here and
+   all reported rather than guessed at: the `buildings` layer pairs Catastro's
+   general WMS endpoint with the INSPIRE `BU.Building` layer name, which looks
+   crossed; `srsname` renders as `EPSG::25830`, a truncated URN; the WFS
+   `version` is a bare `2` where services advertise `2.0.0`; `STOREDQUERIE_ID`
+   carries Catastro's own misspelling, which may well be correct; and
+   `epoch_layer_pattern` is unconfirmed. Section 4 prints each as `ok`,
+   `unverified` or a named `MISMATCH`, so the user's first networked run is what
+   settles them. Recorded in EXP-001 → Results → Provider entry.
+6. **Two smaller judgements, both accepted.** Per-epoch ground sample distance
+   is parsed out of the layer title in the capabilities document, with a
+   `gsd_source` column reading `service document` or
+   `provider entry (unverified)`, because no service declares it in a
+   machine-readable field — a resolution nobody declared is not reported as
+   measured. And the quality thresholds live as named constants in section 6's
+   own cell rather than in the parameter cell, since criterion 2 does not list
+   them.
+7. **Prose volume.** The markdown cells are 4 to 9 non-blank lines, within
+   criterion 5, but 204 to 793 words each: about 3,400 words across the notebook.
+   The sample read is dense and purposeful rather than padded, so it is accepted,
+   but it is heavier than "clean and simple explanations" implies and is worth a
+   trimming pass before the notebook goes to a reader.
+8. **An environment repair, outside the repository.** `tornado` had been
+   installed incomplete in `.venv`, the install having aborted on
+   `tornado/test/test.key` under the sandbox's `*.key` rule, leaving `jupyter`
+   unimportable; the developer restored the package from the uv cache without
+   that fixture. `.venv/` is git-ignored, so nothing reaches the diff, but it
+   means this verification ran against a hand-repaired environment. On the
+   user's machine, outside the sandbox, `uv sync --group eda` gives a clean one.
+   This is **SANDBOX-SYNC** biting at install time rather than at prune time.
+
+---
+
+## Post-Acceptance Additions
+
+Work done on this handoff's deliverable **after** the verdict above, on the
+user's direct instruction and without a new handoff. Kept separate so the record
+still shows what the handoff itself produced. Each was re-verified by the
+orchestrator in the same way the delivery was.
+
+**2026-11-04 · The orthophoto under the selector map.** Choosing a study extent
+for orthophoto work on a bare basemap means choosing blind, so section 3 opens
+the map with the provider's current orthophoto as a `WMSLayer` beneath the
+rectangle tool, plus a `LayersControl` to switch it off. The endpoint and layer
+name come from the `PROVIDERS` entry; both lookups use `.get` with a fallback, so
+a missing key degrades to an empty URL rather than raising, and a wrong layer
+name is a browser-side error tile only. The markdown says plainly that error
+tiles mean the entry's layer name is wrong and that section 4 is what confirms
+it. Re-verified: the notebook still executes offline with nothing raising.
+
+**2026-11-04 · The elevation hypothesis.** `PROVIDERS["es-pnoa"]` gains an
+INSPIRE elevation (MDT) WMS endpoint and a terrain layer name, both marked **in
+the data** as unconfirmed hypotheses, so that section 9's token discovery finds
+them with its logic unchanged. Re-verified: section 4 now asks the new endpoint
+(`ABSENT: elevation_wms — …`) and section 9's terrain row moved from "no
+endpoint in the provider entry" to `ABSENT: terrain raster — no extent selected,
+so the service was never asked`. The ABSENT count went from 22 to 23.
+
+Two values are reasoned rather than observed and are labelled as such: the `mdt`
+path segment, and `EL.ElevationGridCoverage` as the layer name, chosen by INSPIRE
+convention to match the entry's existing `OI.OrthoimageCoverage`. The user's
+first networked run settles both.
+
+**The CNIG download centre is deliberately *not* an endpoint**, and the reasoning
+is worth keeping. It is a browser portal with no OGC interface, and
+`_resolve_layer` sends any layer name it does not find in `provider.layers` to
+the `epoch_service` — confirmed: `return provider.epoch_service, layer`. A
+`lidar`-token endpoint with no matching layer key would therefore have fired a
+`GetMap` for `LAYERS=<endpoint key>` at the *historical orthophoto* service, and
+a portal answering 200 with HTML would have been recorded as a point cloud that
+is **available**. A false positive on EXP-001 question 2 is the worst outcome
+available here, so the portal is named in a comment and sections 4 and 9 stay
+silent about it except through the "never asked" reason. **EDA-ELEV is narrowed,
+not closed.**
+
+**2026-11-04 · A Spanish translation of the notebook**, in the same folder, with
+the English one as the source of truth: markdown translated, code cells
+byte-identical, and a `--check-translation` guard in the module so the two cannot
+drift apart unnoticed. This deviates from `AGENTS.md` → Documentation
+Conventions, which allows Spanish only in `docs/tfm/` and the bilingual root
+`README.md`; the exception is the user's decision, and `AGENTS.md` is theirs to
+amend.
