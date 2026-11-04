@@ -12,7 +12,9 @@ Four concerns live here, each independent of any one country:
 * image-quality figures computed with numpy;
 * extent geometry: projection envelope, snapping and tiling arithmetic;
 * the drawing round-trip, so a rectangle drawn on a map is not lost when the
-  kernel restarts.
+  kernel restarts;
+* reading what a service advertises, so the provider entry can be confirmed or
+  contradicted instead of trusted.
 
 Every output goes under one directory, ``out/`` beside this file by convention,
 with response bodies filed by kind: ``capabilities/``, ``vectors/``,
@@ -40,6 +42,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
+from xml.etree import ElementTree
 
 import numpy as np
 import requests
@@ -388,6 +391,34 @@ def wms_feature_info(
     return fetch(url, params, out_dir, kind="features")
 
 
+def wfs_capabilities(provider: Provider, out_dir: Path) -> Fetch:
+    """Fetch the capabilities document of the feature service."""
+    params = {
+        "SERVICE": "WFS",
+        "VERSION": provider.wfs_params.get("version", ""),
+        "REQUEST": "GetCapabilities",
+    }
+    return fetch(
+        provider.endpoints[provider.wfs_service], params, out_dir, kind="capabilities"
+    )
+
+
+def wfs_stored_queries(provider: Provider, out_dir: Path) -> Fetch:
+    """Ask the feature service which stored queries it offers.
+
+    A stored query is a named, server-side query the client calls by id. The
+    entry claims one; this is what shows whether the service has it.
+    """
+    params = {
+        "SERVICE": "WFS",
+        "VERSION": provider.wfs_params.get("version", ""),
+        "REQUEST": "ListStoredQueries",
+    }
+    return fetch(
+        provider.endpoints[provider.wfs_service], params, out_dir, kind="capabilities"
+    )
+
+
 def wfs_buildings(provider: Provider, bbox: Bbox, crs: str, out_dir: Path) -> Fetch:
     """Fetch the building footprints that intersect ``bbox``."""
     epsg = CRS.from_user_input(crs).to_epsg()
@@ -399,6 +430,96 @@ def wfs_buildings(provider: Provider, bbox: Bbox, crs: str, out_dir: Path) -> Fe
     params = {key: tpl.format(**values) for key, tpl in provider.wfs_params.items()}
     return fetch(
         provider.endpoints[provider.wfs_service], params, out_dir, kind="vectors"
+    )
+
+
+@dataclass(frozen=True)
+class Capabilities:
+    """What one capabilities document advertises, read without its namespaces.
+
+    ``crs`` codes are normalised to ``EPSG:<code>``, so that a WMS saying
+    ``EPSG:25830`` and a WFS saying ``urn:ogc:def:crs:EPSG::25830`` compare
+    equal against the same entry. ``titles`` maps a layer name to its title,
+    which is where a per-epoch resolution is usually written. ``exception`` is
+    set when the document is a service exception or could not be read, and the
+    other fields are then empty: an unreadable document is a value with a
+    reason, never an exception.
+    """
+
+    crs: tuple[str, ...]
+    layers: tuple[str, ...]
+    titles: dict[str, str]
+    stored_queries: tuple[str, ...]
+    exception: str
+
+
+_EPSG_CODE = re.compile(r"EPSG:+(\d+)", re.IGNORECASE)
+_CRS_TAGS = frozenset(
+    {"CRS", "SRS", "DefaultCRS", "OtherCRS", "DefaultSRS", "OtherSRS"}
+)
+_NAMED_TAGS = frozenset({"Layer", "FeatureType"})
+
+
+def _local(tag: str) -> str:
+    """A tag without its XML namespace."""
+    return tag.rpartition("}")[2]
+
+
+def _child_text(element: ElementTree.Element, name: str) -> str:
+    return next(
+        (
+            (child.text or "").strip()
+            for child in element
+            if _local(child.tag) == name and (child.text or "").strip()
+        ),
+        "",
+    )
+
+
+def read_capabilities(path: Path | None) -> Capabilities:
+    """Read what a WMS or WFS capabilities document advertises.
+
+    Tags are matched on their local name and namespaces are ignored, because
+    the same facts are spelled differently in WMS 1.1.1, WMS 1.3.0 and WFS 2.0
+    and the point is to compare them against one provider entry. The document
+    is treated strictly as data: nothing in it is executed, resolved or
+    followed.
+    """
+    if path is None or not path.is_file():
+        return Capabilities((), (), {}, (), "no document was saved")
+    try:
+        root = ElementTree.parse(path).getroot()
+    except (OSError, ElementTree.ParseError) as exc:
+        return Capabilities((), (), {}, (), f"{type(exc).__name__}: {exc}")
+    if "exception" in _local(root.tag).lower():
+        text = " ".join(part.strip() for part in root.itertext() if part.strip())
+        return Capabilities((), (), {}, (), f"service exception: {text[:200]}")
+    crs: list[str] = []
+    layers: list[str] = []
+    titles: dict[str, str] = {}
+    queries: list[str] = []
+    for element in root.iter():
+        tag = _local(element.tag)
+        text = (element.text or "").strip()
+        if tag in _CRS_TAGS and text:
+            for part in text.split():
+                match = _EPSG_CODE.search(part)
+                crs.append(f"EPSG:{match.group(1)}" if match else part.upper())
+        elif tag == "StoredQuery":
+            identifier = (element.get("id") or "").strip()
+            if identifier:
+                queries.append(identifier)
+        elif tag in _NAMED_TAGS:
+            name = _child_text(element, "Name")
+            if name:
+                layers.append(name)
+                titles[name] = _child_text(element, "Title")
+    return Capabilities(
+        tuple(dict.fromkeys(crs)),
+        tuple(dict.fromkeys(layers)),
+        titles,
+        tuple(dict.fromkeys(queries)),
+        "",
     )
 
 
@@ -1065,6 +1186,80 @@ def _selftest() -> int:
             forget_drawing(drawings)
             and not drawn.is_file()
             and not forget_drawing(drawings),
+        )
+
+        # 4: reading what a document advertises, across the three grammars.
+        # The namespace is built from _SCHEME so no literal endpoint appears here.
+        docs = root / "caps"
+        docs.mkdir()
+        wms_doc = docs / "wms.xml"
+        wms_doc.write_text(
+            '<?xml version="1.0"?>'
+            f'<WMS_Capabilities xmlns="{_SCHEME}://www.opengis.net/wms">'
+            "<Capability><Layer><Title>root</Title>"
+            "<CRS>EPSG:25830</CRS><CRS>CRS:84</CRS>"
+            "<Layer><Name>OI.OrthoimageCoverage</Name><Title>Ortho 0.25 m</Title>"
+            "</Layer>"
+            "<Layer><Name>PNOA2004</Name><Title>PNOA 2004 (0.5 m)</Title></Layer>"
+            "</Layer></Capability></WMS_Capabilities>",
+            encoding="utf-8",
+        )
+        wms_caps = read_capabilities(wms_doc)
+        check(
+            "4 capabilities: layers and titles, namespace ignored",
+            wms_caps.layers == ("OI.OrthoimageCoverage", "PNOA2004")
+            and wms_caps.titles["PNOA2004"] == "PNOA 2004 (0.5 m)"
+            and not wms_caps.exception,
+            wms_caps,
+        )
+        check(
+            "4 capabilities: CRS codes normalised, unnamed layers skipped",
+            wms_caps.crs == ("EPSG:25830", "CRS:84"),
+            wms_caps.crs,
+        )
+
+        wfs_doc = docs / "wfs.xml"
+        wfs_doc.write_text(
+            '<?xml version="1.0"?>'
+            f'<wfs:WFS_Capabilities xmlns:wfs="{_SCHEME}://www.opengis.net/wfs/2.0">'
+            "<wfs:FeatureTypeList><wfs:FeatureType>"
+            "<wfs:Name>bu:Building</wfs:Name><wfs:Title>Building</wfs:Title>"
+            "<wfs:DefaultCRS>urn:ogc:def:crs:EPSG::25830</wfs:DefaultCRS>"
+            "</wfs:FeatureType></wfs:FeatureTypeList>"
+            '<wfs:StoredQuery id="GetFeatureByBBOX"/>'
+            "</wfs:WFS_Capabilities>",
+            encoding="utf-8",
+        )
+        wfs_caps = read_capabilities(wfs_doc)
+        check(
+            "4 capabilities: a URN CRS compares equal to a plain EPSG code",
+            wfs_caps.crs == ("EPSG:25830",)
+            and wfs_caps.layers == ("bu:Building",)
+            and wfs_caps.stored_queries == ("GetFeatureByBBOX",),
+            wfs_caps,
+        )
+
+        exception_doc = docs / "exception.xml"
+        exception_doc.write_text(
+            '<?xml version="1.0"?>'
+            "<ServiceExceptionReport><ServiceException>LAYER not defined"
+            "</ServiceException></ServiceExceptionReport>",
+            encoding="utf-8",
+        )
+        failed = read_capabilities(exception_doc)
+        check(
+            "4 a service exception is a value with its reason",
+            "LAYER not defined" in failed.exception and not failed.layers,
+            failed,
+        )
+        check(
+            "4 a document that was never saved is a value too",
+            read_capabilities(None).exception == "no document was saved",
+        )
+        (docs / "broken.xml").write_text("<WMS_Capabilities", encoding="utf-8")
+        check(
+            "4 an unparsable document does not raise",
+            "ParseError" in read_capabilities(docs / "broken.xml").exception,
         )
 
         # 1: the output layout the ignore rules depend on

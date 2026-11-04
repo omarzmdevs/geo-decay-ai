@@ -1,0 +1,44 @@
+{
+  "bbox": [
+    469120.0,
+    4482944.0,
+    470464.0,
+    4483840.0
+  ],
+  "crs": "EPSG:25830",
+  "gsd_m": 0.25,
+  "tile_px": 256,
+  "report": {
+    "projected_crs": "EPSG:25830",
+    "projected_bbox": [
+      469120.0,
+      4482944.0,
+      470464.0,
+      4483840.0
+    ],
+    "width_m": 1344.0,
+    "height_m": 896.0,
+    "area_km2": 1.204224,
+    "width_px": 5376,
+    "height_px": 3584,
+    "tiles": [
+      21,
+      14
+    ],
+    "exact_fit": true,
+    "geodesic_width_m": 1344.522704737805,
+    "geodesic_height_m": 896.3484715031939,
+    "skew_m": 0.0,
+    "snapped_bbox": [
+      469120.0,
+      4482944.0,
+      470464.0,
+      4483840.0
+    ],
+    "snapped_tiles": [
+      21,
+      14
+    ]
+  },
+  "timestamp_utc": "2026-11-04T19:18:29+00:00"
+}

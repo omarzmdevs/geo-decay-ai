@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ListStoredQueriesResponse xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:bu="urn:x-inspire:specification:gmlas:Buildings:3.0" xsi:schemaLocation="http://www.opengis.net/gml/3.2 http://schemas.opengis.net/gml/3.2.1/gml.xsd http://www.opengis.net/wfs/2.0 http://schemas.opengis.net/wfs/2.0/wfs.xsd" xmlns="http://www.opengis.net/wfs/2.0">  
+  <StoredQuery id="GetBuildingByParcel">
+    <Title>Edificios por referencia catastral</Title>
+    <Title>Buildings by common cadastral parcel identification</Title>
+    <ReturnFeatureType>bu:Building</ReturnFeatureType>
+  </StoredQuery>
+  <StoredQuery id="GetFeatureById">
+    <Title>Edificios por identificador de elemento</Title>
+    <Title>Buildings by feature identification</Title>
+    <ReturnFeatureType>bu:Building</ReturnFeatureType>
+  </StoredQuery>
+  <StoredQuery id="GetBuildingPartByParcel">
+    <Title>Partes de edificio por referencia catastral</Title>
+    <Title>Buildings parts by common cadastral parcel identification</Title>
+    <ReturnFeatureType>bu:Building</ReturnFeatureType>
+  </StoredQuery>
+  <StoredQuery id="GetOtherBuildingByParcel">
+    <Title>Otras construcciones por referencia catastral</Title>
+    <Title>Other constructions by common cadastral parcel identification</Title>
+    <ReturnFeatureType>bu:Building</ReturnFeatureType>
+  </StoredQuery> 
+  <StoredQuery id="GetAllConstructionByParcel">
+    <Title>Edificios y Otras construcciones por referencia catastral</Title>
+    <Title>Buildings and Other constructions by common cadastral parcel identification</Title>
+    <ReturnFeatureType>bu:Building</ReturnFeatureType>
+  </StoredQuery> 
+ </ListStoredQueriesResponse>
