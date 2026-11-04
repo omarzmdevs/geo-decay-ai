@@ -134,7 +134,7 @@ each step: its offline run, and the user's live run.
 
 ## Steps
 
-- [ ] **0 · The self-contained folder**
+- [x] **0 · The self-contained folder** — ACCEPTED 2026-11-04
 - [ ] **1 · Section 4 · Provider capabilities**
 - [ ] **2 · Sections 5 and 6 · Epoch availability and image quality**
 - [ ] **3 · Section 7 · Spectral check**
@@ -175,10 +175,32 @@ is self-contained.
 
 **Record** — filled in when the step closes.
 
-- Date:
-- What the live run printed:
-- Corrections applied:
-- Verdict:
+- Date: 2026-11-04
+- What the live run printed: nothing — step 0 touches no service. Verified
+  offline instead: `eda.py --selftest` passes 25 checks, `--check-notebook`
+  exits 0, `pre-commit run --all-files` passes all six hooks, and the notebook
+  reaches its last cell with `ABSENT:` plus its diagnostic panel. It imports
+  `eda`, writes nothing outside `out/` except `__pycache__`, resolves the extent
+  from `out/drawing.json` after a simulated kernel restart and regenerates the
+  same `extent.json`, and the map's bin button deletes the drawing while a
+  registered extent survives. `jupyter nbconvert --execute` could not run (no
+  local socket in the sandbox); the documented in-process substitute was used.
+  Restore point: `5bb3241`. `eda.py` is derived from the accepted module of
+  handoff 013 with exactly the four differences this step allows, and the
+  `PROVIDERS` entry was copied unchanged, so `BU.Building`,
+  `GetBuildingByBBOX`, `version="2"` and `srsname="EPSG::{epsg}"` all stand
+  unverified, as this handoff requires. `notebooks/exp-001/` holds three
+  versioned files after this step — `eda.py`, `README.md` and
+  `01-eda-pnoa-catastro.ipynb` — with `_draft/`, `out/epochs/`, `out/chips/`
+  and `__pycache__/` confirmed ignored.
+- Corrections applied: the parameter panel lost a trailing `/`, which the
+  notebook checker reads as an absolute path when it begins an f-string literal
+  part. One thing outside the step's scope was reported to the user rather than
+  changed: the user's own drawn rectangle sits in
+  `notebooks/exp-001/_draft/drawing.json` and was not copied into `out/`,
+  because this handoff forbids taking anything out of `_draft/` unless the user
+  names it.
+- Verdict: ACCEPTED
 
 ---
 
