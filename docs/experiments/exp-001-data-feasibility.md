@@ -119,6 +119,13 @@ a manifest line is not a measurement. The derived tables are small and are
 displayed in the notebook, so they survive in the committed `.ipynb` outputs
 without versioning a single heavy file.
 
+**A refused request is not an absent year.** A filtering proxy can answer a
+blocked host with an HTTP 403 and a body of its own instead of failing the
+connection — verified 2026-11-04, `X-Proxy-Error: blocked-by-allowlist`. Taken
+at face value that would record a populated year as absent, which is a false
+finding rather than a technical nuisance, so a response carrying a proxy error
+is treated as a transport failure and the year is recorded as `unknown`.
+
 A reader with no network access runs the selftest and reads the committed
 notebook outputs. A reader with network access re-runs the notebook and compares
 MD5s against the manifest; a different MD5 for the same year means the service
@@ -159,9 +166,13 @@ snap grid follows the ground sample distance and the tile size, which ADR-004
 fixes.
 
 **Missing epochs and missing products.** An absent year is a first-class result,
-not an error. The availability matrix records every year in the requested range
-as present or absent with the evidence for the verdict, and the temporal
-indicator group is computed over whichever epochs exist, with the epoch list
+not an error — and so is a year nobody managed to ask about. The availability
+matrix records every year in the requested range as **present, absent or
+unknown**, with the evidence for the verdict: `absent` means the service
+answered with a blank image, an undefined-layer exception or a 4xx, while
+`unknown` means the request never reached the service. Collapsing the two would
+turn a network problem into a statement about imagery. The temporal indicator
+group is computed over whichever epochs are present, with the epoch list
 recorded per run. The same rule covers an unavailable elevation product or a
 missing cadastral attribute: the indicator group is marked absent and the run
 continues. This is already the roadmap's rule for indicators; it is extended

@@ -185,6 +185,32 @@ Tracked findings from the project review, deferred with their identifiers:
   the broader `Bash(git commit*)`; removed from `.claude/settings.json` by the
   user on 2026-10-25.
 
+- [x] **EDA-GSD · A provider value sat in a function default** — `save_extent`
+  in `notebooks/eda_helpers.py` defaulted to `gsd_m=0.25`, the PNOA ground sample
+  distance. Criterion 3 of handoff 013 keeps hosts, layers and attributes inside
+  the `PROVIDERS` entry, but its token list cannot catch a number, so this one
+  got through: for a provider at another resolution the pixel and tile figures
+  would have been silently wrong rather than absent. Resolved 2026-11-04 —
+  `save_extent` and `extent_report` both require `gsd_m` and `tile_px` now, and
+  the selftest reads the value from `PROVIDERS["es-pnoa"].default_gsd_m`. Fixed
+  on direct instruction without a handoff; the deviation and the re-verification
+  are recorded in
+  [handoff 013](prompts/013-eda-toolkit-and-provider-config.md) → Verification,
+  note 3.
+
+  The general lesson stays open: **criterion 3's guard is textual, so no numeric
+  provider value is protected by it.** Any later provider-specific number — a
+  resolution, a tile size, a pixel limit, a maximum feature count — can slip into
+  a signature the same way. Sprint 8 inherits the problem together with the
+  constraints in EXP-001 → Portability Constraints.
+- [ ] **SANDBOX-SYNC · A plain `uv sync` cannot prune the `eda` group** — it has
+  to delete `.venv/lib/python3.12/site-packages/tornado/test/test.key`, which the
+  agent sandbox denies along with every other `*.key`. Verified 2026-11-04. Any
+  verification command that syncs the `eda` group away must run with
+  `UV_PROJECT_ENVIRONMENT` pointed at a temporary directory, as handoff 013's run
+  did; bypassing the sandbox is not the answer, since the deny rule is doing its
+  job and only happens to catch a test fixture. Closes if the group stops pulling
+  tornado in, or if deletions inside `.venv` become permitted.
 - [ ] **EDA-PROV · The provider shape is tested against one provider** — the
   portability claim of EXP-001 is that a provider is one dictionary entry
   (endpoints, layer names, advertised CRS, epoch layer pattern, expected vector
