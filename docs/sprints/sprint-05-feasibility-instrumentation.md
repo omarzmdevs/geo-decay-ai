@@ -73,7 +73,10 @@ of the sandbox shape the acceptance criteria, and are not defects:
 ## Tasks
 
 - [x] [013 · EDA helper module and provider configuration](../prompts/013-eda-toolkit-and-provider-config.md)
-- [ ] [014 · The exploratory analysis notebook](../prompts/014-eda-notebook.md)
+- [x] [014 · The exploratory analysis notebook](../prompts/014-eda-notebook.md) — ACCEPTED; its deliverable was later discarded by the user and is
+      superseded by 015
+- [ ] [015 · The EDA notebook, one section at a time](../prompts/015-eda-notebook-step-by-step.md) — in progress, one step per
+      session, tracked by the checkboxes inside the handoff
 - [ ] The user draws the extent on the map and records it in EXP-001 →
       Configuration from the lines the notebook prints
 - [ ] The user runs the notebook and commits it with its outputs
@@ -96,6 +99,15 @@ when the measurement exists and is recorded.
 - 013 · EDA helper module and provider configuration — ACCEPTED 2026-11-04
   ([handoff](../prompts/013-eda-toolkit-and-provider-config.md)); run as a
   `TIER_STANDARD` subagent launched from the orchestrator session.
+- 014 · The exploratory analysis notebook — ACCEPTED 2026-11-04
+  ([handoff](../prompts/014-eda-notebook.md)); run as a `TIER_DEEP` subagent.
+  Twelve sections delivered and verified offline. The deliverable was
+  **discarded by the user on 2026-11-04**, after the first live run showed the
+  extent selector did not work; the verification record stands, the artefact
+  does not.
+- 015 · The EDA notebook, one section at a time — IN PROGRESS
+  ([handoff](../prompts/015-eda-notebook-step-by-step.md)); interactive, never
+  headless, one step per session.
 
 ## Notes
 
@@ -114,11 +126,39 @@ sits under `src/`, none of it is reachable from the CLI, and Sprint 8 is free to
 discard all of it. What Sprint 8 inherits is the measured evidence and the
 portability constraints recorded in EXP-001, not the module.
 
+**Why the notebook was restarted, and what changed in how it is built.**
+Handoff 014 delivered twelve sections in one run and every offline criterion
+passed. The first run against the live services then showed that the section
+everything else depends on — the map that chooses the extent — did not work, and
+it took three separate causes to explain it: the resolution cell being run
+before anything was drawn, a kernel restart losing the drawing while the cell
+deleted the extent it had already recorded, and a confirmation written into a
+widget that silently swallowed both the text and the exception. The sections
+below it were therefore verified against nothing but their own absence
+handling.
+
+The lesson is not that the work was bad; it is that **offline verification
+proves a notebook does not crash, and cannot prove it measures anything**.
+Handoff 015 is built around that: one section per session, each one confirmed
+against a live service by the user before the next is written, with the
+checkboxes and per-step records kept inside the handoff. It is the first handoff
+in this project that is deliberately not executable in one go.
+
+Two decisions of the user's shape it. The experiment is **self-contained** in
+`notebooks/exp-001/`, data included, so nothing of it leaks into `data/` and the
+folder can be moved whole; small audit artefacts are versioned, imagery is not.
+And **no measured fact is inherited** from the discarded case: the provider
+entry starts from the committed values of handoff 013 and the first live run
+settles them again. The cost of that is recorded honestly — the elevation
+endpoint went with the revert, so EXP-001 question 2 has no instrument until an
+endpoint is added, which is EDA-ELEV.
+
 ## Documents Updated
 
 - [sprint-05 log](sprint-05-feasibility-instrumentation.md) — created by the orchestrator at sprint start; tasks and handoffs recorded by the documenter.
 - [013 · EDA helper module and provider configuration](../prompts/013-eda-toolkit-and-provider-config.md) — handoff with Run Record and Verification (ACCEPTED 2026-11-04).
-- [014 · The exploratory analysis notebook](../prompts/014-eda-notebook.md) — handoff planned in the sprint-planning commit, not yet executed.
+- [014 · The exploratory analysis notebook](../prompts/014-eda-notebook.md) — handoff with Run Record and Verification (ACCEPTED 2026-11-04); deliverable discarded by the user the same day.
+- [015 · The EDA notebook, one section at a time](../prompts/015-eda-notebook-step-by-step.md) — handoff written by the orchestrator on 2026-11-04; step-by-step, with its checkboxes and records inside it.
 - [prompts index](../prompts/README.md) — handoffs 013 and 014 listed.
 - [next_tasks.md](../next_tasks.md) — orchestrator edits: active slice updated and debt entries EDA-GSD and SANDBOX-SYNC added (uncommitted).
 - [EXP-001](../experiments/exp-001-data-feasibility.md) — orchestrator edits to Reproduction and Portability Constraints from handoff 013 (uncommitted).
