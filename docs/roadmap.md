@@ -49,8 +49,9 @@ pipeline.
 **Before Sprint 8**, ADR-004 is produced from a feasibility experiment
 (`docs/experiments/exp-001-*.md`) measuring what the data actually supports for
 one bounding box. It fixes the CRS, tiling, the inter-stage data contracts, the
-elevation route and the detection strategy. Tracked in
-[next_tasks.md](next_tasks.md).
+elevation route and the detection strategy. The measurement is instrumented by
+**Sprint 5 · Feasibility Instrumentation**, so that every figure it rests on can
+be re-measured by a third party. Tracked in [next_tasks.md](next_tasks.md).
 
 | Sprint | Status in MVP 1.0 |
 |---|---|
@@ -58,7 +59,7 @@ elevation route and the detection strategy. Tracked in
 | 2 · Runtime Foundations | **in** — also adds the bounding-box variable |
 | 3 · CI/CD | **in**, reduced to one workflow running the gate |
 | 4 · MLflow | **in**, reduced to a local file store |
-| 5 · DVC | deferred — replaced by the acquisition manifest with checksums in Sprint 8 |
+| 5 · DVC | deferred — replaced by the acquisition manifest with checksums in Sprint 8; the slot carries **Sprint 5 · Feasibility Instrumentation** (ADR-007 amendment 2026-11-04) |
 | 6 · Reproducibility | absorbed — seeds and externalised configuration in Sprint 2; the environment is already fixed by the lockfile and the container |
 | 7 · Spatial Database | deferred — results are files until a query workload exists |
 | 8 · Data Download | **in** — adds the acquisition manifest |
@@ -159,6 +160,13 @@ out — is in [ADR-008](architecture/adr/adr-008-experiment-tracking.md).*
 
 **Deliverable.** DVC configured and ready to version the data downloaded in later
 blocks: datasets, weights, models and results.
+
+> **Slot reuse in MVP 1.0** (ADR-007 amendment 2026-11-04). DVC stays deferred,
+> and slot 5 is executed as **Sprint 5 · Feasibility Instrumentation**: the
+> notebook and helper module that make EXP-001 measurable, and re-measurable by
+> someone else, so ADR-004 is written from evidence rather than from a session
+> transcript. It produces no production code and nothing under `src/`. Logged in
+> [sprint-05-feasibility-instrumentation.md](sprints/sprint-05-feasibility-instrumentation.md).
 
 ## Sprint 6 · Reproducibility
 

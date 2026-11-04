@@ -73,6 +73,7 @@ roles:
       - ".dvc/**"
       - "data/**/.gitkeep"
       - "models/**/.gitkeep"
+      - "notebooks/**"
 
   tester:
     write:

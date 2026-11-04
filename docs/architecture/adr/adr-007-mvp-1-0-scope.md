@@ -145,3 +145,34 @@ forced the question; the reduction is now explicit.
 - **Out — CD.** Nothing is deployable before Sprints 20 and 21, both of which
   this ADR reduces or defers. The sprint keeps its "CI/CD" title for
   traceability with ADR-002; its executed scope is CI.
+
+## Amendment 2026-11-04 · Slot 5 Carries the Feasibility Instrumentation
+
+The status table defers Sprint 5 · DVC, which leaves slot 5 unused in MVP 1.0's
+execution order. The feasibility experiment that produces ADR-004 was planned as
+manual work outside any sprint. That changed: the measurement now has to be
+executable and auditable by a third party, which means committed code, handoffs
+and a sprint log rather than a session transcript.
+
+- **In — Sprint 5 · Feasibility Instrumentation.** One helper module and one
+  notebook under `notebooks/`, which measure PNOA epoch availability and image
+  quality, the cadastral footprints and their attributes, and the availability of
+  the elevation products, and which write the empty labelling table for the
+  manual pass. Logged in
+  [sprint-05-feasibility-instrumentation.md](../../sprints/sprint-05-feasibility-instrumentation.md).
+- **Still out — DVC.** Data versioning remains deferred and replaced by the
+  acquisition manifest with checksums in Sprint 8. Only the slot is reused, so
+  execution order and sprint number keep matching.
+- **Why this is not Sprint 8 arriving early.** The rule that nothing is built
+  before the sprint that first needs it holds. Nothing in Sprint 5 is production
+  code: none of it sits under `src/`, none of it is reachable from the CLI, it is
+  outside the ADR-003 layer contracts and outside mypy's `files`, and Sprint 8 is
+  free to discard every line of it. What Sprint 8 inherits is measured evidence
+  and the portability constraints recorded in EXP-001, not the module.
+- **Out — the data domains.** The agent sandbox is deliberately not given the
+  IGN, CNIG or Catastro hosts. The measurement is therefore run by the user, and
+  every acceptance criterion of Sprint 5 is offline: "the notebook runs to
+  completion with every request failing" is a criterion, because that is what
+  proves the missing-input policy works. The figures enter the repository through
+  the user's run, which is also what makes them auditable by someone who is not
+  an agent.

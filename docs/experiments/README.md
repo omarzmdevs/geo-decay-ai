@@ -6,8 +6,9 @@
 
 <!-- List experiment logs here as they are created -->
 
-- [EXP-001 · Data feasibility](exp-001-data-feasibility.md) — methodology fixed
-  2026-10-15, measurement pending; blocked on the bounding box. Produces
+- [EXP-001 · Data feasibility](exp-001-data-feasibility.md) — methodology
+  fixed, measurement pending; blocked on the bounding box, and instrumented by
+  [Sprint 5](../sprints/sprint-05-feasibility-instrumentation.md). Produces
   [ADR-004](../architecture/adr/).
 
 ## Template

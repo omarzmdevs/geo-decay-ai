@@ -11,6 +11,7 @@
 - [Sprint 02 · Runtime Foundations](sprint-02-runtime-foundations.md) — complete
 - [Sprint 03 · CI/CD](sprint-03-cicd.md) — complete
 - [Sprint 04 · MLflow](sprint-04-mlflow.md) — complete
+- [Sprint 05 · Feasibility Instrumentation](sprint-05-feasibility-instrumentation.md) — in progress; occupies the slot left free by the deferral of Sprint 5 · DVC
 
 The full block and sprint structure is in [roadmap.md](../roadmap.md).
 
