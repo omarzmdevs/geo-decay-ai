@@ -22,8 +22,11 @@ labelling table for the manual pass.
 
 ## Execution Mode
 
-Headless for both handoffs: neither touches a protected path. Two consequences
-of the sandbox shape the acceptance criteria, and are not defects:
+Headless for handoffs 013 and 014: neither touches a protected path. **Handoff
+015 is never headless** — it is interactive by design, one step per session,
+because the map needs a person between two cells and because each step is
+confirmed against the live services, which the agent sandbox cannot reach. Two
+consequences of the sandbox shape the acceptance criteria, and are not defects:
 
 - **No network.** The agent sandbox is not given the IGN, CNIG or Catastro
   domains (decision of 2026-11-04). Every criterion is therefore offline, and
@@ -76,9 +79,20 @@ of the sandbox shape the acceptance criteria, and are not defects:
 - [x] [014 · The exploratory analysis notebook](../prompts/014-eda-notebook.md) — ACCEPTED; its deliverable was later discarded by the user and is
       superseded by 015
 - [ ] [015 · The EDA notebook, one section at a time](../prompts/015-eda-notebook-step-by-step.md) — in progress, one step per
-      session, tracked by the checkboxes inside the handoff
-- [ ] The user draws the extent on the map and records it in EXP-001 →
-      Configuration from the lines the notebook prints
+      session, tracked by the checkboxes inside the handoff:
+  - [x] 0 · The self-contained folder — ACCEPTED 2026-11-04
+  - [x] 1 · Section 4 · Provider capabilities — ACCEPTED 2026-11-05
+  - [ ] 2 · Sections 5 and 6 · Epoch availability and image quality
+  - [ ] 3 · Section 7 · Spectral check
+  - [ ] 4 · Section 8 · Cadastral footprints
+  - [ ] 5 · Section 9 · Elevation availability
+  - [ ] 6 · Sections 10 and 11 · Example buildings and the labelling table
+  - [ ] 7 · Section 12 · Findings
+  - [ ] 8 · Close
+- [x] The user draws the extent on the map and records it in EXP-001 →
+      Configuration from the lines the notebook prints — drawn 2026-11-04 and
+      committed as `notebooks/exp-001/out/extent.json`; transcribed into
+      EXP-001 → Configuration by the documenter on 2026-11-05
 - [ ] The user runs the notebook and commits it with its outputs
 - [ ] The user completes the manual labelling pass (EXP-001 step 6) from the
       table the notebook writes
@@ -107,7 +121,24 @@ when the measurement exists and is recorded.
   does not.
 - 015 · The EDA notebook, one section at a time — IN PROGRESS
   ([handoff](../prompts/015-eda-notebook-step-by-step.md)); interactive, never
-  headless, one step per session.
+  headless, one step per session. Two of its nine steps are closed:
+  - **Step 0 · The self-contained folder — ACCEPTED 2026-11-04.** It settles
+    nothing about the services: `eda.py` and `README.md` were created inside
+    `notebooks/exp-001/`, the notebook reaches its last cell offline with
+    `ABSENT:` rows, and nothing is written under `data/`. The `PROVIDERS` entry
+    was copied unchanged, so every claim it makes stood unverified after it.
+  - **Step 1 · Section 4 · Provider capabilities — ACCEPTED 2026-11-05**, from
+    a live run by the user on 2026-11-04 (restore point `25b58f0`, work landed
+    in `339ea81`). **4 of 4 services answered**, over five capability documents
+    committed under `out/capabilities/` with five `manifest.csv` rows, all
+    status 200: **26 CRS** in the union, **56 advertised layers**, **5 stored
+    queries**, and **3 contradictions over 14 claim rows**. All four CRS the
+    provider entry claims are advertised, and so is the extent's own
+    `EPSG:25830`. The epoch range served is `PNOA2004`–`PNOA2024`. Of the three
+    contradictions, two are real contradictions of the entry — the buildings
+    layer and the stored query — and the third was the notebook's own
+    `YEAR_LAST`, corrected in the step. Figures transcribed into
+    [EXP-001](../experiments/exp-001-data-feasibility.md) → Results.
 
 ## Notes
 
@@ -158,11 +189,13 @@ endpoint is added, which is EDA-ELEV.
 - [sprint-05 log](sprint-05-feasibility-instrumentation.md) — created by the orchestrator at sprint start; tasks and handoffs recorded by the documenter.
 - [013 · EDA helper module and provider configuration](../prompts/013-eda-toolkit-and-provider-config.md) — handoff with Run Record and Verification (ACCEPTED 2026-11-04).
 - [014 · The exploratory analysis notebook](../prompts/014-eda-notebook.md) — handoff with Run Record and Verification (ACCEPTED 2026-11-04); deliverable discarded by the user the same day.
-- [015 · The EDA notebook, one section at a time](../prompts/015-eda-notebook-step-by-step.md) — handoff written by the orchestrator on 2026-11-04; step-by-step, with its checkboxes and records inside it.
-- [prompts index](../prompts/README.md) — handoffs 013 and 014 listed.
-- [next_tasks.md](../next_tasks.md) — orchestrator edits: active slice updated and debt entries EDA-GSD and SANDBOX-SYNC added (uncommitted).
-- [EXP-001](../experiments/exp-001-data-feasibility.md) — orchestrator edits to Reproduction and Portability Constraints from handoff 013 (uncommitted).
-- [current_state.md](../current_state.md) — updated by the documenter for handoff 013.
+- [015 · The EDA notebook, one section at a time](../prompts/015-eda-notebook-step-by-step.md) — handoff written by the orchestrator on 2026-11-04; step-by-step, with its checkboxes and records inside it. Records of step 0 (ACCEPTED 2026-11-04) and step 1 (ACCEPTED 2026-11-05) filled in by the orchestrator (uncommitted).
+- [prompts index](../prompts/README.md) — handoffs 013 and 014 listed; further edits uncommitted in the working tree.
+- [next_tasks.md](../next_tasks.md) — orchestrator edits: active slice updated and debt entries EDA-GSD and SANDBOX-SYNC added; the 014 → 015 supersession and the extent no longer blocking added 2026-11-05 (uncommitted). Bounding-box blocker marked resolved by the documenter.
+- [EXP-001](../experiments/exp-001-data-feasibility.md) — orchestrator edits to Reproduction and Portability Constraints from handoff 013 (uncommitted); status, Configuration and Results updated by the documenter from the step 0 and step 1 records of handoff 015.
+- [current_state.md](../current_state.md) — updated by the documenter for handoff 013, then for handoff 015 steps 0 and 1.
+- [notebooks/exp-001/README.md](../../notebooks/exp-001/README.md) — created by the developer in step 0 of handoff 015; states what the experiment measures, how to run it and which outputs are versioned. Finished in step 8.
+- `docs/tfm/informe_01_muestra_datos_y_viabilidad.md` — thesis-side report for the supervisor, written 2026-11-05; untracked and pending the user's commit. `docs/tfm/**` is protected, so no agent reads or edits it.
 
 ## Date Started
 

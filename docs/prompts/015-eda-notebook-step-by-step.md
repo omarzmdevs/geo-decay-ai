@@ -135,7 +135,7 @@ each step: its offline run, and the user's live run.
 ## Steps
 
 - [x] **0 · The self-contained folder** — ACCEPTED 2026-11-04
-- [ ] **1 · Section 4 · Provider capabilities**
+- [x] **1 · Section 4 · Provider capabilities** — ACCEPTED 2026-11-05
 - [ ] **2 · Sections 5 and 6 · Epoch availability and image quality**
 - [ ] **3 · Section 7 · Spectral check**
 - [ ] **4 · Section 8 · Cadastral footprints**
@@ -220,12 +220,68 @@ repaired in this step**: the correction is a separate edit the user approves.
 query. It is also the cheapest step to run, so it is the one that tells us
 whether the entry is worth anything before 22 epochs are probed through it.
 
-**Record** — filled in when the step closes.
+**Record**
 
-- Date:
-- What the live run printed:
-- Corrections applied:
-- Verdict:
+- Date: live run 2026-11-04 by the user, from restore point `25b58f0`; the work
+  landed in `339ea81`; verified by the orchestrator 2026-11-05.
+- What the live run printed: 4 of 4 services answered, 26 CRS in the union, 56
+  advertised layers, 5 stored queries and **3 contradictions** over 14 claim
+  rows. Re-derived independently on 2026-11-05 from the five capability
+  documents that run committed (`out/capabilities/*.xml`, 27902 + 113091 +
+  28799 + 16182 + 1770 bytes; five manifest rows, all status 200, each MD5
+  matching its filename): the same 26 CRS, 56 layers and 5 stored queries, all
+  four claimed CRS advertised, `OI.OrthoimageCoverage` advertised, the extent's
+  own `EPSG:25830` advertised, and `PNOA2004`–`PNOA2024` served — 21 year
+  layers, not 22. The three contradictions:
+  1. **`layers["buildings"] = ("cadastre_wms", "BU.Building")`** — the cadastral
+     WMS advertises 13 layers and none of them is `BU.Building`; the footprint
+     layer it does serve is `CONSTRU`. The INSPIRE name exists, but on the WFS
+     (`bu:Building`), not on the WMS. Reported, not repaired: the entry
+     correction waits for the user.
+  2. **The epoch pattern over 22 years** — `PNOA2025` is not advertised. That
+     was the notebook's `YEAR_LAST`, a parameter of this handoff's own making
+     and not a claim of the provider entry, so it was corrected and the verdict
+     now reports the real served range and the gap instead of reading a missing
+     year as a contradiction.
+  3. **`STOREDQUERIE_ID = "GetBuildingByBBOX"`** — not among the five the WFS
+     advertises (`GetBuildingByParcel`, `GetFeatureById`,
+     `GetBuildingPartByParcel`, `GetOtherBuildingByParcel`,
+     `GetAllConstructionByParcel`). None of them takes a bounding box, so step 4
+     has to query `TYPENAMES` + `BBOX` directly. Reported, not repaired.
+
+  The five vector attributes stayed `unverified` by design: they arrive with the
+  features, in step 4.
+- Three findings the step was not looking for, all read from the same five
+  documents:
+  - The historical service advertises **37 layers, not 21**: besides
+    `PNOA2004`–`PNOA2024` it serves `AMS_1956-1957`,
+    `Interministerial_1973-1986`, `Nacional_1981-1986`, `OLISTAT`, `SIGPAC`,
+    six regional `pnoa10_*`, two `OrtoExpeditaLIDAR*` and an `infoVuelos`
+    coverage layer. The depth available over the extent is ~70 years, not 20,
+    which changes what a change-detection design can look at.
+  - **No layer declares a resolution** anywhere machine-readable — the titles
+    are "PNOA 2024" and nothing more — so the entry's `default_gsd_m = 0.25` is
+    an assumption, not a measurement. Step 2 must measure it against ground
+    metres rather than report it.
+  - **No NIR band and no infrared composite** among the 56 layers. That is
+    step 3's answer arriving early; section 7 still has to state it and its
+    consequence in the notebook.
+- Corrections applied: `YEAR_LAST` 2025 → 2024, and the epoch verdict reworked
+  as described above. Nothing in the `PROVIDERS` entry was touched, as this step
+  requires.
+- Entry correction applied after acceptance, on the user's approval of
+  2026-11-05: `layers["buildings"]` now reads `("cadastre_wms", "CONSTRU")`, the
+  layer the cadastral WMS actually advertises. One line and a comment in
+  `notebooks/exp-001/eda.py`; the WFS path is untouched, because `wfs_buildings`
+  builds its request from `wfs_params` and never from `layers`, and the notebook
+  never names the layer — it reaches a request only through `_resolve_layer`.
+  Re-proved offline against the committed cadastral document: `CONSTRU` is among
+  its 13 layers, `BU.Building` is not. Contradiction 1 is closed;
+  `GetBuildingByBBOX` stays open for step 4.
+- Gate, re-run on 2026-11-05: `pre-commit run --all-files` passes all six hooks,
+  `eda.py --selftest` passes 31 checks, `--check-notebook` exits 0, and the
+  notebook is 11 cells, `MMCMCMCMCMC`, with every code cell cleared.
+- Verdict: ACCEPTED
 
 ---
 

@@ -30,7 +30,7 @@
 - [012 · Tracking composition root and the first CLI command](012-tracking-composition-and-cli.md) — Sprint 4 — ACCEPTED 2026-10-27
 - [013 · EDA helper module and provider configuration](013-eda-toolkit-and-provider-config.md) — Sprint 5 — ACCEPTED 2026-11-04
 - [014 · The exploratory analysis notebook](014-eda-notebook.md) — Sprint 5 — ACCEPTED 2026-11-04; deliverable discarded by the user, superseded by 015
-- [015 · The EDA notebook, one section at a time](015-eda-notebook-step-by-step.md) — Sprint 5 — IN PROGRESS, step by step
+- [015 · The EDA notebook, one section at a time](015-eda-notebook-step-by-step.md) — Sprint 5 — IN PROGRESS, step by step; steps 0 and 1 ACCEPTED
 
 ## Lifecycle
 

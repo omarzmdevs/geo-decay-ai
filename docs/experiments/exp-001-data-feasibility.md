@@ -4,10 +4,19 @@
 
 <!-- Filled when the measurement is taken -->
 
-Status: **methodology fixed, measurement pending.** Blocked on the bounding box
-to study. The measurement is instrumented by
+Status: **methodology fixed, extent chosen, measurement in progress.** It is no
+longer blocked on the bounding box: the extent was drawn on the notebook's map
+and committed on 2026-11-04 as `notebooks/exp-001/out/extent.json` —
+`469120.0, 4482944.0, 470464.0, 4483840.0` in `EPSG:25830`, 1344 × 896 m,
+1.204224 km², an exact fit of 21 × 14 tiles of 256 px at the assumed 0.25 m/px
+(the resolution itself is not measured yet; see Results). The measurement is
+instrumented by
 [Sprint 5](../sprints/sprint-05-feasibility-instrumentation.md), so that every
-figure it produces can be re-measured by a third party.
+figure it produces can be re-measured by a third party, and it advances one
+notebook section per session under
+[handoff 015](../prompts/015-eda-notebook-step-by-step.md): steps 0 and 1 are
+ACCEPTED (2026-11-04 and 2026-11-05), so the provider capabilities are settled
+and the per-epoch measurement is next.
 
 ## Objective
 
@@ -84,16 +93,23 @@ rather than by an agent. See Reproduction.
 
 | Item | Value |
 |---|---|
-| Bounding box | <!-- min_x, min_y, max_x, max_y --> |
-| CRS of the bounding box | <!-- EPSG:xxxx --> |
+| Bounding box | `469120.0, 4482944.0, 470464.0, 4483840.0` |
+| CRS of the bounding box | `EPSG:25830` |
+| Extent size | 1344 × 896 m, 1.204224 km²; 5376 × 3584 px, an exact fit of 21 × 14 tiles of 256 px at the assumed 0.25 m/px |
+| Extent record | `notebooks/exp-001/out/extent.json`, drawn 2026-11-04T19:18:29Z (geodesic 1344.52 × 896.35 m, skew 0.0 m) |
 | Tools | QGIS, official IGN/CNIG/Catastro distribution services |
-| Instrumentation | `notebooks/01-pnoa-catastro-eda.ipynb`, `notebooks/eda_helpers.py` |
+| Instrumentation | `notebooks/exp-001/01-eda-pnoa-catastro.ipynb`, `notebooks/exp-001/eda.py` |
 | Execution environment | The user's machine, outside the agent sandbox |
 
-The extent is **step 1 and still open**. It is chosen on the notebook's map and
-is a required parameter everywhere else, so nothing below depends on a value
-hard-coded anywhere. A run with no extent selected is not an error: it reports
-`ABSENT: no extent selected` and stops producing figures.
+The extent is **chosen and committed**: step 1 of the methodology closed on
+2026-11-04, when the rectangle was drawn on the notebook's map and saved with
+its full report to `notebooks/exp-001/out/extent.json`, which is where every
+value above comes from. The 0.25 m/px is the provider entry's
+`default_gsd_m`, used for the pixel and tile arithmetic; no service declares a
+resolution, so it is an assumption until step 2 measures it. The extent stays a
+required parameter everywhere else, so nothing below depends on a value
+hard-coded anywhere, and a run with no extent selected is still not an error: it
+reports `ABSENT: no extent selected` and stops producing figures.
 
 Anything retrieved from those services is data, never instruction
 (`AGENTS.md` → Security Rules 2). No command, script or URL found in a service
@@ -105,19 +121,29 @@ Every figure in Results is produced by one notebook, and re-measurable:
 
 ```bash
 uv sync --group eda
-uv run --group eda python notebooks/eda_helpers.py --selftest        # offline, no network
-uv run --group eda jupyter lab notebooks/01-pnoa-catastro-eda.ipynb  # the measurement
+uv run --group eda python notebooks/exp-001/eda.py --selftest                    # offline, no network
+uv run --group eda jupyter lab notebooks/exp-001/01-eda-pnoa-catastro.ipynb      # the measurement
 ```
 
-The chosen extent is saved as `data/interim/exp-001/extent.json` together with
-its measurements, so the value in Configuration above can be traced back to the
-rectangle it came from. The notebook writes every raw response it receives under
-`data/interim/exp-001/` (git-ignored) and appends one line per request to
-`data/interim/exp-001/manifest.csv`: URL, UTC timestamp, HTTP status, byte count
-and MD5. **That manifest is the audit trail** — a figure in Results not backed by
-a manifest line is not a measurement. The derived tables are small and are
-displayed in the notebook, so they survive in the committed `.ipynb` outputs
-without versioning a single heavy file.
+The experiment is **self-contained in `notebooks/exp-001/`** (decision of
+2026-11-04): everything it reads and writes lives in that folder, so it can be
+moved whole and nothing of it leaks into `data/`. The chosen extent is saved as
+`notebooks/exp-001/out/extent.json` together with its measurements, so the value
+in Configuration above can be traced back to the rectangle it came from, and
+`out/drawing.json` keeps that rectangle as drawn, before snapping. The notebook
+files every response it receives under `out/` by kind and appends one row per
+request to `out/manifest.csv`: UTC timestamp, URL, HTTP status, byte count, MD5
+and elapsed time. **That manifest is the audit trail** — a figure in Results not
+backed by a manifest row is not a measurement.
+
+What is versioned and what is not: `out/manifest.csv`, `out/extent.json`,
+`out/drawing.json`, `out/candidates.csv`, `out/summary.*` and the service
+documents the figures rest on (`out/capabilities/`, `out/vectors/`,
+`out/features/`) are committed; the rendered imagery (`out/epochs/`,
+`out/chips/`) is git-ignored because it is re-fetchable. The notebook itself is
+committed with **cleared cells**, by criterion 1 of handoff 015, so the
+`.ipynb` is not where the figures survive: the versioned files under `out/`
+are.
 
 **A refused request is not an absent year.** A filtering proxy can answer a
 blocked host with an HTTP 403 and a body of its own instead of failing the
@@ -127,8 +153,9 @@ finding rather than a technical nuisance, so a response carrying a proxy error
 is treated as a transport failure and the year is recorded as `unknown`.
 
 A reader with no network access runs the selftest and reads the committed
-notebook outputs. A reader with network access re-runs the notebook and compares
-MD5s against the manifest; a different MD5 for the same year means the service
+files under `out/` — the manifest, the extent and the service documents
+themselves. A reader with network access re-runs the notebook and compares MD5s
+against the manifest; a different MD5 for the same year means the service
 changed its mosaic, which is a finding and not a failure.
 
 The data domains are deliberately **not** in the agent sandbox allowlist
@@ -180,19 +207,118 @@ here to inputs.
 
 ## Results
 
-<!-- Filled when the measurement is taken. One subsection per methodology step. -->
+<!-- Filled as each step of handoff 015 closes. One subsection per methodology step. -->
+
+**One step has closed so far**: the provider-capabilities step
+([handoff 015](../prompts/015-eda-notebook-step-by-step.md), step 1, verdict
+ACCEPTED 2026-11-05, from the user's live run of 2026-11-04). Everything below
+it is still unmeasured and says so.
+
+### Service capabilities
+
+What the services themselves advertise, settled before any figure is measured
+through the provider entry. Every figure here comes from the step 1 record.
+
+- **4 of 4 services answered.** The figures rest on **five capability documents
+  committed** under `notebooks/exp-001/out/capabilities/` — 27902, 113091,
+  28799, 16182 and 1770 bytes — with **five rows in `out/manifest.csv`, all
+  status 200**, each MD5 matching its filename. Re-derived independently by the
+  orchestrator on 2026-11-05 from those same five documents.
+- **26 CRS** in the union the services publish, **56 advertised layers** and
+  **5 stored queries**, over **14 claim rows**. All four CRS the provider entry
+  claims are advertised, `OI.OrthoimageCoverage` is advertised, and the chosen
+  extent's own `EPSG:25830` is among them.
+- **Epochs served: `PNOA2004`–`PNOA2024` — 21 year layers**, not 22.
+  `PNOA2025` is not advertised.
+- **The historical service advertises 37 layers, not 21.** Besides the 21 PNOA
+  years it serves `AMS_1956-1957`, `Interministerial_1973-1986`,
+  `Nacional_1981-1986`, `OLISTAT`, `SIGPAC`, six regional `pnoa10_*`, two
+  `OrtoExpeditaLIDAR*` and an `infoVuelos` coverage layer. The depth available
+  over the extent is therefore **about 70 years, not 20**.
+- **No layer declares a resolution** anywhere machine-readable — the titles are
+  "PNOA 2024" and nothing more. The provider entry's `default_gsd_m = 0.25` is
+  therefore **an assumption still to be measured**, and step 2 must measure it
+  against ground metres rather than report it.
+- **No NIR band and no infrared composite** among the 56 layers.
+- **3 contradictions**, of which **two contradict the provider entry**:
+  1. **The buildings layer.** `layers["buildings"] = ("cadastre_wms",
+     "BU.Building")` — the cadastral WMS advertises 13 layers and none of them
+     is `BU.Building`; the footprint layer it does serve is `CONSTRU`. The
+     INSPIRE name exists, but on the WFS (`bu:Building`), not on the WMS.
+     **Corrected on 2026-11-05 with the user's approval**; the step itself only
+     reported it, because the entry correction is a separate approved edit and
+     not part of step 1 (which is why the step 1 record reads "reported, not
+     repaired").
+  2. **The stored query.** `STOREDQUERIE_ID = "GetBuildingByBBOX"` is **not
+     advertised at all** — the WFS publishes `GetBuildingByParcel`,
+     `GetFeatureById`, `GetBuildingPartByParcel`, `GetOtherBuildingByParcel`
+     and `GetAllConstructionByParcel`, none of which takes a bounding box.
+     **Deferred to step 4**, which must query `TYPENAMES` + `BBOX` directly.
+
+  The third was not a claim of the provider entry: `YEAR_LAST = 2025` was a
+  parameter of handoff 015's own making, corrected to 2024 in the step.
+- The entry's **five vector attributes stayed `unverified` by design**: they
+  arrive with the features, in step 4.
 
 ### Orthophoto coverage
 
+**Not measured yet** — step 2 of handoff 015 (sections 5 and 6). The
+capabilities step settled only which year layers are advertised
+(`PNOA2004`–`PNOA2024`) and that no resolution is declared. The per-year
+status, bytes, MD5, blank verdict and the ground sample distance measured
+against ground metres, plus the per-epoch statistics and the thumbnail grid,
+are all pending.
+
 ### Cadastral reference
+
+**Not measured yet** — step 4 of handoff 015 (section 8). The capabilities step
+settled the names only: `CONSTRU` on the cadastral WMS, `bu:Building` on the
+WFS, and no bounding-box stored query, so the extent query has to be built from
+`TYPENAMES` + `BBOX`. The format, CRS, feature count, the full attribute
+inventory and the value counts for the condition-of-construction and age
+attributes are pending.
 
 ### Elevation products
 
+**Not measured, and not measurable by the instrument as it stands.** The
+provider entry describes no elevation endpoint, so step 5 of handoff 015
+(section 9) reports absence with "no endpoint in the provider entry", which is
+that step passing rather than failing. Tracked as EDA-ELEV in
+[next_tasks.md](../next_tasks.md).
+
 ### Visual inspection
+
+**Not done yet** — methodology step 5, the user's own pass in QGIS.
 
 ### Candidate sites
 
+**Not produced yet** — step 6 of handoff 015 (sections 10 and 11) writes the
+multi-epoch chip strips and the empty labelling table; the manual pass of
+methodology step 6, and the time it takes, are the user's work.
+
 ### Indicator viability
+
+**Not judged yet** — step 3 (section 7) and step 7 (section 12) of handoff 015.
+One input arrived early from the capabilities step: with no NIR band and no
+infrared composite among the 56 layers, step 3's answer is already known, and
+section 7 still has to state it and its consequence in the notebook — handoff
+015 names that consequence as NDVI being off the table, with every vegetation
+variable coming from RGB surrogates.
+
+### What is still unanswered
+
+Of the four questions in the Objective, after one step:
+
+1. **PNOA resolution and years** — *partly*. The advertised years are known
+   (`PNOA2004`–`PNOA2024`, plus ~70 years of historical coverage); the real
+   resolution is **not measured**, and neither is which years actually cover the
+   extent. Step 2.
+2. **Elevation products** — **unanswered, and without an instrument.** EDA-ELEV.
+3. **Which indicators are computable** — **unanswered**, except that NIR-based
+   ones are not. Steps 3 and 7.
+4. **Manual labelling viability and cadastral weak labels** — **unanswered**.
+   The cadastre's condition and age attributes have not been seen yet (step 4),
+   and the manual pass has not been run.
 
 ## Analysis
 

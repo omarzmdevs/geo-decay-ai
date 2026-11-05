@@ -98,7 +98,9 @@ PROVIDERS: dict[str, Provider] = {
         wms_version="1.3.0",
         layers={
             "ortho": ("ortho", "OI.OrthoimageCoverage"),
-            "buildings": ("cadastre_wms", "BU.Building"),
+            # WMS only: the cadastral WMS advertises CONSTRU, not the INSPIRE
+            # bu:Building, which belongs to the WFS (see wfs_params below).
+            "buildings": ("cadastre_wms", "CONSTRU"),
         },
         epoch_service="ortho_history",
         epoch_layer_pattern="PNOA{year}",

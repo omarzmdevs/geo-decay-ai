@@ -19,7 +19,11 @@ table is in [roadmap.md](roadmap.md).
   labelling table for the manual pass. Planned in
   [sprint-05-feasibility-instrumentation.md](sprints/sprint-05-feasibility-instrumentation.md)
   with handoffs [013](prompts/013-eda-toolkit-and-provider-config.md) and
-  [014](prompts/014-eda-notebook.md), run in that order. It occupies the slot
+  [014](prompts/014-eda-notebook.md). 014's deliverable was discarded by the
+  user on 2026-11-04 and replaced by
+  [015](prompts/015-eda-notebook-step-by-step.md), which rebuilds the notebook
+  one section at a time, in Spanish, each section confirmed against the live
+  services before the next is written. It occupies the slot
   left free by the deferral of Sprint 5 · DVC
   ([ADR-007](architecture/adr/adr-007-mvp-1-0-scope.md) amendment 2026-11-04).
 
@@ -38,7 +42,10 @@ table is in [roadmap.md](roadmap.md).
   strategy (Sprints 11–12) and whether the fine-tuning arm of Sprint 18 is
   viable. Methodology in
   [exp-001-data-feasibility.md](experiments/exp-001-data-feasibility.md);
-  measurement pending and blocked on the extent. Instrumented by Sprint 5 above;
+  the extent is chosen and committed since 2026-11-04 (`EPSG:25830`, 1.20 km²,
+  in `notebooks/exp-001/out/extent.json`), so the measurement is no longer
+  blocked: it advances one notebook section per session. Instrumented by
+  Sprint 5 above;
   the Analysis, the Conclusion and the two `docs/research/` documents are the
   orchestrator's, written from whatever the user's run measures.
 
@@ -78,14 +85,16 @@ handoffs 007 and 008 ACCEPTED) and Sprint 3 · CI/CD (2026-10-25,
 
 ## Blocked On
 
-- [ ] **The bounding box to study** — the measurement cannot produce a figure
+- [x] **The bounding box to study** — the measurement cannot produce a figure
   without it, and it is the user's choice. Section 3 of the Sprint 5 notebook is
   what closes it: a map with a rectangle tool that reports width, height, area,
   the skew a longitude/latitude rectangle carries in the projected CRS, the
   extent snapped outward to whole tiles and the resulting tile count, and the
-  two `GEO_DECAY_*` lines to paste into EXP-001 → Configuration. It no longer
-  blocks *building* the instrument: handoffs 013 and 014 are verified offline,
-  so only the measurement waits.
+  two `GEO_DECAY_*` lines to paste into EXP-001 → Configuration. **Resolved
+  2026-11-04**: the user drew it and it is committed as
+  `notebooks/exp-001/out/extent.json` — `EPSG:25830`, 1344 × 896 m, 1.204224
+  km², an exact fit of 21 × 14 tiles — and recorded in
+  [EXP-001](experiments/exp-001-data-feasibility.md) → Configuration.
 
 Resolved earlier, kept for traceability:
 
@@ -196,9 +205,13 @@ Tracked findings from the project review, deferred with their identifiers:
   moment an entry gains one. Found verifying handoff 014, note 3.
 
   **Narrowed 2026-11-04**, on the user's decision to add the endpoints as a
-  labelled hypothesis: the entry now carries an INSPIRE elevation (MDT) WMS and a
-  terrain layer name, both marked unconfirmed in the data, and section 9's
-  terrain row is probed. Still open: the **surface model and the point cloud**,
+  labelled hypothesis: the entry gained an INSPIRE elevation (MDT) WMS and a
+  terrain layer name, both marked unconfirmed in the data. **Reopened in full
+  2026-11-05**: that addition was part of handoff 014's discarded deliverable
+  and went with the user's revert, so `PROVIDERS["es-pnoa"]` again holds only
+  `ortho`, `ortho_history`, `cadastre_wms` and `buildings_wfs`, and step 5 of
+  handoff 015 will report absence with "no endpoint in the provider entry".
+  Also open, and never addressed: the **surface model and the point cloud**,
   which come from the CNIG download portal. That portal is deliberately not an
   endpoint — it has no OGC interface, and because `_resolve_layer` sends an
   unknown layer name to the `epoch_service`, a lidar-token endpoint would have
@@ -279,4 +292,4 @@ Tracked findings from the project review, deferred with their identifiers:
 
 ## Last Updated
 
-2026-11-04
+2026-11-05
