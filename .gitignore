@@ -117,3 +117,4 @@ models/weights/*
 notebooks/exp-001/_draft/
 notebooks/exp-001/out/epochs/
 notebooks/exp-001/out/chips/
+notebooks/exp-001/out/figs/

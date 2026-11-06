@@ -148,7 +148,9 @@ when the measurement exists and is recorded.
     `default_gsd_m` the provider entry assumed; 2006 is a bound (**≥ 0.5 m/px**)
     and 2012 and 2015 give no figure. A 10 m building occupies **40 × 40 px**.
     Quality flags: 12 of 21 epochs blank, 12 low-contrast, none saturated.
-    **The usable series is about 7 epochs, not 21.** Figures transcribed into
+    **The usable series is about 7 epochs, not 21.** Section 6.2 was added
+    afterwards, and the ladder table is now written to `out/ladder.csv`, with
+    figures kept out of the notebook. Figures transcribed into
     [EXP-001](../experiments/exp-001-data-feasibility.md) → Results.
 
 ## Notes

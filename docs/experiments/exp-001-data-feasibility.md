@@ -139,13 +139,20 @@ and elapsed time. **That manifest is the audit trail** — a figure in Results n
 backed by a manifest row is not a measurement.
 
 What is versioned and what is not: `out/manifest.csv`, `out/extent.json`,
-`out/drawing.json`, `out/candidates.csv`, `out/summary.*` and the service
+`out/drawing.json`, `out/candidates.csv`, `out/ladder.csv` (the table the
+measured resolution rests on), `out/summary.*` and the service
 documents the figures rest on (`out/capabilities/`, `out/vectors/`,
 `out/features/`) are committed; the rendered imagery (`out/epochs/`,
-`out/chips/`) is git-ignored because it is re-fetchable. The notebook itself is
-committed with **cleared cells**, by criterion 1 of handoff 015, so the
-`.ipynb` is not where the figures survive: the versioned files under `out/`
+`out/chips/`) and the figures (`out/figs/`, re-drawn on every run) are
+git-ignored. The notebook itself is
+delivered by an agent with **cleared cells**, by criterion 1 of handoff 015,
+and committed by the user with the outputs of their own run; either way the
+`.ipynb` is not where the figures survive, the versioned files under `out/`
 are.
+
+Do not leave `out/manifest.csv` open in JupyterLab while the notebook runs: a
+stale editor tab writes its buffer back over the audit trail, which happened on
+2026-11-06 and cost that run's rows.
 
 **A refused request is not an absent year.** A filtering proxy can answer a
 blocked host with an HTTP 403 and a body of its own instead of failing the

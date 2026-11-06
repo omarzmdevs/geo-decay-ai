@@ -18,8 +18,9 @@ Four concerns live here, each independent of any one country:
 
 Every output goes under one directory, ``out/`` beside this file by convention,
 with response bodies filed by kind: ``capabilities/``, ``vectors/``,
-``features/``, ``epochs/`` and ``chips/``. The manifest sits at its root. The
-two image folders are git-ignored; everything else is small and versioned.
+``features/``, ``epochs/`` and ``chips/``, plus ``figs/`` for the figures a
+notebook draws rather than stores inside itself. The manifest sits at its root.
+The three heavy folders are git-ignored; everything else is small and versioned.
 
 Run ``python notebooks/exp-001/eda.py --selftest`` for the offline checks, or
 ``--check-notebook <path>`` to validate a notebook against the project rules.
@@ -42,6 +43,7 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
+from urllib.parse import parse_qs, urlsplit
 from xml.etree import ElementTree
 
 import numpy as np
@@ -140,6 +142,9 @@ _MANIFEST_HEADER = [
     "error",
 ]
 PROBE_SIZE = (256, 256)  # public: a section has to report what size it asked for
+# The names a request writes its size under, in one place: the request grammar
+# and the reader that parses a recorded request back cannot drift apart.
+WMS_SIZE_PARAMS: tuple[str, str] = ("WIDTH", "HEIGHT")
 # The ladder of request sizes the native-resolution measurement walks over one
 # tile-sized ground window. The service declares no maximum width or height, so
 # the real cap is discovered by asking, and the ladder stops where it is refused.
@@ -186,6 +191,7 @@ BODY_DIRS: tuple[str, ...] = (
     "features",  # GetFeatureInfo replies: versioned
     "epochs",  # rendered map images: git-ignored, they are re-fetchable
     "chips",  # per-building crops drawn by the notebook: git-ignored
+    "figs",  # figures the notebook shows from disk instead of storing: git-ignored
 )
 
 
@@ -195,15 +201,34 @@ def manifest_path(out_dir: Path) -> Path:
 
 
 def prepare_out(out_dir: Path) -> Path:
-    """Create ``out_dir`` and one subfolder per body kind, and return it.
+    """Create ``out_dir`` and one subfolder per kind, and return it.
 
     Response bodies are filed by kind rather than all together, so that the
     heavy, re-fetchable ones can be git-ignored by folder while the small
-    documents that make up the audit trail stay versioned.
+    documents that make up the audit trail stay versioned. ``figs/`` is the one
+    kind that holds no reply: it takes the figures a notebook renders, so the
+    notebook can show them from disk and store a reference instead of a
+    megabyte of pixels it would rewrite into git on every re-run.
     """
     for name in ("", *BODY_DIRS):
         (out_dir / name).mkdir(parents=True, exist_ok=True)
     return out_dir
+
+
+def body_for(out_dir: Path, md5: str, *, kind: str = "epochs") -> Path | None:
+    """The stored body with this digest, or ``None`` when it is not on disk.
+
+    ``fetch`` files every body under ``out_dir / kind`` named by its md5 plus
+    the extension its content type implied, so the digest a manifest row
+    carries is enough to find the bytes again without knowing the extension.
+    ``None`` is an ordinary answer, not an error: these folders are git-ignored
+    because they are re-fetchable, so a clone has the row and not the body.
+    """
+    if not md5:
+        return None
+    for found in sorted((out_dir / kind).glob(md5 + ".*")):
+        return found
+    return None
 
 
 def _append_manifest(out_dir: Path, row: Fetch, timestamp_utc: str) -> None:
@@ -350,10 +375,63 @@ def _wms_params(
         "STYLES": "",
         ("CRS" if modern else "SRS"): crs,
         "BBOX": ",".join(repr(float(v)) for v in ordered),
-        "WIDTH": str(size[0]),
-        "HEIGHT": str(size[1]),
+        WMS_SIZE_PARAMS[0]: str(size[0]),
+        WMS_SIZE_PARAMS[1]: str(size[1]),
     }
     return provider.endpoints[service], params
+
+
+@dataclass(frozen=True)
+class EpochRequest:
+    """What one recorded epoch map request asked for, read back from its URL.
+
+    ``window`` is ordered with ``x`` first whatever order the request grammar
+    wrote it in, so it compares directly with the bboxes the module works with.
+    """
+
+    year: int
+    size_px: int
+    window: Bbox
+    crs: str
+
+
+def read_epoch_request(provider: Provider, url: str) -> EpochRequest | None:
+    """Read a logged URL back into the epoch request it recorded, or ``None``.
+
+    The inverse of ``_wms_params`` for the epoch layers: the layer name carries
+    the year through ``epoch_layer_pattern``, and the size and bbox parameters
+    carry what was asked of it. A manifest row is therefore enough to redraw
+    what an earlier run fetched without asking for it again. ``None`` is the
+    answer for every row that is not an epoch ``GetMap`` of ``provider``, which
+    is how a manifest holding other requests is filtered.
+
+    The URL is data read from a file: nothing in it is resolved or fetched.
+    """
+    params = {
+        key.upper(): values[-1]
+        for key, values in parse_qs(urlsplit(url).query).items()
+        if values
+    }
+    if params.get("REQUEST", "").lower() != "getmap":
+        return None
+    head, _, tail = provider.epoch_layer_pattern.partition("{year}")
+    year = re.fullmatch(
+        rf"{re.escape(head)}(\d+){re.escape(tail)}", params.get("LAYERS", "")
+    )
+    size = params.get(WMS_SIZE_PARAMS[0], "")
+    crs = params.get("CRS") or params.get("SRS") or ""
+    corners = params.get("BBOX", "").split(",")
+    if year is None or not size.isdigit() or len(corners) != 4:
+        return None
+    try:
+        first, second, third, fourth = (float(corner) for corner in corners)
+        swapped = bool(crs) and _axis_swapped(crs, provider.wms_version)
+    except Exception:  # an unreadable number or CRS is not a usable row
+        return None
+    window: Bbox = (
+        (second, first, fourth, third) if swapped else (first, second, third, fourth)
+    )
+    return EpochRequest(int(year.group(1)), int(size), window, crs)
 
 
 def wms_capabilities(provider: Provider, service: str, out_dir: Path) -> Fetch:
@@ -1033,6 +1111,93 @@ def resolution_from_ladder(
     result["floor_observed"] = max(entry[2] for entry in below)
     result["drop"] = curve[finest][2] / below[0][2] if below[0][2] > 0 else math.inf
     return result
+
+
+_LADDER_HEADER = [
+    "year",
+    "size_px",
+    "gsd_m",
+    "status",
+    "nbytes",
+    "md5",
+    "share",
+    "samples",
+    "stopped",
+    "rung_reason",
+    "measured_gsd_m",
+    "measured_px",
+    "measured_reason",
+]
+
+
+def ladder_rows(
+    year: int,
+    rungs: list[dict[str, object]],
+    found: dict[str, object],
+) -> list[dict[str, object]]:
+    """Flatten one year's ladder and verdict into rows of the ladder table.
+
+    The year's figure is repeated on every rung instead of living in a second
+    table, so one row holds both the bytes it was measured from (``md5``, which
+    is enough to find them under ``epochs/``) and what the year was measured to
+    be. A reader of the table then needs no join and no request grammar.
+    ``measured_gsd_m`` is empty when the ladder gave no figure, and
+    ``measured_reason`` says why; ``rung_reason`` is per rung, and says why that
+    rung has no residual or why the ladder stopped there.
+    """
+    measured_gsd = found.get("measured_gsd_m")
+    measured_px = found.get("measured_px")
+    rows: list[dict[str, object]] = []
+    for rung in rungs:
+        share = rung.get("share")
+        rows.append(
+            {
+                "year": year,
+                "size_px": rung["size_px"],
+                "gsd_m": round(float(str(rung["gsd_m"])), 6),
+                "status": rung["status"],
+                "nbytes": rung["nbytes"],
+                "md5": rung["md5"],
+                "share": round(float(str(share)), 6) if share is not None else "",
+                "samples": rung["samples"],
+                "stopped": "yes" if rung["stopped"] else "",
+                "rung_reason": rung["reason"],
+                "measured_gsd_m": measured_gsd if measured_gsd is not None else "",
+                "measured_px": measured_px if measured_px is not None else "",
+                "measured_reason": "" if measured_gsd is not None else found["reason"],
+            }
+        )
+    return rows
+
+
+def write_ladder(rows: list[dict[str, object]], out_dir: Path) -> Path:
+    """Write ``rows`` to ``out_dir/ladder.csv``, overwriting any earlier table.
+
+    The header is written even with no rows: an empty table says the section ran
+    and had nothing to measure, which a missing file does not say.
+    """
+    out_dir.mkdir(parents=True, exist_ok=True)
+    path = out_dir / "ladder.csv"
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=_LADDER_HEADER, restval="")
+        writer.writeheader()
+        writer.writerows(rows)
+    return path
+
+
+def read_ladder(out_dir: Path) -> list[dict[str, str]] | None:
+    """The rows of ``out_dir/ladder.csv``, or ``None`` when there is no table.
+
+    ``None`` and an empty list are different answers: the table was never
+    written, or it was written and the measurement found nothing. Reading the
+    table back is what lets a later section draw the ladder on a cold kernel,
+    instead of depending on a 45-request measurement still being in memory.
+    """
+    path = out_dir / "ladder.csv"
+    if not path.exists():
+        return None
+    with path.open(newline="", encoding="utf-8") as handle:
+        return list(csv.DictReader(handle))
 
 
 # --------------------------------------------------------------------------
