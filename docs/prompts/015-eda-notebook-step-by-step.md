@@ -297,8 +297,54 @@ reported as measured. Section 6: per-epoch statistics and a thumbnail grid,
 flagging blank, saturated and low-contrast epochs. Both degrade to `ABSENT`
 with a reason per epoch.
 
-**Settles.** EXP-001 question 1 — the years and the real resolution. It is also
-the heaviest step in bytes, which is why it comes after step 1.
+**Amendment 2026-11-06 — the native resolution is measured, not only read.**
+As written above, this step's criterion asks only for the *declared* ground
+sample distance, while its "Settles" promises "the real resolution", and the
+EXP-001 record says step 2 must measure it. No later step closes that gap:
+section 7 is spectral, sections 10 and 11 are chips and the labelling table,
+section 12 reports what earlier steps produced. The promise was therefore
+implemented nowhere. Section 5 is accepted and is not reopened; the measurement
+is added to **section 6**, which is not written yet, as a further criterion of
+this step. Found while supervising step 2, on the user's prompting.
+
+Section 6 must also establish, **per year and never globally**, the ground
+sample distance each epoch really carries:
+
+- **Over one tile-sized ground window**, not the extent: `TILE_PX` × the
+  entry's `default_gsd_m`, centred in the extent. It is small in bytes and it
+  is the window the pipeline will actually use.
+- **A ladder of request sizes over that same window** — 128, 256, 512, 1024,
+  2048 px — each one a manifest row. The service declares no `MaxWidth` or
+  `MaxHeight`, so the real cap is discovered by asking: a refusal is a recorded
+  finding, not a failure, and the ladder stops there.
+- **Ask for PNG.** The service offers it, and a lossless reply removes the
+  compression this measurement would otherwise have to fight. Any JPEG already
+  baked into the mosaic upstream remains, and raises the high-frequency floor,
+  so the statistic must tolerate a floor rather than assume silence above the
+  cutoff.
+- **The statistic is the developer's choice, but it must be named in the
+  notebook and proved in `--selftest` against ground truth built offline**: an
+  image upsampled from a known resolution must have that resolution recovered.
+  A measurement whose estimator is not falsifiable offline does not count.
+- **The verdict per year** is the finest ground sample distance at which detail
+  still grows; everything finer is the service upsampling. A curve that never
+  flattens means the ladder did not reach far enough, and is reported as that —
+  never by taking the last rung as the answer.
+- **Only for the years section 5 marked `present`**, so the byte cost stays
+  proportionate.
+- **The output states how many pixels a building occupies** at the measured
+  resolution, with the building size a declared parameter and labelled an
+  assumption: the real distribution of footprints arrives in section 8. That
+  number, not the metres per pixel, is what decides feasibility.
+- **A per-year difference is a finding**, not an inconsistency to smooth over:
+  the service declares 50, 25 and 15 cm depending on year and region.
+
+Until this is measured, `default_gsd_m = 0.25` stays an assumption everywhere
+it is used, including the tile arithmetic of the extent report.
+
+**Settles.** EXP-001 question 1 — the years and the real resolution, the second
+of those only with the amendment above. It is also the heaviest step in bytes,
+which is why it comes after step 1.
 
 **Record** — filled in when the step closes.
 

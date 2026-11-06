@@ -39,7 +39,7 @@ import tempfile
 import time
 import warnings
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from xml.etree import ElementTree
@@ -139,7 +139,7 @@ _MANIFEST_HEADER = [
     "elapsed_s",
     "error",
 ]
-_PROBE_SIZE = (256, 256)
+PROBE_SIZE = (256, 256)  # public: a section has to report what size it asked for
 _CONTENT_EXTENSIONS = {
     "image/png": ".png",
     "image/jpeg": ".jpg",
@@ -441,11 +441,17 @@ class Capabilities:
 
     ``crs`` codes are normalised to ``EPSG:<code>``, so that a WMS saying
     ``EPSG:25830`` and a WFS saying ``urn:ogc:def:crs:EPSG::25830`` compare
-    equal against the same entry. ``titles`` maps a layer name to its title,
-    which is where a per-epoch resolution is usually written. ``exception`` is
-    set when the document is a service exception or could not be read, and the
-    other fields are then empty: an unreadable document is a value with a
-    reason, never an exception.
+    equal against the same entry. ``titles`` and ``abstracts`` map a layer name
+    to its title and to its free-text description; a service that publishes no
+    scale element at all may still declare a resolution in the abstract, in
+    prose, which ``declared_resolutions`` reads. ``exception`` is set when the
+    document is a service exception or could not be read, and the other fields
+    are then empty: an unreadable document is a value with a reason, never an
+    exception.
+
+    Both maps are keyed by layer name, so a layer without a name — a grouping
+    layer — contributes nothing. That is deliberate: a group's abstract must
+    never be read as a declaration about the layers under it.
     """
 
     crs: tuple[str, ...]
@@ -453,6 +459,7 @@ class Capabilities:
     titles: dict[str, str]
     stored_queries: tuple[str, ...]
     exception: str
+    abstracts: dict[str, str] = field(default_factory=dict)
 
 
 _EPSG_CODE = re.compile(r"EPSG:+(\d+)", re.IGNORECASE)
@@ -499,6 +506,7 @@ def read_capabilities(path: Path | None) -> Capabilities:
     crs: list[str] = []
     layers: list[str] = []
     titles: dict[str, str] = {}
+    abstracts: dict[str, str] = {}
     queries: list[str] = []
     for element in root.iter():
         tag = _local(element.tag)
@@ -516,13 +524,94 @@ def read_capabilities(path: Path | None) -> Capabilities:
             if name:
                 layers.append(name)
                 titles[name] = _child_text(element, "Title")
+                abstracts[name] = _child_text(element, "Abstract")
     return Capabilities(
         tuple(dict.fromkeys(crs)),
         tuple(dict.fromkeys(layers)),
         titles,
         tuple(dict.fromkeys(queries)),
         "",
+        abstracts,
     )
+
+
+@dataclass(frozen=True)
+class DeclaredResolution:
+    """One ground resolution a service declares in prose, with its own words.
+
+    ``gsd_m`` is the figure converted to metres. ``text`` is the clause it was
+    read from, verbatim and whitespace-collapsed, because that clause is what
+    names the area the figure applies to. The two always travel together: a
+    declared resolution reported as a bare number cannot be told apart from a
+    measured one, and these are declarations, not measurements.
+    """
+
+    gsd_m: float
+    text: str
+
+
+# A resolution written as prose: one or more figures sharing a unit, as in
+# "25 cm", "0,25 m", "0,15 y 0,16 m" or "(50, 25 y 15 cm)". Only a figure that
+# carries a unit is read, so a year, a scale denominator or a flight date is
+# never mistaken for a resolution.
+_RESOLUTION_PHRASE = re.compile(
+    r"(?P<values>\d+(?:[.,]\d+)?(?:\s*(?:,|y|o)\s*\d+(?:[.,]\d+)?)*)"
+    r"\s*(?P<unit>centímetros?|cm|metros?|m)\b",
+    re.IGNORECASE,
+)
+_NUMBER = re.compile(r"\d+(?:[.,]\d+)?")
+_UNIT_METRES = {
+    "cm": 0.01,
+    "centímetro": 0.01,
+    "centímetros": 0.01,
+    "m": 1.0,
+    "metro": 1.0,
+    "metros": 1.0,
+}
+# A ground sample distance outside this window is not one: it is a figure that
+# happened to sit next to a unit. Both ends are deliberately generous.
+_PLAUSIBLE_GSD_M = (0.01, 10.0)
+
+
+def declared_resolutions(abstract: str) -> tuple[DeclaredResolution, ...]:
+    """Read every ground resolution ``abstract`` declares, each with its clause.
+
+    Some services publish no ``ScaleHint`` and no scale denominator anywhere,
+    and write the resolution into the layer description instead — often several
+    of them in one description, one per area covered. This returns one entry per
+    figure, in the order the text gives them, so that several declarations are
+    reported as several rather than collapsed into an average or a first value.
+    An empty result means this text declares nothing: callers say so, and must
+    not fall back on a neighbouring layer, a parent layer or a provider default.
+
+    The clause carried by each entry runs from the end of the previous
+    declaration — or from the start of the sentence, whichever is later — to the
+    end of the figure, which is where the wording that names the area lives.
+    Nothing in the text is executed, resolved or followed; it is data.
+
+    Spanish writes the decimal separator as a comma and the thousands separator
+    as a dot, and both are read here as a decimal point. That is unambiguous
+    inside the plausibility window: a thousands separator puts the value far
+    outside it.
+    """
+    found: list[DeclaredResolution] = []
+    low, high = _PLAUSIBLE_GSD_M
+    cursor = 0
+    for match in _RESOLUTION_PHRASE.finditer(abstract):
+        factor = _UNIT_METRES.get(match.group("unit").lower())
+        start = cursor
+        cursor = match.end()
+        if factor is None:  # the pattern and the table drifted apart
+            continue
+        sentence = abstract.rfind(". ", start, match.start())
+        if sentence != -1:
+            start = sentence + 2
+        clause = " ".join(abstract[start : match.end()].split())
+        for number in _NUMBER.findall(match.group("values")):
+            value = float(number.replace(",", ".")) * factor
+            if low <= value <= high:
+                found.append(DeclaredResolution(value, clause))
+    return tuple(found)
 
 
 def _is_image_file(path: Path) -> bool:
@@ -569,7 +658,7 @@ def epoch_availability(
     rows: list[dict[str, object]] = []
     for year in years:
         layer = provider.epoch_layer_pattern.format(year=year)
-        got = wms_map(provider, layer, bbox, crs, _PROBE_SIZE, out_dir)
+        got = wms_map(provider, layer, bbox, crs, PROBE_SIZE, out_dir)
         verdict, evidence, blank = _epoch_verdict(got)
         rows.append(
             {
@@ -1262,6 +1351,85 @@ def _selftest() -> int:
         check(
             "4 an unparsable document does not raise",
             "ParseError" in read_capabilities(docs / "broken.xml").exception,
+        )
+
+        # 5: the resolution a service declares in prose, which is the only place
+        # this one writes it. Every fixture is built here, in the temp folder.
+        group_abstract = (
+            "Cobertura por años. La cobertura está constituida por mosaicos de "
+            "distinta resolución (50, 25 y 15 cm)."
+        )
+        one_abstract = (
+            "Ortoimagen correspondiente al año 2020. Abarca la Comunidad de "
+            "Region A a una resolución de 0,25 m."
+        )
+        many_abstract = (
+            "Ortoimagen correspondiente al año 2021. Abarca las Comunidades de "
+            "Region B y Region C con una resolución de 25 cm y las islas de "
+            "Region D con una resolución de 20 cm."
+        )
+        none_abstract = (
+            "Ortoimagen correspondiente al año 2022, a escala 1 30.000, volada "
+            "entre 1981 y 1986."
+        )
+        prose_doc = docs / "prose.xml"
+        prose_doc.write_text(
+            '<?xml version="1.0"?>'
+            f'<WMS_Capabilities xmlns="{_SCHEME}://www.opengis.net/wms">'
+            "<Capability><Layer><Title>group</Title>"
+            f"<Abstract>{group_abstract}</Abstract><CRS>EPSG:25830</CRS>"
+            f"<Layer><Name>ONE</Name><Title>One</Title>"
+            f"<Abstract>{one_abstract}</Abstract></Layer>"
+            f"<Layer><Name>MANY</Name><Title>Many</Title>"
+            f"<Abstract>{many_abstract}</Abstract></Layer>"
+            f"<Layer><Name>NONE</Name><Title>None</Title>"
+            f"<Abstract>{none_abstract}</Abstract></Layer>"
+            "<Layer><Name>SILENT</Name><Title>Silent</Title></Layer>"
+            "</Layer></Capability></WMS_Capabilities>",
+            encoding="utf-8",
+        )
+        prose = read_capabilities(prose_doc)
+        check(
+            "5 abstracts are keyed by layer name, and only by layer name",
+            set(prose.abstracts) == {"ONE", "MANY", "NONE", "SILENT"}
+            and prose.abstracts["ONE"] == one_abstract
+            and prose.abstracts["SILENT"] == "",
+            prose.abstracts,
+        )
+        single = declared_resolutions(prose.abstracts["ONE"])
+        check(
+            "5 one declared resolution, with the clause that names its area",
+            len(single) == 1
+            and single[0].gsd_m == 0.25
+            and "Region A" in single[0].text
+            and "2020" not in single[0].text,
+            single,
+        )
+        several = declared_resolutions(prose.abstracts["MANY"])
+        check(
+            "5 several declared resolutions, each with its own areas",
+            [round(d.gsd_m, 2) for d in several] == [0.25, 0.20]
+            and "Region B" in several[0].text
+            and "Region C" in several[0].text
+            and "Region D" not in several[0].text
+            and "Region D" in several[1].text,
+            several,
+        )
+        check(
+            "5 an abstract that declares nothing declares nothing, and inherits none",
+            declared_resolutions(prose.abstracts["NONE"]) == ()
+            and declared_resolutions(prose.abstracts["SILENT"]) == ()
+            and declared_resolutions("") == ()
+            # the figures of the grouping layer parse, but reach no named layer
+            and [d.gsd_m for d in declared_resolutions(group_abstract)]
+            == [0.5, 0.25, 0.15],
+            declared_resolutions(prose.abstracts["NONE"]),
+        )
+        check(
+            "5 a document that cannot be read declares nothing to inherit",
+            read_capabilities(docs / "broken.xml").abstracts == {}
+            and read_capabilities(None).abstracts == {}
+            and read_capabilities(exception_doc).abstracts == {},
         )
 
         # 1: the output layout the ignore rules depend on
