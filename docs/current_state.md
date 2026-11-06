@@ -17,12 +17,13 @@ ACCEPTED 2026-11-04, but **its deliverable was discarded by the user** the same 
 first live run showed the extent selector did not work; it is superseded by handoff 015, which
 rebuilds the notebook one section at a time, in Spanish, each section confirmed against the
 live services before the next is written. **Handoff 015 is in progress**: step 0 (the
-self-contained folder in `notebooks/exp-001/`) ACCEPTED 2026-11-04 and step 1 (section 4 ·
-provider capabilities) ACCEPTED 2026-11-05; **step 2 (sections 5 and 6 · epoch availability and
-image quality) is next**. The sprint produces no production code: it makes EXP-001 measurable
-and re-measurable by the user's own run. The extent is no longer open: it was drawn and
-committed on 2026-11-04 as `notebooks/exp-001/out/extent.json` (`EPSG:25830`, 1.204224 km²,
-21 × 14 tiles).
+self-contained folder in `notebooks/exp-001/`) ACCEPTED 2026-11-04, step 1 (section 4 ·
+provider capabilities) ACCEPTED 2026-11-05 and step 2 (sections 5 and 6 · epoch availability
+and image quality) ACCEPTED 2026-11-06, from a live run the user committed with its outputs;
+**step 3 (section 7 · the spectral check) is next**. The sprint produces no production code:
+it makes EXP-001 measurable and re-measurable by the user's own run. The extent is no longer
+open: it was drawn and committed on 2026-11-04 as `notebooks/exp-001/out/extent.json`
+(`EPSG:25830`, 1.204224 km², 21 × 14 tiles).
 
 Sprint 4 · MLflow — complete 2026-10-27 ([log](sprints/sprint-04-mlflow.md)). It
 delivered a tracking port in the domain, an MLflow adapter and a null adapter in the data
@@ -32,9 +33,10 @@ file store.
 The feasibility experiment that produces ADR-004 (`docs/experiments/exp-001-*.md`) is in
 progress through this sprint. ADR-004 still follows from its measured figures, and it gates
 Block 3. The bounding box is a configuration variable (Sprint 2) and its value is now chosen
-and committed, so the experiment advances one notebook section per session. Only the provider
-capabilities are settled so far; the per-epoch, cadastral, elevation and labelling figures are
-still unmeasured.
+and committed, so the experiment advances one notebook section per session. The provider
+capabilities and the per-epoch figures are settled — about 7 usable epochs of the 21
+advertised, at a measured 0.25 m/px — while the cadastral, elevation and labelling figures
+are still unmeasured.
 
 ## Completed Sprints
 
@@ -52,7 +54,7 @@ contract, a null adapter, and composition in delivery, configured through the
 `GEO_DECAY_TRACKING_*` variables. Blocks 1 and 2 are closed. Sprint 5 has accepted handoffs
 013 (the EDA helper module and provider configuration) and 014 (the notebook, whose deliverable
 the user then discarded), and is now rebuilding the notebook section by section under handoff
-015, with steps 0 and 1 accepted. The
+015, with steps 0, 1 and 2 accepted. The
 feasibility experiment (ADR-004) is still open and gates Block 3, on top of the
 Sprint 2 baseline (validated `Settings`, `BoundingBox` configuration, logging
 configured once per process) and the Sprint 1 baseline (skeleton, reference container
@@ -101,4 +103,4 @@ See [ADR-001](architecture/adr/adr-001-agent-governance.md) and
 
 ## Last Updated
 
-2026-11-05
+2026-11-06

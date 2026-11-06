@@ -219,6 +219,16 @@ Tracked findings from the project review, deferred with their identifiers:
   the point cloud as *available*. Probing downloads needs either a `downloads`
   field on `Provider` or a change to section 9, neither of which is authorised
   yet. Until then EXP-001 question 2 is answerable only in part.
+- [ ] **EDA-JUMP · The resolution table prints a meaningless jump factor** —
+  section 6 reports, beside each measured resolution, the factor by which the
+  detail residual jumps between rungs. Past the flattening point that residual
+  is numerically zero (order 1e-15), so the factor comes out of order 1e13 and
+  reads as a broken number. The verdict does not use it — the detail floor
+  does, and the floor-sensitivity sweep in `--selftest` covers that — so this is
+  presentation, not a wrong measurement. Fix by reporting the residuals and the
+  floor and dropping the ratio, or by showing the ratio only while both terms
+  are above the floor. Found verifying step 2 of handoff 015, 2026-11-06.
+
 - [ ] **EDA-WMSVER · The map's orthophoto layer ignores the provider's WMS
   version** — `ipyleaflet.WMSLayer` (0.20.0) exposes no `version` trait, so the
   browser requests tiles at the library's default WMS version rather than the

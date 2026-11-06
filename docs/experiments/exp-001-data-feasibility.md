@@ -8,15 +8,14 @@ Status: **methodology fixed, extent chosen, measurement in progress.** It is no
 longer blocked on the bounding box: the extent was drawn on the notebook's map
 and committed on 2026-11-04 as `notebooks/exp-001/out/extent.json` —
 `469120.0, 4482944.0, 470464.0, 4483840.0` in `EPSG:25830`, 1344 × 896 m,
-1.204224 km², an exact fit of 21 × 14 tiles of 256 px at the assumed 0.25 m/px
-(the resolution itself is not measured yet; see Results). The measurement is
-instrumented by
+1.204224 km², an exact fit of 21 × 14 tiles of 256 px at 0.25 m/px (since
+measured; see Results). The measurement is instrumented by
 [Sprint 5](../sprints/sprint-05-feasibility-instrumentation.md), so that every
 figure it produces can be re-measured by a third party, and it advances one
 notebook section per session under
-[handoff 015](../prompts/015-eda-notebook-step-by-step.md): steps 0 and 1 are
-ACCEPTED (2026-11-04 and 2026-11-05), so the provider capabilities are settled
-and the per-epoch measurement is next.
+[handoff 015](../prompts/015-eda-notebook-step-by-step.md): steps 0, 1 and 2 are
+ACCEPTED (2026-11-04, 2026-11-05 and 2026-11-06), so the provider capabilities
+and the per-epoch figures are settled and the spectral check is next.
 
 ## Objective
 
@@ -95,7 +94,7 @@ rather than by an agent. See Reproduction.
 |---|---|
 | Bounding box | `469120.0, 4482944.0, 470464.0, 4483840.0` |
 | CRS of the bounding box | `EPSG:25830` |
-| Extent size | 1344 × 896 m, 1.204224 km²; 5376 × 3584 px, an exact fit of 21 × 14 tiles of 256 px at the assumed 0.25 m/px |
+| Extent size | 1344 × 896 m, 1.204224 km²; 5376 × 3584 px, an exact fit of 21 × 14 tiles of 256 px at 0.25 m/px |
 | Extent record | `notebooks/exp-001/out/extent.json`, drawn 2026-11-04T19:18:29Z (geodesic 1344.52 × 896.35 m, skew 0.0 m) |
 | Tools | QGIS, official IGN/CNIG/Catastro distribution services |
 | Instrumentation | `notebooks/exp-001/01-eda-pnoa-catastro.ipynb`, `notebooks/exp-001/eda.py` |
@@ -106,7 +105,10 @@ The extent is **chosen and committed**: step 1 of the methodology closed on
 its full report to `notebooks/exp-001/out/extent.json`, which is where every
 value above comes from. The 0.25 m/px is the provider entry's
 `default_gsd_m`, used for the pixel and tile arithmetic; no service declares a
-resolution, so it is an assumption until step 2 measures it. The extent stays a
+resolution, but step 2 measured it, and **six of the nine present years measure
+0.25 m/px**, so the figure the arithmetic uses is confirmed where it could be
+measured — not for every epoch, since 2006 is only bounded at ≥ 0.5 m/px and two
+years could not be measured at all. The extent stays a
 required parameter everywhere else, so nothing below depends on a value
 hard-coded anywhere, and a run with no extent selected is still not an error: it
 reports `ABSENT: no extent selected` and stops producing figures.
@@ -209,10 +211,10 @@ here to inputs.
 
 <!-- Filled as each step of handoff 015 closes. One subsection per methodology step. -->
 
-**One step has closed so far**: the provider-capabilities step
-([handoff 015](../prompts/015-eda-notebook-step-by-step.md), step 1, verdict
-ACCEPTED 2026-11-05, from the user's live run of 2026-11-04). Everything below
-it is still unmeasured and says so.
+**Two steps have closed so far**
+([handoff 015](../prompts/015-eda-notebook-step-by-step.md)): provider
+capabilities (step 1, ACCEPTED 2026-11-05) and orthophoto coverage (step 2,
+ACCEPTED 2026-11-06). Everything below them is still unmeasured and says so.
 
 ### Service capabilities
 
@@ -262,12 +264,23 @@ through the provider entry. Every figure here comes from the step 1 record.
 
 ### Orthophoto coverage
 
-**Not measured yet** — step 2 of handoff 015 (sections 5 and 6). The
-capabilities step settled only which year layers are advertised
-(`PNOA2004`–`PNOA2024`) and that no resolution is declared. The per-year
-status, bytes, MD5, blank verdict and the ground sample distance measured
-against ground metres, plus the per-epoch statistics and the thumbnail grid,
-are all pending.
+Measured in step 2 of handoff 015 (sections 5 and 6, verdict ACCEPTED
+2026-11-06, from the user's live run of 2026-11-06).
+
+- **9 of the 21 advertised years return imagery over the extent**, 2006 to 2023.
+  The others answer with a blank image: the mosaic has no pixels there, not a
+  missing layer. All 21 years declare a resolution in prose only.
+- **The resolution is measured, not assumed.** Over a 64 m window with a
+  128 → 2048 px ladder (37 of 45 planned requests), **six of the nine present
+  years measure 0.25 m/px**, which confirms the provider entry's
+  `default_gsd_m`. 2006 is reported as a **bound, ≥ 0.5 m/px**; 2012 and 2015
+  gave too few readable rungs and get a reason instead of a figure.
+- A **10 m building occupies 40 × 40 px (1600 px²)** — that building size is a
+  declared assumption until the cadastral step.
+- **Quality flags**, each printed beside its threshold: 12 of 21 epochs blank,
+  12 low-contrast, none saturated. 2012 and 2015 carry 70 % and 75 % nodata.
+- **The usable series is about 7 epochs, not 21**, at 0.25 m/px where it could
+  be measured.
 
 ### Cadastral reference
 
@@ -307,12 +320,11 @@ variable coming from RGB surrogates.
 
 ### What is still unanswered
 
-Of the four questions in the Objective, after one step:
+Of the four questions in the Objective, after two steps:
 
-1. **PNOA resolution and years** — *partly*. The advertised years are known
-   (`PNOA2004`–`PNOA2024`, plus ~70 years of historical coverage); the real
-   resolution is **not measured**, and neither is which years actually cover the
-   extent. Step 2.
+1. **PNOA resolution and years** — **answered**. 9 of the 21 advertised years
+   cover the extent (2006–2023), at a measured 0.25 m/px in six of them, with
+   2006 a bound and 2012 and 2015 unmeasurable; about 7 usable epochs.
 2. **Elevation products** — **unanswered, and without an instrument.** EDA-ELEV.
 3. **Which indicators are computable** — **unanswered**, except that NIR-based
    ones are not. Steps 3 and 7.

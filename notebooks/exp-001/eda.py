@@ -38,7 +38,7 @@ import sys
 import tempfile
 import time
 import warnings
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -140,6 +140,16 @@ _MANIFEST_HEADER = [
     "error",
 ]
 PROBE_SIZE = (256, 256)  # public: a section has to report what size it asked for
+# The ladder of request sizes the native-resolution measurement walks over one
+# tile-sized ground window. The service declares no maximum width or height, so
+# the real cap is discovered by asking, and the ladder stops where it is refused.
+LADDER_PX: tuple[int, ...] = (128, 256, 512, 1024, 2048)
+# A rung whose unexplained share stays below this added no new ground detail: it
+# is the previous rung enlarged. Not zero, because the floor is never silent —
+# an upstream JPEG mosaic, the service's own resampling and 8-bit rounding each
+# leave a little behind — and well under the share a real new octave of detail
+# leaves, which the selftest measures on ground truth it builds itself.
+DETAIL_FLOOR = 0.04
 _CONTENT_EXTENSIONS = {
     "image/png": ".png",
     "image/jpeg": ".jpg",
@@ -756,6 +766,276 @@ def image_stats(path: Path) -> dict[str, object]:
 
 
 # --------------------------------------------------------------------------
+# Native resolution, measured by asking for the same ground twice over
+# --------------------------------------------------------------------------
+
+_FIT_NEIGHBOURHOOD = 2  # half-width of the coarse neighbourhood a phase is fitted from
+_FIT_SAMPLES = 50_000  # positions sampled per phase: far more than the 26 unknowns
+_FIT_SEED = 0  # the sampling is seeded, so the same images give the same figure
+_FIT_MINIMUM = 500  # fewer usable positions than this is not a measurement
+
+
+@dataclass(frozen=True)
+class RungDetail:
+    """What one rung of a request-size ladder adds over the rung before it.
+
+    ``share`` is the root mean square of what no fitted linear interpolation of
+    the coarser rung explains, divided by the standard deviation of the finer
+    rung over the same ground window: a dimensionless share of that window's own
+    contrast, which is what makes two rungs of different pixel counts, two years
+    and two extents comparable. ``nan`` means there is no figure, and ``reason``
+    then says why. ``factor`` is the size ratio between the two rungs and
+    ``samples`` how many positions the figure rests on.
+    """
+
+    share: float
+    factor: int
+    samples: int
+    reason: str
+
+
+def _grey_and_valid(path: Path) -> tuple[np.ndarray, np.ndarray]:
+    """The mean colour band of an image, and the mask of its usable pixels."""
+    pixels, alpha = _read_image(path)
+    colour = [i for i in range(pixels.shape[0]) if i != alpha]
+    grey = pixels[colour].astype(np.float64).mean(axis=0)
+    if alpha is None:
+        valid = np.ones(grey.shape, dtype=bool)
+    else:
+        valid = pixels[alpha].astype(bool)
+    return grey, valid
+
+
+def unexplained_share(coarse: Path, fine: Path) -> RungDetail:
+    """How much of ``fine`` no linear interpolation of ``coarse`` can explain.
+
+    Both images must cover the same ground window, with ``fine`` an integer
+    multiple of ``coarse`` in both axes — which a ladder of doubling request
+    sizes over one unchanged bounding box gives for free.
+
+    **The predictor is fitted, not assumed.** The fine grid is split into its
+    ``factor x factor`` phases, and for each phase the best least-squares
+    combination of a 5x5 neighbourhood of the coarse grid is solved for; what is
+    left over is measured. Fitting instead of assuming is what makes the figure
+    independent of how the service resamples: nearest neighbour, bilinear,
+    cubic, a sharpening kernel and a sub-pixel shift all lie inside the family
+    the fit can express. So a rung that is only the previous rung enlarged
+    leaves almost nothing behind, whatever enlarged it, while a rung that
+    carries a real new octave of ground detail leaves a share no interpolation
+    of the coarser rung can recover — because that detail is precisely the
+    information the coarser rung does not hold.
+
+    Pixels are excluded where the finer rung is transparent or where any of the
+    25 coarse neighbours is, so a window that reaches past the service's
+    coverage is measured on the part that answered instead of on its own edge.
+    """
+    try:
+        coarse_grey, coarse_valid = _grey_and_valid(coarse)
+        fine_grey, fine_valid = _grey_and_valid(fine)
+    except Exception as exc:  # undecodable bytes are a reason, not a crash
+        return RungDetail(math.nan, 0, 0, f"unreadable image: {exc}")
+    rows, cols = coarse_grey.shape
+    factor = fine_grey.shape[0] // rows if rows else 0
+    if factor < 2 or (rows * factor, cols * factor) != fine_grey.shape:
+        return RungDetail(
+            math.nan,
+            factor,
+            0,
+            f"the two rungs do not share a grid: {coarse_grey.shape} and "
+            f"{fine_grey.shape} are not an integer multiple apart",
+        )
+    pad = _FIT_NEIGHBOURHOOD
+    if rows - 2 * pad < pad or cols - 2 * pad < pad:
+        return RungDetail(math.nan, factor, 0, "the coarse rung is too small to fit")
+    spread = float(fine_grey[fine_valid].std()) if fine_valid.any() else 0.0
+    if spread <= 0.0:
+        return RungDetail(
+            math.nan, factor, 0, "the finer rung has no contrast to take a share of"
+        )
+    offsets = [(dr, dc) for dr in range(-pad, pad + 1) for dc in range(-pad, pad + 1)]
+    inner_cols = cols - 2 * pad
+    # One mask over the interior: a position is usable only where all 25 coarse
+    # neighbours are. Positions are then sampled, and the neighbourhood is read
+    # at the sampled positions alone, so a 2048 px rung costs megabytes.
+    neighbours_valid = np.logical_and.reduce(
+        [
+            coarse_valid[pad + dr : rows - pad + dr, pad + dc : cols - pad + dc]
+            for dr, dc in offsets
+        ]
+    ).reshape(-1)
+    rng = np.random.default_rng(_FIT_SEED)
+    squares = 0.0
+    count = 0
+    for phase_row in range(factor):
+        for phase_col in range(factor):
+            phase = fine_grey[phase_row::factor, phase_col::factor]
+            phase_valid = fine_valid[phase_row::factor, phase_col::factor]
+            usable = neighbours_valid & phase_valid[
+                pad : rows - pad, pad : cols - pad
+            ].reshape(-1)
+            chosen = np.flatnonzero(usable)
+            if chosen.size < _FIT_MINIMUM:
+                continue
+            if chosen.size > _FIT_SAMPLES:
+                chosen = rng.choice(chosen, _FIT_SAMPLES, replace=False)
+            at_row = chosen // inner_cols + pad
+            at_col = chosen % inner_cols + pad
+            design = np.stack(
+                [coarse_grey[at_row + dr, at_col + dc] for dr, dc in offsets]
+                + [np.ones(chosen.size, dtype=np.float64)],
+                axis=1,
+            )
+            target = phase[at_row, at_col]
+            fitted = np.linalg.lstsq(design, target, rcond=None)[0]
+            residual = target - design @ fitted
+            squares += float((residual**2).sum())
+            count += residual.size
+    if count == 0:
+        return RungDetail(
+            math.nan,
+            factor,
+            0,
+            f"fewer than {_FIT_MINIMUM} positions were usable in any phase",
+        )
+    return RungDetail(math.sqrt(squares / count) / spread, factor, count, "")
+
+
+def resolution_ladder(
+    provider: Provider,
+    layer: str,
+    window: Bbox,
+    crs: str,
+    out_dir: Path,
+    *,
+    sizes: Iterable[int] = LADDER_PX,
+) -> list[dict[str, object]]:
+    """Ask for one ground window at growing sizes: one row per rung, never raises.
+
+    Every rung asks for the same ``window``, so the rungs' pixel grids are
+    nested and each one can be compared against the rung before it. The reply is
+    lossless by default (see ``wms_map``), which removes the compression this
+    measurement would otherwise have to fight; whatever compression is already
+    baked into the service's own mosaic stays, and raises the floor rather than
+    hiding under it.
+
+    The ladder stops at the first rung the service does not answer with an image
+    with content, and that rung keeps its row with the reason. The service
+    declares no maximum width or height, so the real cap is discovered by
+    asking: a refusal is a recorded finding, not a failure.
+    """
+    rows: list[dict[str, object]] = []
+    side_m = float(window[2] - window[0])
+    previous: Path | None = None
+    for size in sizes:
+        got = wms_map(provider, layer, window, crs, (int(size), int(size)), out_dir)
+        verdict, evidence, blank = _epoch_verdict(got)
+        row: dict[str, object] = {
+            "size_px": int(size),
+            "gsd_m": side_m / float(size),
+            "status": got.status,
+            "nbytes": got.nbytes,
+            "md5": got.md5,
+            "path": str(got.path) if got.path is not None else "",
+            "blank": blank,
+            "share": None,
+            "samples": 0,
+            "reason": "",
+            "stopped": False,
+        }
+        if verdict != "present" or got.path is None:
+            row["reason"] = f"{verdict}: {evidence}"
+            row["stopped"] = True
+            rows.append(row)
+            break
+        if previous is not None:
+            detail = unexplained_share(previous, got.path)
+            row["reason"] = detail.reason
+            row["samples"] = detail.samples
+            if math.isfinite(detail.share):
+                row["share"] = detail.share
+        previous = got.path
+        rows.append(row)
+    return rows
+
+
+def resolution_from_ladder(
+    rows: list[dict[str, object]], *, floor: float = DETAIL_FLOOR
+) -> dict[str, object]:
+    """The ground sample distance a ladder supports, or why it supports none.
+
+    The verdict is the finest rung whose unexplained share still exceeds
+    ``floor``, and it is given **only** when at least one finer rung sits
+    below that floor: a share still above the floor at the finest rung means the
+    curve never flattened, so the ladder did not reach far enough, and that is
+    what is reported — never the last rung's figure as if it were the answer.
+
+    ``floor`` is a constant and sits directly on top of the answer, so it is
+    returned with the verdict, to be shown beside it: a threshold a reader
+    cannot see is one they cannot argue with. It is open as an argument for the
+    same reason — the selftest sweeps it over a range of an order of magnitude
+    and requires the recovered resolution to be the same figure throughout. A
+    verdict that moves when the constant moves is an artefact of the constant,
+    not a measurement, and must be reported as inconclusive instead.
+
+    Two other outcomes are values rather than failures. When no rung is above
+    the floor, the first comparison already found nothing new and the native
+    sampling is no finer than the coarsest rung asked for: a bound, not a
+    measurement. When fewer than two rungs came back readable there is nothing
+    to compare at all.
+
+    ``drop`` is how many times the share falls between the verdict's rung and
+    the next one, and ``floor_observed`` the largest share among the rungs below
+    the floor: the evidence for the verdict and the margin it rests on, so a
+    reader can see how far the decision sat from its threshold instead of
+    trusting it.
+    """
+    curve = [
+        (int(str(row["size_px"])), float(str(row["gsd_m"])), float(str(row["share"])))
+        for row in rows
+        if isinstance(row.get("share"), float)
+    ]
+    result: dict[str, object] = {
+        "curve": curve,
+        "measured_gsd_m": None,
+        "measured_px": None,
+        "floor": floor,
+        "floor_observed": None,
+        "drop": None,
+        "bound_gsd_m": None,
+        "bound": "",
+        "reason": "",
+    }
+    if not curve:
+        result["reason"] = "fewer than two readable rungs: nothing to compare"
+        return result
+    above = [index for index, entry in enumerate(curve) if entry[2] >= floor]
+    if not above:
+        result["bound_gsd_m"] = float(str(rows[0]["gsd_m"]))
+        result["bound"] = "no_finer_than"
+        result["floor_observed"] = max(entry[2] for entry in curve)
+        result["reason"] = (
+            "no rung added detail above the floor: the native sampling is no "
+            "finer than the coarsest rung asked for"
+        )
+        return result
+    finest = above[-1]
+    below = curve[finest + 1 :]
+    if not below:
+        result["bound_gsd_m"] = curve[finest][1]
+        result["bound"] = "at_least_as_fine_as"
+        result["reason"] = (
+            "the curve had not flattened at the finest rung: the ladder did not "
+            "reach far enough, so no figure is given"
+        )
+        return result
+    result["measured_px"] = curve[finest][0]
+    result["measured_gsd_m"] = curve[finest][1]
+    result["floor_observed"] = max(entry[2] for entry in below)
+    result["drop"] = curve[finest][2] / below[0][2] if below[0][2] > 0 else math.inf
+    return result
+
+
+# --------------------------------------------------------------------------
 # Extent geometry: pure, deterministic, no I/O
 # --------------------------------------------------------------------------
 
@@ -795,6 +1075,27 @@ def snap_outward(bbox: Bbox, grid_m: float) -> Bbox:
         math.ceil(max_x / grid_m) * grid_m,
         math.ceil(max_y / grid_m) * grid_m,
     )
+
+
+def centred_window(bbox: Bbox, side_m: float) -> Bbox:
+    """A square window of ``side_m`` ground metres centred in ``bbox``.
+
+    A service's native resolution is measured over one window the size of a
+    pipeline tile rather than over the whole extent: it is the window the
+    pipeline will actually request, and it is small enough in bytes to ask for
+    the same ground once per rung of a ladder. A window wider or taller than the
+    extent is clipped to it, so the measurement never reaches outside the ground
+    the extent covers; the caller compares the two sides and reports the
+    clipping, because a clipped window is no longer square and its two axes then
+    carry two different ground sample distances.
+    """
+    if side_m <= 0:
+        raise ValueError("side_m must be positive")
+    centre_x = (bbox[0] + bbox[2]) / 2.0
+    centre_y = (bbox[1] + bbox[3]) / 2.0
+    half_x = min(side_m, bbox[2] - bbox[0]) / 2.0
+    half_y = min(side_m, bbox[3] - bbox[1]) / 2.0
+    return (centre_x - half_x, centre_y - half_y, centre_x + half_x, centre_y + half_y)
 
 
 def _working_crs(bbox: Bbox, crs: str) -> str:
@@ -1046,6 +1347,69 @@ def _write_png(path: Path, array: np.ndarray) -> None:
         dst.write(np.moveaxis(array, -1, 0))
 
 
+def _block_mean(values: np.ndarray, factor: int) -> np.ndarray:
+    """Average ``factor`` x ``factor`` blocks: one way a service downsamples.
+
+    Ground-truth support for the selftest only. The resolution estimator never
+    calls it, and must not: it is told nothing about how its input was built.
+    """
+    rows = values.shape[0] - values.shape[0] % factor
+    cols = values.shape[1] - values.shape[1] % factor
+    cut = values[:rows, :cols]
+    return cut.reshape(rows // factor, factor, cols // factor, factor).mean(axis=(1, 3))
+
+
+def _expand_nearest(values: np.ndarray, factor: int) -> np.ndarray:
+    """Repeat every pixel: the bluntest way to serve more pixels than exist."""
+    return np.repeat(np.repeat(values, factor, axis=0), factor, axis=1)
+
+
+def _expand_bilinear(values: np.ndarray, factor: int) -> np.ndarray:
+    """Interpolate linearly between pixel centres: the usual way."""
+    rows, cols = values.shape
+
+    def axis(length: int) -> tuple[np.ndarray, np.ndarray]:
+        centres = (np.arange(length * factor) + 0.5) / factor - 0.5
+        clipped = np.clip(centres, 0.0, float(length - 1))
+        low = np.floor(clipped).astype(int)
+        return low, clipped - low
+
+    row_low, row_weight = axis(rows)
+    col_low, col_weight = axis(cols)
+    row_high = np.minimum(row_low + 1, rows - 1)
+    col_high = np.minimum(col_low + 1, cols - 1)
+    weight = col_weight[None, :]
+    top = (
+        values[row_low][:, col_low] * (1 - weight)
+        + values[row_low][:, col_high] * weight
+    )
+    bottom = (
+        values[row_high][:, col_low] * (1 - weight)
+        + values[row_high][:, col_high] * weight
+    )
+    return top * (1 - row_weight[:, None]) + bottom * row_weight[:, None]
+
+
+def _ground_truth_scene(size: int, seed: int = 7) -> np.ndarray:
+    """A ``size`` x ``size`` scene carrying detail down to its own pixel.
+
+    Smooth relief, bright rectangles standing in for roofs, and grain at the
+    native pixel. The grain is what makes a native resolution recoverable at
+    all, and it is what real imagery carries as sensor noise and surface
+    texture: a scene smooth to its last pixel has no native resolution to find.
+    """
+    rng = np.random.default_rng(seed)
+    y, x = np.mgrid[0:size, 0:size] / size
+    scene = 90.0 + 40.0 * np.sin(6 * math.pi * x) * np.cos(4 * math.pi * y)
+    for _ in range(14):
+        row = int(rng.integers(0, size - size // 8))
+        col = int(rng.integers(0, size - size // 8))
+        high = int(rng.integers(size // 16, size // 8))
+        wide = int(rng.integers(size // 16, size // 8))
+        scene[row : row + high, col : col + wide] += float(rng.integers(40, 110))
+    return scene + rng.normal(0.0, 9.0, size=(size, size))
+
+
 def _selftest() -> int:
     failures: list[str] = []
 
@@ -1255,6 +1619,156 @@ def _selftest() -> int:
             "12 save_extent writes extent.json",
             saved == root / "extent" / "extent.json"
             and json.loads(saved.read_text())["crs"] == "EPSG:25830",
+        )
+
+        # 6: the native resolution, against ground truth built here. The scene is
+        # the only thing that knows the answer; the estimator is never told it,
+        # and never sees the kernel that enlarged its input.
+        side_m = float(PROVIDERS["es-pnoa"].default_gsd_m * 256)
+        window = centred_window(snapped, side_m)
+        check(
+            "6 centred_window: a square of the asked side, centred in the extent",
+            window == (400480.0, 4800480.0, 400544.0, 4800544.0)
+            and abs((window[2] - window[0]) - side_m) < 1e-9
+            and abs((window[3] - window[1]) - side_m) < 1e-9,
+            window,
+        )
+        check(
+            "6 centred_window clips to the extent instead of reaching outside it",
+            centred_window(snapped, side_m * 1024) == snapped,
+            centred_window(snapped, side_m * 1024),
+        )
+        check(
+            "6 the ladder doubles, so each rung's grid nests in the one before it",
+            all(
+                nxt == 2 * cur
+                for cur, nxt in zip(LADDER_PX, LADDER_PX[1:], strict=False)
+            ),
+            LADDER_PX,
+        )
+
+        truth = root / "truth"
+
+        def ladder_rows(
+            native_px: int,
+            sizes: tuple[int, ...],
+            expand: Callable[[np.ndarray, int], np.ndarray],
+            folder: Path,
+        ) -> list[dict[str, object]]:
+            """One ladder over one window, from a scene of known resolution."""
+            folder.mkdir(parents=True, exist_ok=True)
+            native = _ground_truth_scene(native_px)
+            built: list[dict[str, object]] = []
+            previous: Path | None = None
+            for size in sizes:
+                if size > native_px:
+                    plane = expand(native, size // native_px)
+                elif size < native_px:
+                    plane = _block_mean(native, native_px // size)
+                else:
+                    plane = native
+                pixels = np.clip(np.round(plane), 0, 255).astype(np.uint8)
+                path = folder / f"{size}.png"
+                _write_png(path, np.stack([pixels] * 3, axis=-1))
+                row: dict[str, object] = {
+                    "size_px": size,
+                    "gsd_m": side_m / size,
+                    "share": None,
+                    "reason": "",
+                }
+                if previous is not None:
+                    detail = unexplained_share(previous, path)
+                    row["reason"] = detail.reason
+                    if math.isfinite(detail.share):
+                        row["share"] = detail.share
+                built.append(row)
+                previous = path
+            return built
+
+        native_px = 256
+        walked_by_kernel: dict[str, list[dict[str, object]]] = {}
+        for kernel, expand in (
+            ("nearest", _expand_nearest),
+            ("bilinear", _expand_bilinear),
+        ):
+            walked = ladder_rows(native_px, LADDER_PX, expand, truth / kernel)
+            walked_by_kernel[kernel] = walked
+            found = resolution_from_ladder(walked)
+            curve = found["curve"] if isinstance(found["curve"], list) else []
+            print(
+                f"     {kernel}: "
+                + " ".join(f"{gsd:.4f}m/px {share:.4f}" for _, gsd, share in curve)
+            )
+            check(
+                f"6 a ladder enlarged by {kernel} recovers its known"
+                f" {side_m / native_px:g} m/px",
+                found["measured_gsd_m"] == side_m / native_px
+                and found["measured_px"] == native_px
+                and float(str(found["drop"])) > 2.0,
+                found,
+            )
+
+        # The floor is a constant sitting directly on top of the answer, so the
+        # answer must not depend on it: swept over an order of magnitude, the
+        # recovered figure has to stay the same one. If this ever fails, the
+        # verdict is an artefact of the constant and the notebook has to report
+        # the measurement as inconclusive rather than pick a number.
+        sweep = (0.02, 0.03, 0.04, 0.06, 0.10, 0.20)
+        recovered = {
+            kernel: {
+                resolution_from_ladder(walked, floor=level)["measured_gsd_m"]
+                for level in sweep
+            }
+            for kernel, walked in walked_by_kernel.items()
+        }
+        print(f"     floors {sweep[0]:g}–{sweep[-1]:g}: {recovered}")
+        check(
+            f"6 the verdict survives the floor, swept {sweep[0]:g} to {sweep[-1]:g}",
+            all(found == {side_m / native_px} for found in recovered.values()),
+            recovered,
+        )
+
+        never = ladder_rows(512, (128, 256, 512), _expand_bilinear, truth / "never")
+        unflattened = resolution_from_ladder(never)
+        check(
+            "6 a curve that never flattens is reported as that, not as its last rung",
+            unflattened["measured_gsd_m"] is None
+            and unflattened["bound"] == "at_least_as_fine_as"
+            and "did not reach far enough" in str(unflattened["reason"]),
+            unflattened,
+        )
+        coarser = ladder_rows(64, (128, 256, 512), _expand_bilinear, truth / "coarse")
+        bounded = resolution_from_ladder(coarser)
+        check(
+            "6 a native coarser than the whole ladder is a bound, not a figure",
+            bounded["measured_gsd_m"] is None
+            and bounded["bound"] == "no_finer_than"
+            and bounded["bound_gsd_m"] == side_m / 128,
+            bounded,
+        )
+        check(
+            "6 a ladder with nothing to compare is a reason, not a figure",
+            "nothing to compare" in str(resolution_from_ladder([])["reason"]),
+            resolution_from_ladder([]),
+        )
+
+        odd = truth / "odd"
+        odd.mkdir()
+        _write_png(odd / "odd.png", np.zeros((100, 100, 3), dtype=np.uint8) + 7)
+        off_grid = unexplained_share(odd / "odd.png", truth / "bilinear" / "256.png")
+        check(
+            "6 two rungs off the same grid are a reason, not a figure",
+            not math.isfinite(off_grid.share)
+            and "do not share a grid" in off_grid.reason,
+            off_grid,
+        )
+        _write_png(odd / "flat-64.png", np.full((64, 64, 3), 90, dtype=np.uint8))
+        _write_png(odd / "flat-128.png", np.full((128, 128, 3), 90, dtype=np.uint8))
+        featureless = unexplained_share(odd / "flat-64.png", odd / "flat-128.png")
+        check(
+            "6 a rung with no contrast is a reason, not a share of nothing",
+            not math.isfinite(featureless.share) and "contrast" in featureless.reason,
+            featureless,
         )
 
         # 9: the drawing round-trip, which is what a kernel restart rests on

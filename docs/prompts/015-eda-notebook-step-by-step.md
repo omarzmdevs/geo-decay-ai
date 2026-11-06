@@ -136,7 +136,7 @@ each step: its offline run, and the user's live run.
 
 - [x] **0 · The self-contained folder** — ACCEPTED 2026-11-04
 - [x] **1 · Section 4 · Provider capabilities** — ACCEPTED 2026-11-05
-- [ ] **2 · Sections 5 and 6 · Epoch availability and image quality**
+- [x] **2 · Sections 5 and 6 · Epoch availability and image quality** — ACCEPTED 2026-11-06
 - [ ] **3 · Section 7 · Spectral check**
 - [ ] **4 · Section 8 · Cadastral footprints**
 - [ ] **5 · Section 9 · Elevation availability**
@@ -346,12 +346,42 @@ it is used, including the tile arithmetic of the extent report.
 of those only with the amendment above. It is also the heaviest step in bytes,
 which is why it comes after step 1.
 
-**Record** — filled in when the step closes.
+**Record**
 
-- Date:
+- Date: sections 5 and 6 written 2026-11-05 and 2026-11-06; both run live by the
+  user on 2026-11-06, who committed the notebook with its outputs.
 - What the live run printed:
-- Corrections applied:
-- Verdict:
+  - **Section 5.** 9 of the 21 years return imagery over the extent, 2006 to
+    2023; the rest answer with a blank image, which is the service saying the
+    mosaic has no pixels here, not that the layer is missing. All 21 years
+    declare a resolution in prose, several per year and per region. The probe
+    asked at 5.25 × 3.50 m/px, deliberately too coarse to see anything: it only
+    asks whether there is imagery.
+  - **Section 6.** Over a 64 m window, ladder 128 → 2048 px, 37 of 45 planned
+    requests. **Six of the nine present years measure 0.25 m/px**, which
+    **confirms by measurement** the `default_gsd_m` the provider entry had been
+    assuming. 2006 could not be measured and is reported as a **bound,
+    ≥ 0.5 m/px**: it is coarser than the coarsest rung asked for. 2012 and 2015
+    gave fewer than two readable rungs, so they get a reason and no figure. A
+    building of 10 m — a declared assumption until section 8 — occupies
+    **40 × 40 px, 1600 px²**, at the worst measured value.
+  - **Section 6.1.** 12 of 21 epochs blank and 12 low-contrast at σ < 10, none
+    saturated, every threshold printed beside its flag. 2012 and 2015 carry 70 %
+    and 75 % nodata, which is why their ladders stopped.
+  - **The consequence for EXP-001.** The usable series is about **7 epochs**,
+    not 21, and at 0.25 m/px where it could be measured. That is the figure the
+    feasibility verdict rests on.
+- Corrections applied: none to the entry. One cosmetic defect is left open as a
+  finding: the table's jump column divides by a residual that is numerically
+  zero at the flattened rungs, so it prints factors of order 1e13. The verdict
+  does not use it — the floor does — but a reader sees a broken-looking number.
+- Verified by the orchestrator: the gate's six hooks, `--selftest` at 47 checks
+  including the floor-sensitivity sweep and five ways of refusing to produce a
+  figure, `--check-notebook`, and that the agent's edit left the user's own
+  committed outputs byte-identical. Not re-verified by me: the offline
+  `ABSENT:`-per-epoch path, since the agent was stopped during its final
+  confirmation and the live run exercised the real path instead.
+- Verdict: ACCEPTED
 
 ---
 
