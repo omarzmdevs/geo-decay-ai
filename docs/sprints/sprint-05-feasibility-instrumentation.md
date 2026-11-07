@@ -83,7 +83,7 @@ consequences of the sandbox shape the acceptance criteria, and are not defects:
   - [x] 0 · The self-contained folder — ACCEPTED 2026-11-04
   - [x] 1 · Section 4 · Provider capabilities — ACCEPTED 2026-11-05
   - [x] 2 · Sections 5 and 6 · Epoch availability and image quality — ACCEPTED 2026-11-06
-  - [ ] 3 · Section 7 · Spectral check
+  - [x] 3 · Section 7 · Spectral check — ACCEPTED 2026-11-06
   - [ ] 4 · Section 8 · Cadastral footprints
   - [ ] 5 · Section 9 · Elevation availability
   - [ ] 6 · Sections 10 and 11 · Example buildings and the labelling table
@@ -121,7 +121,7 @@ when the measurement exists and is recorded.
   does not.
 - 015 · The EDA notebook, one section at a time — IN PROGRESS
   ([handoff](../prompts/015-eda-notebook-step-by-step.md)); interactive, never
-  headless, one step per session. Three of its nine steps are closed:
+  headless, one step per session. Four of its nine steps are closed:
   - **Step 0 · The self-contained folder — ACCEPTED 2026-11-04.** It settles
     nothing about the services: `eda.py` and `README.md` were created inside
     `notebooks/exp-001/`, the notebook reaches its last cell offline with
@@ -152,6 +152,15 @@ when the measurement exists and is recorded.
     afterwards, and the ladder table is now written to `out/ladder.csv`, with
     figures kept out of the notebook. Figures transcribed into
     [EXP-001](../experiments/exp-001-data-feasibility.md) → Results.
+  - **Step 3 · Section 7 · Spectral check — ACCEPTED 2026-11-06.** **No
+    advertised layer mentions infrared**: 56 layers across four services, ten
+    terms, zero candidates. The 2023 image at 2048 px from the user's own run has
+    **three colour bands plus alpha**, so there is no near infrared. The
+    consequence is bounded: no NDVI by this route, and vegetation from RGB
+    surrogates; a false-colour PNOA orthophoto declared at 15 to 25 cm exists but
+    is not served over WMS or WFS. Section 7 closes with **four declared
+    products** and **seven unknowns** (`PENDIENTE`), none verified and none
+    reachable over OGC, tracked as EDA-DOWNLOADS in `next_tasks.md`.
 
 ## Notes
 
@@ -202,11 +211,11 @@ endpoint is added, which is EDA-ELEV.
 - [sprint-05 log](sprint-05-feasibility-instrumentation.md) — created by the orchestrator at sprint start; tasks and handoffs recorded by the documenter.
 - [013 · EDA helper module and provider configuration](../prompts/013-eda-toolkit-and-provider-config.md) — handoff with Run Record and Verification (ACCEPTED 2026-11-04).
 - [014 · The exploratory analysis notebook](../prompts/014-eda-notebook.md) — handoff with Run Record and Verification (ACCEPTED 2026-11-04); deliverable discarded by the user the same day.
-- [015 · The EDA notebook, one section at a time](../prompts/015-eda-notebook-step-by-step.md) — handoff written by the orchestrator on 2026-11-04; step-by-step, with its checkboxes and records inside it. Records of step 0 (ACCEPTED 2026-11-04), step 1 (ACCEPTED 2026-11-05) and step 2 (ACCEPTED 2026-11-06) filled in by the orchestrator.
+- [015 · The EDA notebook, one section at a time](../prompts/015-eda-notebook-step-by-step.md) — handoff written by the orchestrator on 2026-11-04; step-by-step, with its checkboxes and records inside it. Records of step 0 (ACCEPTED 2026-11-04), step 1 (ACCEPTED 2026-11-05), step 2 and step 3 (both ACCEPTED 2026-11-06) filled in by the orchestrator.
 - [prompts index](../prompts/README.md) — handoffs 013 and 014 listed; further edits uncommitted in the working tree.
 - [next_tasks.md](../next_tasks.md) — orchestrator edits: active slice updated and debt entries EDA-GSD and SANDBOX-SYNC added; the 014 → 015 supersession and the extent no longer blocking added 2026-11-05 (uncommitted). Bounding-box blocker marked resolved by the documenter.
-- [EXP-001](../experiments/exp-001-data-feasibility.md) — orchestrator edits to Reproduction and Portability Constraints from handoff 013 (uncommitted); status, Configuration and Results updated by the documenter from the step 0, step 1 and step 2 records of handoff 015.
-- [current_state.md](../current_state.md) — updated by the documenter for handoff 013, then for handoff 015 steps 0, 1 and 2.
+- [EXP-001](../experiments/exp-001-data-feasibility.md) — orchestrator edits to Reproduction and Portability Constraints from handoff 013 (uncommitted); status, Configuration and Results updated by the documenter from the step 0, step 1, step 2 and step 3 records of handoff 015.
+- [current_state.md](../current_state.md) — updated by the documenter for handoff 013, then for handoff 015 steps 0, 1, 2 and 3.
 - [notebooks/exp-001/README.md](../../notebooks/exp-001/README.md) — created by the developer in step 0 of handoff 015; states what the experiment measures, how to run it and which outputs are versioned. Finished in step 8.
 - `docs/tfm/informe_01_muestra_datos_y_viabilidad.md` — thesis-side report for the supervisor, written 2026-11-05; untracked and pending the user's commit. `docs/tfm/**` is protected, so no agent reads or edits it.
 

@@ -318,23 +318,35 @@ methodology step 6, and the time it takes, are the user's work.
 
 ### Indicator viability
 
-**Not judged yet** — step 3 (section 7) and step 7 (section 12) of handoff 015.
-One input arrived early from the capabilities step: with no NIR band and no
-infrared composite among the 56 layers, step 3's answer is already known, and
-section 7 still has to state it and its consequence in the notebook — handoff
-015 names that consequence as NDVI being off the table, with every vegetation
-variable coming from RGB surrogates.
+**Spectral reach measured; the verdict per indicator is not judged yet** (step 7,
+section 12). Handoff 015, step 3, ACCEPTED 2026-11-06.
+
+- **No near infrared is served.** None of the 56 advertised layers across the
+  four services mentions infrared (ten terms searched in name, title and
+  abstract, zero candidates), and the 2023 image at 2048 px has three colour
+  bands plus alpha.
+- **Consequence, bounded.** By this route there is no NDVI, and per-building
+  vegetation has to come from RGB surrogates, which confuse plants with green
+  roofing and shaded ground. Near infrared at building scale does exist in
+  Spain, as a false-colour PNOA orthophoto declared at 15 to 25 cm, but not
+  through the WMS and WFS services this instrument uses.
+- **Four products are declared and unverified** (false-colour orthophoto, NDVI,
+  NDWI, Landsat historical mosaics), with seven unknowns. They are catalogue
+  claims with no request behind them; none is reachable over OGC. Tracked as
+  EDA-DOWNLOADS in [next_tasks.md](../next_tasks.md).
 
 ### What is still unanswered
 
-Of the four questions in the Objective, after two steps:
+Of the four questions in the Objective, after three steps:
 
 1. **PNOA resolution and years** — **answered**. 9 of the 21 advertised years
    cover the extent (2006–2023), at a measured 0.25 m/px in six of them, with
    2006 a bound and 2012 and 2015 unmeasurable; about 7 usable epochs.
 2. **Elevation products** — **unanswered, and without an instrument.** EDA-ELEV.
-3. **Which indicators are computable** — **unanswered**, except that NIR-based
-   ones are not. Steps 3 and 7.
+3. **Which indicators are computable** — **partly answered**. The spectral reach
+   is settled (no NIR by this route). What remains is which RGB surrogates
+   separate an abandoned building from a kept one, which needs the example
+   buildings of sections 10 and 11 (step 6), then step 7.
 4. **Manual labelling viability and cadastral weak labels** — **unanswered**.
    The cadastre's condition and age attributes have not been seen yet (step 4),
    and the manual pass has not been run.
