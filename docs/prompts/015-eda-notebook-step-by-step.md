@@ -137,7 +137,7 @@ each step: its offline run, and the user's live run.
 - [x] **0 · The self-contained folder** — ACCEPTED 2026-11-04
 - [x] **1 · Section 4 · Provider capabilities** — ACCEPTED 2026-11-05
 - [x] **2 · Sections 5 and 6 · Epoch availability and image quality** — ACCEPTED 2026-11-06
-- [ ] **3 · Section 7 · Spectral check**
+- [x] **3 · Section 7 · Spectral check** — ACCEPTED 2026-11-06
 - [ ] **4 · Section 8 · Cadastral footprints**
 - [ ] **5 · Section 9 · Elevation availability**
 - [ ] **6 · Sections 10 and 11 · Example buildings and the labelling table**
@@ -397,12 +397,49 @@ shaded ground. That consequence is written in the notebook, not left implied.
 
 **Settles.** Part of EXP-001 question 3 — which indicators are computable.
 
-**Record** — filled in when the step closes.
+**Record**
 
-- Date:
-- What the live run printed:
-- Corrections applied:
-- Verdict:
+- Date: written and verified 2026-11-06.
+- What was measured, and it needed no network because the bytes were already on
+  disk from the step 2 run:
+  - **No advertised layer mentions infrared.** 56 layers across the four
+    services, searched in name, title and abstract against ten terms (`nir`,
+    `irc`, `cir`, `infrar`, `falso color`, `false colour`, `ndvi`, `ndwi`,
+    `espectral`): zero candidates.
+  - **Three colour bands plus alpha**, counted on the 2023 image at 2048 px that
+    the user's own run fetched. A catalogue can only suggest what a layer
+    returns; counting the bands settles it. **There is no near infrared.**
+- The consequence, written in the notebook rather than implied, and deliberately
+  **bounded**: by this route there is no NDVI, and per-building vegetation has to
+  come from RGB surrogates, which confuse plants with green roofing and shaded
+  ground. Bounded, because near infrared at building scale does exist in Spain —
+  a false-colour PNOA orthophoto at 15 to 25 cm — just not through the services
+  this instrument speaks to. Saying "no NIR exists" would have been false.
+- Beyond the step's criterion, on the user's instruction: section 7 closes with a
+  table of **four declared products** (the false-colour orthophoto, NDVI, NDWI
+  and the Landsat historical mosaics) carrying their declared resolution, their
+  pixels per building and **seven unknowns printed as `PENDIENTE` lines**. They
+  are catalogue claims read on 2026-11-06, with no request behind them and no
+  endpoint recorded: an address nothing has answered is a guess, and guesses stay
+  out of `PROVIDERS`. One of the four is at building scale; none is served over
+  OGC. Tracked as EDA-DOWNLOADS, which also names the unverified STAC
+  candidates and says which of the three questions is cheapest to settle first.
+- Corrections applied: the consequence was first written as an unbounded claim
+  and was narrowed once the false-colour product came to light. Three defects
+  were caught by a synthetic smoke test before the section ever ran: with no
+  image on disk it reported "more than three bands" instead of "not measured",
+  it asserted NDVI ruled out with no evidence behind it, and an English cadence
+  string leaked into Spanish prose.
+- Compaction, also on the user's instruction: two overlapping panels became one
+  product table plus one rule panel, `IndexProduct` became `DeclaredProduct`
+  (it now holds an orthophoto, not only indices, and carries its own unknowns),
+  and **53 lines of dead code went** — `EpochRequest` and `read_epoch_request`,
+  the URL-parsing inverse written for a design abandoned in favour of
+  `out/ladder.csv`, plus the two imports they alone used.
+- Gate: six hooks pass, `--selftest` 47 checks, `--check-notebook` exits 0,
+  markdown 169 words. Both branches of the section — catalogues present and a
+  cold kernel with nothing on disk — were exercised offline.
+- Verdict: ACCEPTED
 
 ---
 
