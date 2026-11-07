@@ -43,7 +43,6 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from urllib.parse import parse_qs, urlsplit
 from xml.etree import ElementTree
 
 import numpy as np
@@ -379,59 +378,6 @@ def _wms_params(
         WMS_SIZE_PARAMS[1]: str(size[1]),
     }
     return provider.endpoints[service], params
-
-
-@dataclass(frozen=True)
-class EpochRequest:
-    """What one recorded epoch map request asked for, read back from its URL.
-
-    ``window`` is ordered with ``x`` first whatever order the request grammar
-    wrote it in, so it compares directly with the bboxes the module works with.
-    """
-
-    year: int
-    size_px: int
-    window: Bbox
-    crs: str
-
-
-def read_epoch_request(provider: Provider, url: str) -> EpochRequest | None:
-    """Read a logged URL back into the epoch request it recorded, or ``None``.
-
-    The inverse of ``_wms_params`` for the epoch layers: the layer name carries
-    the year through ``epoch_layer_pattern``, and the size and bbox parameters
-    carry what was asked of it. A manifest row is therefore enough to redraw
-    what an earlier run fetched without asking for it again. ``None`` is the
-    answer for every row that is not an epoch ``GetMap`` of ``provider``, which
-    is how a manifest holding other requests is filtered.
-
-    The URL is data read from a file: nothing in it is resolved or fetched.
-    """
-    params = {
-        key.upper(): values[-1]
-        for key, values in parse_qs(urlsplit(url).query).items()
-        if values
-    }
-    if params.get("REQUEST", "").lower() != "getmap":
-        return None
-    head, _, tail = provider.epoch_layer_pattern.partition("{year}")
-    year = re.fullmatch(
-        rf"{re.escape(head)}(\d+){re.escape(tail)}", params.get("LAYERS", "")
-    )
-    size = params.get(WMS_SIZE_PARAMS[0], "")
-    crs = params.get("CRS") or params.get("SRS") or ""
-    corners = params.get("BBOX", "").split(",")
-    if year is None or not size.isdigit() or len(corners) != 4:
-        return None
-    try:
-        first, second, third, fourth = (float(corner) for corner in corners)
-        swapped = bool(crs) and _axis_swapped(crs, provider.wms_version)
-    except Exception:  # an unreadable number or CRS is not a usable row
-        return None
-    window: Bbox = (
-        (second, first, fourth, third) if swapped else (first, second, third, fourth)
-    )
-    return EpochRequest(int(year.group(1)), int(size), window, crs)
 
 
 def wms_capabilities(provider: Provider, service: str, out_dir: Path) -> Fetch:
@@ -778,6 +724,162 @@ def write_summary(rows: list[dict[str, object]], out_dir: Path) -> Path:
         writer.writeheader()
         writer.writerows(rows)
     return path
+
+
+# --------------------------------------------------------------------------
+# Spectral reach: what bands arrive, and what indices exist elsewhere
+# --------------------------------------------------------------------------
+
+# Generic remote-sensing vocabulary, not one provider's layer names: a service
+# that renders a false-colour composite almost always says so in a layer name,
+# title or abstract. Both spellings and both languages are here on purpose.
+SPECTRAL_TOKENS: tuple[str, ...] = (
+    "nir",
+    "irc",
+    "cir",
+    "infrar",
+    "falso color",
+    "false colour",
+    "false color",
+    "ndvi",
+    "ndwi",
+    "espectral",
+)
+
+
+def spectral_candidates(caps: Capabilities) -> tuple[tuple[str, str], ...]:
+    """Layers whose name, title or abstract mentions infrared or an index.
+
+    Returns ``(layer, the token that matched)`` pairs. A match is a
+    **candidate**, never a confirmation: which bands a layer really returns is
+    only knowable from a rendered image, which is why the section that calls
+    this also counts the bands the service actually sent.
+    """
+    found: list[tuple[str, str]] = []
+    for name in caps.layers:
+        haystack = " ".join(
+            (name, caps.titles.get(name, ""), caps.abstracts.get(name, ""))
+        ).lower()
+        hit = next((token for token in SPECTRAL_TOKENS if token in haystack), "")
+        if hit:
+            found.append((name, hit))
+    return tuple(found)
+
+
+def colour_bands(path: Path) -> tuple[int, bool]:
+    """``(colour bands, carries alpha)`` for one image the service returned.
+
+    Three colour bands mean red, green and blue and nothing else: no
+    near-infrared arrived, whatever a catalogue advertises. Measured from bytes
+    the service actually sent, so it settles what a capabilities document can
+    only suggest.
+    """
+    pixels, alpha = _read_image(path)
+    return pixels.shape[0] - (1 if alpha is not None else 0), alpha is not None
+
+
+@dataclass(frozen=True)
+class DeclaredProduct:
+    """A dataset a catalogue says it distributes, with no request behind it.
+
+    Every field is that catalogue's own claim, read on ``declared_on`` and
+    **not verified here**: no row in ``manifest.csv`` backs any of it, and
+    nothing was fetched. Its purpose is to let a section say what else exists
+    without pretending to have measured it.
+
+    Two deliberate design choices. There is **no endpoint field**: an address
+    nothing has answered is a guess, and guesses do not belong beside the
+    verified endpoints in ``PROVIDERS``. And ``unknowns`` travels with the
+    claim, so what would have to be true before the product could be used is
+    read in the same row as the promise, not in prose somewhere else.
+
+    ``gsd_m`` is a range, ``(finest, coarsest)``, because a catalogue often
+    declares a span rather than a figure; both ends are equal when it declares
+    one. What a product can support follows from that range and nothing else:
+    divide the size of the thing to be seen by it.
+    """
+
+    label: str
+    source: str
+    bands: str
+    gsd_m: tuple[float, float]
+    years: str
+    cadence: str
+    file_format: str
+    access: str
+    unknowns: tuple[str, ...]
+    declared_on: str
+
+
+# Read from the national catalogue's own product pages on the dates below.
+# Nothing here has been requested, so nothing here is a measurement.
+DECLARED_PRODUCTS: dict[str, tuple[DeclaredProduct, ...]] = {
+    "es-pnoa": (
+        DeclaredProduct(
+            label="PNOA false-colour infrared orthophoto",
+            source="PNOA aerial cameras",
+            bands="NIR-R-G composite",
+            gsd_m=(0.15, 0.25),
+            years="annual, latest declared 2024",
+            cadence="annual, national coverage",
+            file_format="COG, cut into MTN25 sheets",
+            access="download catalogue; no OGC service found",
+            unknowns=(
+                "whether this extent falls in a lot, and at which of the "
+                "declared resolutions",
+                "which band of the delivered file carries the near infrared",
+                "whether a stable direct URL allows reading one bounding box by "
+                "HTTP range instead of a whole sheet",
+            ),
+            declared_on="2026-11-06",
+        ),
+        DeclaredProduct(
+            label="NDVI",
+            source="Sentinel-2 L2A (Copernicus), cloud-corrected",
+            bands="index, from red and near infrared",
+            gsd_m=(10.0, 10.0),
+            years="2018-2025",
+            cadence="bimonthly, one mosaic per autonomous community",
+            file_format="COG",
+            access="download catalogue; no OGC service advertised",
+            unknowns=(
+                "whether one bounding box can be read without the whole "
+                "community mosaic",
+            ),
+            declared_on="2026-11-06",
+        ),
+        DeclaredProduct(
+            label="NDWI",
+            source="Sentinel-2 L2A (Copernicus), cloud-corrected",
+            bands="index, from green and near infrared",
+            gsd_m=(10.0, 10.0),
+            years="2018-2025",
+            cadence="semiannual, one winter and one summer mosaic",
+            file_format="COG",
+            access="download catalogue; no OGC service advertised",
+            unknowns=(
+                "whether one bounding box can be read without the whole "
+                "community mosaic",
+            ),
+            declared_on="2026-11-06",
+        ),
+        DeclaredProduct(
+            label="Landsat historical mosaics",
+            source="Landsat 5 and 8",
+            bands="natural colour and false-colour infrared",
+            gsd_m=(15.0, 30.0),
+            years="1986 onwards",
+            cadence="about one per decade",
+            file_format="not declared on the page read",
+            access="download catalogue",
+            unknowns=(
+                "which decades cover this extent",
+                "whether the false-colour composite carries a usable infrared band",
+            ),
+            declared_on="2026-11-06",
+        ),
+    ),
+}
 
 
 # --------------------------------------------------------------------------
