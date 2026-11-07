@@ -219,6 +219,29 @@ Tracked findings from the project review, deferred with their identifiers:
   the point cloud as *available*. Probing downloads needs either a `downloads`
   field on `Provider` or a change to section 9, neither of which is authorised
   yet. Until then EXP-001 question 2 is answerable only in part.
+- [ ] **EDA-DOWNLOADS · Three datasets are blocked on the same missing route** —
+  the instrument speaks WMS and WFS, and the three datasets that would answer
+  open questions are none of those: the **lidar** that EXP-001 question 2 needs
+  (EDA-ELEV), the **Sentinel index products**, and the **PNOA false-colour
+  infrared orthophoto** at 15 to 25 cm, which is the only declared route to
+  near infrared at building scale and therefore the only one that would put
+  NDVI back on the table. All three are files in a download catalogue; section 7
+  records them as declarations with their unknowns.
+  What would unlock all three at once is a second access route on `Provider`:
+  a direct URL read by **HTTP range**, which a COG supports, so one bounding box
+  can be taken out of a national sheet without downloading it. For Sentinel it
+  would also need a catalogue search by bbox and date; an external report names
+  the Copernicus Data Space STAC, the Sentinel Hub Process API (OAuth) and the
+  public STAC catalogues of AWS and Microsoft as candidates, **none of them
+  verified** — they are leads from fetched content, not endpoints, and nothing
+  enters `PROVIDERS` until a request of ours is answered and leaves a manifest
+  row.
+  **Measure this one first**: whether the catalogue's COG files have a stable
+  direct URL that honours a range request. One `HEAD` and one ranged `GET`
+  settle it, it is the cheapest of the three, and if the answer is no then whole
+  sheets are the only option and the cost of every one of these products changes
+  completely. Raised 2026-11-06 writing section 7.
+
 - [ ] **EDA-JUMP · The resolution table prints a meaningless jump factor** —
   section 6 reports, beside each measured resolution, the factor by which the
   detail residual jumps between rungs. Past the flattening point that residual
