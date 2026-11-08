@@ -13,8 +13,8 @@ Four concerns live here, each independent of any one country:
 * extent geometry: projection envelope, snapping and tiling arithmetic;
 * the drawing round-trip, so a rectangle drawn on a map is not lost when the
   kernel restarts;
-* reading what a service advertises, so the provider entry can be confirmed or
-  contradicted instead of trusted.
+* reading what a service advertises, and what its feature replies contain, so
+  the provider entry can be confirmed or contradicted instead of trusted.
 
 Every output goes under one directory, ``out/`` beside this file by convention,
 with response bodies filed by kind: ``capabilities/``, ``vectors/``,
@@ -111,13 +111,22 @@ PROVIDERS: dict[str, Provider] = {
         default_view=(40.4, -3.7, 6),
         feature_info_format="text/html",
         wfs_service="buildings_wfs",
+        # Settled in step 4 of handoff 015 against the service's own
+        # capabilities document (md5 36610fcf, in out/capabilities/): it
+        # advertises version 2.0.0, a GetFeature operation and
+        # ImplementsSpatialFilter TRUE with a BBOX operator, while its
+        # ListStoredQueries reply offers five stored queries, every one of
+        # them by parcel and none taking a bounding box. The extent query is
+        # therefore the standard GetFeature with TYPENAMES and BBOX, and each
+        # CRS is spelled as the URN the capabilities uses for it.
         wfs_params={
             "service": "wfs",
-            "version": "2",
+            "version": "2.0.0",
             "request": "getfeature",
-            "STOREDQUERIE_ID": "GetBuildingByBBOX",
-            "srsname": "EPSG::{epsg}",
-            "bbox": "{bbox}",
+            "typenames": "bu:Building",
+            "namespaces": "xmlns(bu,urn:x-inspire:specification:gmlas:Buildings:3.0)",
+            "srsname": "urn:ogc:def:crs:EPSG::{epsg}",
+            "bbox": "{bbox},urn:ogc:def:crs:EPSG::{epsg}",
         },
         attributes={
             "identifier": "localId",
@@ -880,6 +889,285 @@ DECLARED_PRODUCTS: dict[str, tuple[DeclaredProduct, ...]] = {
         ),
     ),
 }
+
+
+# --------------------------------------------------------------------------
+# Vector features: what a feature service supplies over the extent
+# --------------------------------------------------------------------------
+
+# A collection wraps its members in one of these, depending on the GML
+# version; the plural spelling holds the features directly.
+_MEMBER_TAGS = frozenset({"member", "featureMember", "featureMembers"})
+# Where coordinates sit, in the spellings GML 2 and GML 3 use.
+_POSITION_TAGS = frozenset({"posList", "pos", "coordinates"})
+# A ring inside one of these is a hole, and a hole is not a footprint.
+_INTERIOR_TAGS = frozenset({"interior", "innerBoundaryIs"})
+_UNDECLARED = -1  # a count the reply does not state: unknown, and not zero
+
+Ring = tuple[tuple[float, float], ...]
+
+
+@dataclass(frozen=True)
+class FeatureRecord:
+    """One feature of a reply: what identifies it, its fields and its rings.
+
+    ``values`` is keyed by local tag name, so a field nested inside an
+    identifier block is read under its own name and no schema has to be known
+    in advance. A field the reply carries empty is kept with an empty value:
+    a published name without a value is a different finding from no name at
+    all. ``exterior`` and ``interior`` stay apart because an area measured
+    across a courtyard is not a footprint.
+    """
+
+    fid: str
+    values: dict[str, str]
+    exterior: tuple[Ring, ...]
+    interior: tuple[Ring, ...]
+
+
+@dataclass(frozen=True)
+class FeatureSet:
+    """What one feature reply contains, read without its namespaces.
+
+    ``number_returned`` and ``number_matched`` are the reply's own counts, and
+    ``_UNDECLARED`` when it declares none. Their difference is the only way to
+    tell a complete answer from a truncated one when a service advertises no
+    result paging, which is why they are read rather than inferred from the
+    features. ``crs`` is normalised to ``EPSG:<code>`` so that a reply saying
+    ``urn:ogc:def:crs:EPSG::25830`` compares equal to the requested code,
+    while ``srs_name`` keeps the service's own spelling. ``exception`` is set
+    when the document is a service exception or could not be read, and the
+    other fields are then empty: an unreadable reply is a value with a reason,
+    never an exception.
+    """
+
+    root: str
+    type_names: tuple[str, ...]
+    features: tuple[FeatureRecord, ...]
+    number_returned: int
+    number_matched: int
+    srs_name: str
+    crs: str
+    exception: str
+
+
+def _no_features(exception: str, root: str = "") -> FeatureSet:
+    return FeatureSet(root, (), (), _UNDECLARED, _UNDECLARED, "", "", exception)
+
+
+def _declared_count(value: str | None) -> int:
+    """A reply's own count, or ``_UNDECLARED`` when it states no number."""
+    if value is None or not value.strip().isdigit():
+        return _UNDECLARED  # "unknown" is a legal value here, and it is not a count
+    return int(value)
+
+
+def _dimensions(element: ElementTree.Element) -> int:
+    """How many ordinates one position list carries per point."""
+    raw = element.get("srsDimension", "")
+    return int(raw) if raw.isdigit() and int(raw) >= 2 else 2
+
+
+def _referenced(element: ElementTree.Element) -> str:
+    """The tail of a link attribute, which is how a code list value arrives."""
+    href = next(
+        (value for key, value in element.attrib.items() if _local(key) == "href"), ""
+    )
+    return href.rstrip("/").rpartition("/")[2] if href else ""
+
+
+def _ring(text: str, dimensions: int) -> Ring:
+    """Coordinate pairs from one position list, dropping any third ordinate."""
+    try:
+        numbers = [float(token) for token in text.replace(",", " ").split()]
+    except ValueError:
+        return ()
+    step = max(dimensions, 2)
+    return tuple(
+        (numbers[index], numbers[index + 1])
+        for index in range(0, len(numbers) - step + 1, step)
+    )
+
+
+def _read_feature(element: ElementTree.Element) -> FeatureRecord:
+    """Read one feature: every field by local name, every ring by boundary."""
+    values: dict[str, str] = {}
+    exterior: list[Ring] = []
+    interior: list[Ring] = []
+
+    def walk(node: ElementTree.Element, *, hole: bool) -> None:
+        for child in node:
+            tag = _local(child.tag)
+            if tag in _POSITION_TAGS:
+                ring = _ring(child.text or "", _dimensions(child))
+                if ring:
+                    (interior if hole else exterior).append(ring)
+                continue
+            if len(child) == 0:
+                values.setdefault(tag, (child.text or "").strip() or _referenced(child))
+            walk(child, hole=hole or tag in _INTERIOR_TAGS)
+
+    walk(element, hole=False)
+    fid = next(
+        (value for key, value in element.attrib.items() if _local(key) == "id"), ""
+    )
+    return FeatureRecord(fid, values, tuple(exterior), tuple(interior))
+
+
+def read_features(path: Path | None) -> FeatureSet:
+    """Read what one feature reply contains, matching tags on their local name.
+
+    Namespaces are ignored for the same reason ``read_capabilities`` ignores
+    them: the same facts are spelled differently across GML versions, and the
+    point is to compare them against one provider entry. The document is
+    treated strictly as data — nothing in it is executed, resolved or
+    followed, and **no schema is fetched**, so every figure taken from it
+    rests only on bytes that already have their own row in the manifest.
+    """
+    if path is None or not path.is_file():
+        return _no_features("no document was saved")
+    try:
+        root = ElementTree.parse(path).getroot()
+    except (OSError, ElementTree.ParseError) as exc:
+        return _no_features(f"{type(exc).__name__}: {exc}")
+    name = _local(root.tag)
+    if "exception" in name.lower():
+        text = " ".join(part.strip() for part in root.itertext() if part.strip())
+        return _no_features(f"service exception: {text[:200]}", name)
+    members = [
+        child
+        for container in root.iter()
+        if _local(container.tag) in _MEMBER_TAGS
+        for child in container
+    ]
+    if not members:  # a collection that nests nothing: take what carries geometry
+        members = [
+            child
+            for child in root
+            if any(_local(node.tag) in _POSITION_TAGS for node in child.iter())
+        ]
+    srs_name = next(
+        (
+            element.get("srsName", "")
+            for element in root.iter()
+            if element.get("srsName")
+        ),
+        "",
+    )
+    code = _EPSG_CODE.search(srs_name)
+    return FeatureSet(
+        name,
+        tuple(dict.fromkeys(_local(member.tag) for member in members)),
+        tuple(_read_feature(member) for member in members),
+        _declared_count(root.get("numberReturned")),
+        _declared_count(root.get("numberMatched")),
+        srs_name,
+        f"EPSG:{code.group(1)}" if code else srs_name.upper(),
+        "",
+    )
+
+
+def attribute_coverage(features: Iterable[FeatureRecord]) -> dict[str, int]:
+    """How many features carry each field, by local name, commonest first."""
+    counts: dict[str, int] = {}
+    for record in features:
+        for name in record.values:
+            counts[name] = counts.get(name, 0) + 1
+    return dict(sorted(counts.items(), key=lambda item: (-item[1], item[0])))
+
+
+def value_counts(features: Iterable[FeatureRecord], field: str) -> dict[str, int]:
+    """How often each value of ``field`` occurs, commonest first.
+
+    A feature that carries the field empty counts under the empty string: the
+    name is published and the value is not, and the difference decides whether
+    an attribute can carry a label.
+    """
+    counts: dict[str, int] = {}
+    for record in features:
+        if field in record.values:
+            value = record.values[field]
+            counts[value] = counts.get(value, 0) + 1
+    return dict(sorted(counts.items(), key=lambda item: (-item[1], item[0])))
+
+
+def rings_envelope(features: Iterable[FeatureRecord]) -> Bbox | None:
+    """The bounding box of every exterior ring, or ``None`` without geometry."""
+    xs: list[float] = []
+    ys: list[float] = []
+    for record in features:
+        for ring in record.exterior:
+            xs.extend(x for x, _ in ring)
+            ys.extend(y for _, y in ring)
+    if not xs:
+        return None
+    return (min(xs), min(ys), max(xs), max(ys))
+
+
+def _overlaps(one: Bbox, other: Bbox) -> bool:
+    return (
+        one[0] <= other[2]
+        and other[0] <= one[2]
+        and one[1] <= other[3]
+        and other[1] <= one[3]
+    )
+
+
+def axis_order(
+    features: Iterable[FeatureRecord], bbox: Bbox
+) -> tuple[bool | None, str]:
+    """Whether a reply's coordinates are ordered the way the request was.
+
+    A service writes coordinates in the order its own CRS defines, which is
+    not always the order the request grammar used, and a silently swapped
+    footprint is drawn in the sea without anything looking wrong. Rather than
+    trust either grammar, this asks the geometry: whichever order falls inside
+    the extent that was requested is the order the reply uses.
+    """
+    envelope = rings_envelope(features)
+    if envelope is None:
+        return None, "the reply carries no geometry to place"
+    if _overlaps(envelope, bbox):
+        return False, "as requested: the geometry falls inside the extent"
+    swapped = (envelope[1], envelope[0], envelope[3], envelope[2])
+    if _overlaps(swapped, bbox):
+        return True, "swapped: it falls inside the extent only when read y first"
+    return None, f"neither order falls inside the extent; geometry spans {envelope}"
+
+
+def swap_axes(features: Iterable[FeatureRecord]) -> tuple[FeatureRecord, ...]:
+    """The same features with every coordinate pair reversed."""
+
+    def flip(rings: tuple[Ring, ...]) -> tuple[Ring, ...]:
+        return tuple(tuple((y, x) for x, y in ring) for ring in rings)
+
+    return tuple(
+        FeatureRecord(
+            record.fid, record.values, flip(record.exterior), flip(record.interior)
+        )
+        for record in features
+    )
+
+
+def _shoelace(ring: Ring) -> float:
+    if len(ring) < 3:
+        return 0.0
+    total = 0.0
+    for (x1, y1), (x2, y2) in zip(ring, ring[1:] + ring[:1], strict=True):
+        total += x1 * y2 - x2 * y1
+    return abs(total) / 2.0
+
+
+def footprint_area(record: FeatureRecord) -> float:
+    """Area of one footprint in squared CRS units, holes taken out.
+
+    Only a measurement when the reply is in a projected CRS, where the unit is
+    the metre; in degrees it is a number without a meaning, which is why the
+    section prints the reply's CRS beside the figure.
+    """
+    return sum(_shoelace(ring) for ring in record.exterior) - sum(
+        _shoelace(ring) for ring in record.interior
+    )
 
 
 # --------------------------------------------------------------------------
@@ -2211,6 +2499,140 @@ def _selftest() -> int:
             read_capabilities(docs / "broken.xml").abstracts == {}
             and read_capabilities(None).abstracts == {}
             and read_capabilities(exception_doc).abstracts == {},
+        )
+
+        # 8: a feature reply, read by local name with nothing schema-specific
+        vectors = root / "vectors"
+        vectors.mkdir()
+        reply = vectors / "features.gml"
+        reply.write_text(
+            '<?xml version="1.0"?>\n'
+            '<wfs:FeatureCollection xmlns:wfs="urn:test:wfs"'
+            ' xmlns:gml="urn:test:gml" xmlns:ex="urn:test:example"'
+            ' numberReturned="2" numberMatched="unknown">\n'
+            "  <wfs:member>\n"
+            '    <ex:Thing gml:id="t.1">\n'
+            "      <ex:tag><ex:Tag><ex:localName>one</ex:localName></ex:Tag></ex:tag>\n"
+            "      <ex:state>whole</ex:state>\n"
+            "      <ex:empty/>\n"
+            '      <ex:shape><gml:Surface srsName="urn:ogc:def:crs:EPSG::3042">\n'
+            "        <gml:exterior><gml:LinearRing>\n"
+            "          <gml:posList>0 0 10 0 10 10 0 10 0 0</gml:posList>\n"
+            "        </gml:LinearRing></gml:exterior>\n"
+            "        <gml:interior><gml:LinearRing>\n"
+            "          <gml:posList>2 2 4 2 4 4 2 4 2 2</gml:posList>\n"
+            "        </gml:LinearRing></gml:interior>\n"
+            "      </gml:Surface></ex:shape>\n"
+            "    </ex:Thing>\n"
+            "  </wfs:member>\n"
+            "  <wfs:member>\n"
+            '    <ex:Thing gml:id="t.2" xmlns:xlink="urn:test:xlink">\n'
+            '      <ex:state xlink:href="urn:codes/ruined"/>\n'
+            "      <ex:shape><gml:Point>\n"
+            '        <gml:pos srsDimension="3">1 1 7</gml:pos>\n'
+            "      </gml:Point></ex:shape>\n"
+            "    </ex:Thing>\n"
+            "  </wfs:member>\n"
+            "</wfs:FeatureCollection>\n",
+            encoding="utf-8",
+        )
+        parsed = read_features(reply)
+        check(
+            "8 a feature reply: one record per member, typed by local tag name",
+            (
+                len(parsed.features) == 2
+                and parsed.type_names == ("Thing",)
+                and [record.fid for record in parsed.features] == ["t.1", "t.2"]
+            ),
+            (parsed.type_names, [record.fid for record in parsed.features]),
+        )
+        first, second = parsed.features
+        check(
+            "8 a field nested inside another is read under its own name",
+            first.values.get("localName") == "one",
+            first.values,
+        )
+        check(
+            "8 a field carried empty keeps its name and has no value",
+            first.values.get("empty") == "",
+            first.values,
+        )
+        check(
+            "8 a code list arriving as a reference is read as its last segment",
+            second.values.get("state") == "ruined",
+            second.values,
+        )
+        check(
+            "8 the reply's own counts are read, and 'unknown' is undeclared",
+            (parsed.number_returned, parsed.number_matched) == (2, _UNDECLARED),
+            (parsed.number_returned, parsed.number_matched),
+        )
+        check(
+            "8 the CRS is normalised and the service's own spelling kept",
+            parsed.crs == "EPSG:3042" and parsed.srs_name.startswith("urn:"),
+            (parsed.crs, parsed.srs_name),
+        )
+        check(
+            "8 a courtyard is taken out of the footprint it sits in",
+            footprint_area(first) == 96.0,
+            footprint_area(first),
+        )
+        check(
+            "8 coverage counts the fields, and an empty value is one of them",
+            attribute_coverage(parsed.features)["state"] == 2
+            and value_counts(parsed.features, "state") == {"ruined": 1, "whole": 1}
+            and value_counts(parsed.features, "empty") == {"": 1},
+            (
+                attribute_coverage(parsed.features),
+                value_counts(parsed.features, "state"),
+            ),
+        )
+        # 8: a swapped reply is spotted by where its geometry lands, not trusted
+        elsewhere = FeatureRecord(
+            "far", {}, (((100.0, 0.0), (110.0, 0.0), (110.0, 10.0), (100.0, 0.0)),), ()
+        )
+        here = (0.0, 0.0, 10.0, 10.0)
+        there = (0.0, 100.0, 10.0, 110.0)
+        check(
+            "8 axis order is decided by where the geometry lands",
+            (
+                axis_order(parsed.features, here)[0] is False
+                and axis_order([elsewhere], there)[0] is True
+                and axis_order([elsewhere], here)[0] is None
+                and axis_order((), here)[0] is None
+            ),
+            (
+                axis_order(parsed.features, here),
+                axis_order([elsewhere], there),
+                axis_order([elsewhere], here),
+            ),
+        )
+        check(
+            "8 swapping axes reverses every pair and keeps the fields",
+            swap_axes([elsewhere])[0].exterior[0][0] == (0.0, 100.0),
+            swap_axes([elsewhere])[0].exterior[0],
+        )
+        exception_reply = vectors / "exception.xml"
+        exception_reply.write_text(
+            '<?xml version="1.0"?><ows:ExceptionReport xmlns:ows="urn:test:ows">'
+            "<ows:Exception><ows:ExceptionText>unknown parameter"
+            "</ows:ExceptionText></ows:Exception></ows:ExceptionReport>",
+            encoding="utf-8",
+        )
+        refused = read_features(exception_reply)
+        check(
+            "8 a refused query is a value with the service's reason",
+            not refused.features and "unknown parameter" in refused.exception,
+            refused.exception,
+        )
+        garbled = vectors / "garbled.xml"
+        garbled.write_text("<not xml at all", encoding="utf-8")
+        check(
+            "8 a reply that cannot be read, or was never saved, is a value too",
+            bool(read_features(garbled).exception)
+            and bool(read_features(None).exception)
+            and read_features(garbled).features == (),
+            (read_features(garbled).exception, read_features(None).exception),
         )
 
         # 1: the output layout the ignore rules depend on
