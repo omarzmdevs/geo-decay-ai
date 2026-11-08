@@ -1,0 +1,1714 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--Edificios de la D.G. del Catastro.-->
+<gml:FeatureCollection gml:id="ES.SDGC.BU"  xmlns:ad="urn:x-inspire:specification:gmlas:Addresses:3.0" xmlns:base="urn:x-inspire:specification:gmlas:BaseTypes:3.2" xmlns:bu-base="http://inspire.jrc.ec.europa.eu/schemas/bu-base/3.0" xmlns:bu-core2d="http://inspire.jrc.ec.europa.eu/schemas/bu-core2d/2.0" xmlns:bu-ext2d="http://inspire.jrc.ec.europa.eu/schemas/bu-ext2d/2.0" xmlns:cp="urn:x-inspire:specification:gmlas:CadastralParcels:3.0" xmlns:el-bas="http://inspire.jrc.ec.europa.eu/schemas/el-bas/2.0" xmlns:el-cov="http://inspire.jrc.ec.europa.eu/schemas/el-cov/2.0" xmlns:el-tin="http://inspire.jrc.ec.europa.eu/schemas/el-tin/2.0" xmlns:el-vec="http://inspire.jrc.ec.europa.eu/schemas/el-vec/2.0" xmlns:gco="http://www.isotc211.org/2005/gco" xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:gn="urn:x-inspire:specification:gmlas:GeographicalNames:3.0" xmlns:gsr="http://www.isotc211.org/2005/gsr" xmlns:gss="http://www.isotc211.org/2005/gss" xmlns:gts="http://www.isotc211.org/2005/gts" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:xlink="http://www.w3.org/1999/xlink"  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://inspire.jrc.ec.europa.eu/schemas/bu-ext2d/2.0 http://inspire.ec.europa.eu/draft-schemas/bu-ext2d/2.0/BuildingExtended2D.xsd">
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9135702VK6893S_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469097.5185 4483264.1395</gml:lowerCorner>
+         <gml:upperCorner>469109.3085 4483279.27</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2008-03-11T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9135702VK6893S_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9135702VK6893S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9135702VK6893S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9135702VK6893S_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 469109.31 4483266.96 469103.71 4483264.14 469097.52 4483276.45 469103.15 4483279.27 469109.31 4483266.96</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9232201VK6893S_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469103.38 4483038.62</gml:lowerCorner>
+         <gml:upperCorner>469117.7 4483056.39</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2021-05-18T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9232201VK6893S_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9232201VK6893S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9232201VK6893S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9232201VK6893S_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 469110.49 4483038.62 469103.38 4483052.76 469110.59 4483056.39 469117.7 4483042.25 469110.49 4483038.62</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9232501VK6893S_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469173.547 4483074.1565</gml:lowerCorner>
+         <gml:upperCorner>469187.897 4483091.997</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2020-03-04T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9232501VK6893S_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9232501VK6893S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9232501VK6893S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9232501VK6893S_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 469187.9 4483077.78 469180.77 4483074.16 469173.55 4483088.38 469180.68 4483092 469187.9 4483077.78</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9235669VK6893N_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469147.1 4483332.32</gml:lowerCorner>
+         <gml:upperCorner>469159.2 4483341.79</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2017-06-23T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9235669VK6893N_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9235669VK6893N&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9235669VK6893N&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9235669VK6893N_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="21"> 469149.67 4483332.32 469147.1 4483337.49 469155.77 4483341.79 469156.14 4483341.04 469156.53 4483341.24 469156.96 4483341.35 469157.4 4483341.36 469157.83 4483341.27 469158.23 4483341.1 469158.59 4483340.83 469158.87 4483340.5 469159.08 4483340.11 469159.19 4483339.68 469159.2 4483339.24 469159.12 4483338.81 469158.95 4483338.41 469158.69 4483338.05 469158.35 4483337.76 469157.97 4483337.56 469158.39 4483336.64 469149.67 4483332.32</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9236252VK6893N_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469147.93 4483407.62</gml:lowerCorner>
+         <gml:upperCorner>469153.07 4483411.88</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2017-06-23T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9236252VK6893N_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9236252VK6893N&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9236252VK6893N&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9236252VK6893N_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 469151.95 4483411.88 469153.07 4483409.64 469149.05 4483407.62 469147.93 4483409.86 469151.95 4483411.88</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9238801VK6893N_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469116.48 4483545.06</gml:lowerCorner>
+         <gml:upperCorner>469120.95 4483550.65</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2017-06-23T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9238801VK6893N_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9238801VK6893N&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9238801VK6893N&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9238801VK6893N_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 469118.71 4483545.06 469116.48 4483549.53 469118.71 4483550.65 469120.95 4483546.18 469118.71 4483545.06</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9238817VK6893N_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469112.87 4483551.18</gml:lowerCorner>
+         <gml:upperCorner>469117.58 4483557.22</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2017-06-23T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9238817VK6893N_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9238817VK6893N&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9238817VK6893N&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9238817VK6893N_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 469115.36 4483551.18 469112.87 4483556.08 469115.1 4483557.22 469117.58 4483552.31 469115.36 4483551.18</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9238845VK6893N_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469201.35 4483694.89</gml:lowerCorner>
+         <gml:upperCorner>469205.38 4483700.32</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2017-06-23T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9238845VK6893N_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9238845VK6893N&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9238845VK6893N&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9238845VK6893N_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="27"> 469203.37 4483700.32 469203.99 4483700.22 469204.56 4483699.93 469205.01 4483699.48 469205.29 4483698.92 469205.38 4483698.29 469205.28 4483697.66 469204.98 4483697.1 469204.53 4483696.65 469203.96 4483696.38 469203.94 4483695.38 469203.87 4483695.11 469203.63 4483694.91 469203.31 4483694.89 469203.05 4483695.06 469202.94 4483695.36 469202.92 4483696.36 469202.7 4483696.4 469202.14 4483696.7 469201.7 4483697.16 469201.43 4483697.73 469201.35 4483698.36 469201.46 4483698.99 469201.77 4483699.54 469202.24 4483699.98 469202.81 4483700.25 469203.37 4483700.32</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9238846VK6893N_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469196.26 4483677.37</gml:lowerCorner>
+         <gml:upperCorner>469199.94 4483681.04</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2017-06-23T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9238846VK6893N_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9238846VK6893N&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9238846VK6893N&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9238846VK6893N_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="21"> 469199 4483677.59 469198.43 4483677.38 469197.82 4483677.37 469197.25 4483677.56 469196.76 4483677.92 469196.42 4483678.43 469196.26 4483679.01 469196.3 4483679.62 469196.54 4483680.18 469196.94 4483680.63 469197.19 4483680.81 469197.47 4483680.93 469198.07 4483681.04 469198.67 4483680.95 469199.21 4483680.67 469199.63 4483680.23 469199.88 4483679.68 469199.94 4483679.08 469199.8 4483678.49 469199.48 4483677.97 469199 4483677.59</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9333113VK6893N_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469181.9775 4483129.637</gml:lowerCorner>
+         <gml:upperCorner>469188.1775 4483134.277</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2008-09-17T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9333113VK6893N_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9333113VK6893N&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9333113VK6893N&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9333113VK6893N_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="31"> 469182.1 4483130.17 469182.03 4483130.32 469181.98 4483130.54 469181.98 4483130.8 469182.04 4483131.07 469182.27 4483131.53 469182.58 4483131.97 469182.92 4483132.34 469183.3 4483132.66 469183.63 4483132.87 469185.99 4483133.95 469186.77 4483134.26 469187.1 4483134.28 469187.47 4483134.15 469187.79 4483133.92 469188.02 4483133.62 469188.13 4483133.35 469188.17 4483133.16 469188.18 4483132.97 469188.14 4483132.68 469188 4483132.32 469187.89 4483132.16 469187.73 4483132.01 469187.47 4483131.85 469184.8 4483130.48 469183.83 4483130 469183.01 4483129.64 469182.79 4483129.65 469182.49 4483129.77 469182.29 4483129.94 469182.1 4483130.17</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9333715VK6893S_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469222.68 4483150.52</gml:lowerCorner>
+         <gml:upperCorner>469228.34 4483154.48</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2017-06-23T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9333715VK6893S_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9333715VK6893S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9333715VK6893S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9333715VK6893S_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="18"> 469222.79 4483151.38 469222.68 4483151.97 469223.52 4483152.71 469224.67 4483153.48 469225.93 4483154.04 469227.26 4483154.42 469227.58 4483154.48 469228 4483154.14 469228.26 4483153.67 469228.34 4483153.14 469228.33 4483153.01 469228.06 4483152.76 469226.98 4483151.92 469225.79 4483151.24 469224.5 4483150.76 469223.42 4483150.52 469223.09 4483150.85 469222.79 4483151.38</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9333731VK6893S_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469265.0675 4483062.115</gml:lowerCorner>
+         <gml:upperCorner>469270.5675 4483067.575</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2007-12-07T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9333731VK6893S_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9333731VK6893S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9333731VK6893S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9333731VK6893S_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="23"> 469267.66 4483067.58 469268.3 4483067.55 469268.87 4483067.38 469269.5 4483067.01 469269.71 4483066.83 469270.11 4483066.35 469270.5 4483065.44 469270.57 4483064.73 469270.48 4483064.14 469270.14 4483063.37 469269.59 4483062.73 469268.96 4483062.34 469268.43 4483062.16 469267.39 4483062.12 469266.37 4483062.5 469265.77 4483063 469265.33 4483063.67 469265.07 4483064.74 469265.22 4483065.74 469265.72 4483066.62 469266.26 4483067.1 469266.81 4483067.4 469267.66 4483067.58</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9333731VK6893S_PI.2">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469270.688 4483063.855</gml:lowerCorner>
+         <gml:upperCorner>469287.328 4483077.615</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2007-12-07T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9333731VK6893S_PI.2</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9333731VK6893S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9333731VK6893S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9333731VK6893S_PI.2" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="7"> 469283.7 4483077.62 469283.91 4483077.22 469287.33 4483070.49 469274.32 4483063.86 469270.69 4483070.99 469281.47 4483076.48 469283.7 4483077.62</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9334201VK6893S_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469200.959 4483216.1175</gml:lowerCorner>
+         <gml:upperCorner>469212.549 4483229.9175</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2006-07-06T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9334201VK6893S_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9334201VK6893S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9334201VK6893S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9334201VK6893S_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="21"> 469206.34 4483216.12 469205.89 4483217.01 469205.71 4483216.93 469205.36 4483217.62 469205.54 4483217.71 469201.77 4483225.18 469201.6 4483225.1 469201.25 4483225.79 469201.42 4483225.87 469200.96 4483226.79 469207.16 4483229.92 469207.62 4483229.01 469207.79 4483229.1 469208.15 4483228.4 469207.97 4483228.31 469211.75 4483220.84 469211.9 4483220.92 469212.25 4483220.23 469212.1 4483220.15 469212.55 4483219.26 469206.34 4483216.12</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9336413VK6893N_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469250.522909887 4483437.86311413</gml:lowerCorner>
+         <gml:upperCorner>469255.852909887 4483440.96311413</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2022-12-12T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9336413VK6893N_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9336413VK6893N&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9336413VK6893N&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9336413VK6893N_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 469250.52 4483439.02 469250.98 4483440.96 469255.85 4483439.81 469255.38 4483437.86 469250.52 4483439.02</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9338730VK6893N_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469252.67 4483560.39</gml:lowerCorner>
+         <gml:upperCorner>469255.23 4483563.38</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2017-06-23T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9338730VK6893N_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9338730VK6893N&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9338730VK6893N&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9338730VK6893N_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 469255.23 4483562.92 469254.62 4483560.39 469252.67 4483560.86 469253.28 4483563.38 469255.23 4483562.92</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9338801VK6893N_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469236.3625 4483562.0005</gml:lowerCorner>
+         <gml:upperCorner>469240.283 4483568.5305</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2008-02-12T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9338801VK6893N_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9338801VK6893N&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9338801VK6893N&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9338801VK6893N_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="15"> 469236.77 4483562.27 469236.6 4483562.43 469236.46 4483562.62 469236.38 4483562.84 469236.36 4483563.07 469236.39 4483563.31 469237.65 4483568.53 469240.28 4483567.9 469239.04 4483562.74 469238.96 4483562.51 469238.81 4483562.3 469238.62 4483562.14 469238.39 4483562.04 469238.14 4483562 469236.77 4483562.27</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9338803VK6893N_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469213.9 4483576.39</gml:lowerCorner>
+         <gml:upperCorner>469220.06 4483579.98</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2017-06-23T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9338803VK6893N_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9338803VK6893N&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9338803VK6893N&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9338803VK6893N_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="13"> 469213.9 4483578.78 469214.01 4483579.21 469214.3 4483579.56 469214.7 4483579.74 469215.14 4483579.74 469215.19 4483579.98 469220.06 4483578.82 469219.48 4483576.39 469214.62 4483577.55 469214.67 4483577.79 469214.27 4483577.99 469214 4483578.34 469213.9 4483578.78</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9339806VK6893N_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469252.76 4483723.92</gml:lowerCorner>
+         <gml:upperCorner>469258.47 4483727.36</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2017-06-23T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9339806VK6893N_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9339806VK6893N&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9339806VK6893N&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9339806VK6893N_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="28"> 469258.47 4483726.86 469258.3 4483724.57 469258.12 4483724.22 469257.79 4483724 469257.37 4483723.97 469253.54 4483723.92 469253.14 4483724.14 469252.86 4483724.51 469252.76 4483724.96 469252.87 4483725.41 469253.15 4483725.78 469253.43 4483725.92 469253.75 4483725.96 469254.04 4483725.8 469254.3 4483725.79 469254.51 4483725.96 469254.73 4483726.26 469255.14 4483726.49 469255.61 4483726.52 469256.06 4483726.35 469256.13 4483726.36 469256.4 4483726.51 469256.52 4483726.8 469256.9 4483727.19 469257.35 4483727.36 469257.83 4483727.34 469258.26 4483727.12 469258.47 4483726.86</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9339807VK6893N_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469267.64 4483725.94</gml:lowerCorner>
+         <gml:upperCorner>469273.04 4483731.61</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2017-06-23T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9339807VK6893N_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9339807VK6893N&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9339807VK6893N&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9339807VK6893N_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="19"> 469271.4 4483725.94 469270.66 4483726.64 469270.75 4483727.4 469267.98 4483729.11 469267.88 4483729.22 469267.66 4483729.73 469267.64 4483730.28 469267.82 4483730.81 469268.17 4483731.24 469268.65 4483731.52 469269.2 4483731.61 469269.74 4483731.5 469272.7 4483729.01 469272.9 4483728.73 469273.02 4483728.4 469273.04 4483728.05 469272.96 4483727.71 469272.79 4483727.4 469271.4 4483725.94</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9431801VK6893S_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469342.7965 4482913.3125</gml:lowerCorner>
+         <gml:upperCorner>469353.1665 4482926.2325</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2008-02-25T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9431801VK6893S_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9431801VK6893S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9431801VK6893S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9431801VK6893S_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 469348.03 4482913.31 469342.8 4482923.62 469347.95 4482926.23 469353.17 4482915.92 469348.03 4482913.31</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9431803VK6893S_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469285.0455 4482884.883</gml:lowerCorner>
+         <gml:upperCorner>469298.366 4482895.463</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2008-02-25T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9431803VK6893S_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9431803VK6893S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9431803VK6893S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9431803VK6893S_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 469287.67 4482884.88 469285.05 4482890.07 469295.74 4482895.46 469298.37 4482890.25 469287.67 4482884.88</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9432923VK6893S_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469323.128 4483026.8045</gml:lowerCorner>
+         <gml:upperCorner>469327.3835 4483031.948</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2021-10-19T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9432923VK6893S_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9432923VK6893S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9432923VK6893S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9432923VK6893S_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 469323.13 4483030.83 469325.36 4483031.95 469327.38 4483027.93 469325.15 4483026.8 469323.13 4483030.83</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9432924VK6893S_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469312.39 4483018.83</gml:lowerCorner>
+         <gml:upperCorner>469317.77 4483025.85</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2017-06-23T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9432924VK6893S_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9432924VK6893S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9432924VK6893S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9432924VK6893S_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="13"> 469315.09 4483018.83 469312.39 4483024.2 469312.83 4483024.43 469312.73 4483024.86 469312.82 4483025.3 469313.1 4483025.65 469313.5 4483025.85 469313.95 4483025.85 469314.35 4483025.65 469314.62 4483025.32 469315.07 4483025.54 469317.77 4483020.18 469315.09 4483018.83</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9432939VK6893S_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469360.2885 4483040.1835</gml:lowerCorner>
+         <gml:upperCorner>469370.5585 4483046.203</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2008-02-25T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9432939VK6893S_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9432939VK6893S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9432939VK6893S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9432939VK6893S_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 469370.56 4483041.58 469360.96 4483040.18 469360.29 4483044.8 469369.88 4483046.2 469370.56 4483041.58</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9433401VK6893S_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469334.46 4483162.715</gml:lowerCorner>
+         <gml:upperCorner>469345.74 4483176.285</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2007-12-07T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9433401VK6893S_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9433401VK6893S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9433401VK6893S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9433401VK6893S_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 469340.52 4483176.29 469345.74 4483165.69 469339.68 4483162.72 469334.46 4483173.31 469340.52 4483176.29</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9434201VK6893S_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469293.179843579 4483232.71451012</gml:lowerCorner>
+         <gml:upperCorner>469300.779845774 4483237.65450693</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2022-12-12T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9434201VK6893S_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9434201VK6893S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9434201VK6893S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9434201VK6893S_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="45"> 469293.25 4483235.47 469293.19 4483235.74 469293.18 4483236.01 469293.22 4483236.28 469293.3 4483236.55 469293.42 4483236.79 469293.59 4483237 469293.79 4483237.18 469294.02 4483237.33 469294.14 4483237.39 469294.62 4483237.52 469295.11 4483237.61 469295.61 4483237.65 469296.1 4483237.65 469296.95 4483237.55 469297.56 4483237.4 469298.03 4483237.23 469298.48 4483237.03 469298.91 4483236.78 469299.32 4483236.5 469300.06 4483235.84 469300.38 4483235.46 469300.67 4483235.05 469300.78 4483234.66 469300.76 4483234.12 469300.69 4483233.86 469300.57 4483233.62 469300.4 4483233.4 469300.21 4483233.22 469299.98 4483233.07 469299.52 4483232.91 469299.04 4483232.8 469298.66 4483232.75 469298.06 4483232.71 469297.77 4483232.73 469297.56 4483232.73 469296.59 4483232.89 469296.12 4483233.04 469295.67 4483233.22 469294.81 4483233.71 469294.42 4483234.01 469294.06 4483234.34 469293.72 4483234.71 469293.42 4483235.1 469293.25 4483235.47</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9436326VK6893S_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469302.25 4483429.88</gml:lowerCorner>
+         <gml:upperCorner>469305.04 4483433.76</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2017-06-23T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9436326VK6893S_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9436326VK6893S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9436326VK6893S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9436326VK6893S_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 469303.05 4483433.76 469305.04 4483433.29 469304.25 4483429.88 469302.25 4483430.35 469303.05 4483433.76</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9437501VK6893N_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469346.75 4483530.03</gml:lowerCorner>
+         <gml:upperCorner>469352.68 4483533.74</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2017-06-23T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9437501VK6893N_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9437501VK6893N&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9437501VK6893N&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9437501VK6893N_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 469352.1 4483530.03 469346.75 4483531.31 469347.33 4483533.74 469352.68 4483532.47 469352.1 4483530.03</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9439101VK6893N_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469287.34 4483663.43</gml:lowerCorner>
+         <gml:upperCorner>469292.93 4483666.71</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2017-06-23T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9439101VK6893N_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9439101VK6893N&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9439101VK6893N&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9439101VK6893N_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="26"> 469292.93 4483665.07 469292.85 4483664.65 469292.6 4483664.31 469292.14 4483663.82 469291.61 4483663.53 469291.09 4483663.43 469290.72 4483663.49 469288.26 4483664.07 469287.8 4483664.31 469287.48 4483664.73 469287.34 4483665.23 469287.4 4483665.75 469287.66 4483666.21 469288.06 4483666.55 469288.23 4483666.62 469288.75 4483666.71 469289.26 4483666.6 469289.93 4483666.13 469290.65 4483665.86 469291.41 4483665.79 469291.57 4483665.8 469291.98 4483665.92 469292.4 4483665.84 469292.5 4483665.78 469292.8 4483665.48 469292.93 4483665.07</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9439111VK6893N_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469302.06 4483744.45</gml:lowerCorner>
+         <gml:upperCorner>469308.07 4483747.96</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2017-06-23T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9439111VK6893N_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9439111VK6893N&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9439111VK6893N&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9439111VK6893N_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="24"> 469308 4483746.99 469308.07 4483746.48 469307.93 4483745.98 469307.61 4483745.58 469307.41 4483745.43 469303.81 4483744.47 469303.26 4483744.45 469302.75 4483744.6 469302.27 4483745.08 469302.07 4483745.57 469302.06 4483746.1 469302.26 4483746.59 469302.62 4483746.97 469302.83 4483747.1 469303.34 4483747.23 469304.45 4483747.09 469305.19 4483747.17 469305.88 4483747.45 469306.4 4483747.83 469306.85 4483747.96 469307.31 4483747.89 469307.53 4483747.77 469307.85 4483747.43 469308 4483746.99</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9439122VK6893N_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469294.62 4483661.76</gml:lowerCorner>
+         <gml:upperCorner>469299.96 4483665.02</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2017-06-23T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9439122VK6893N_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9439122VK6893N&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9439122VK6893N&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9439122VK6893N_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="26"> 469294.73 4483664.23 469294.99 4483664.66 469295.4 4483664.94 469295.67 4483665.02 469296.17 4483665.01 469296.62 4483664.8 469296.96 4483664.44 469297.55 4483664.05 469298.22 4483663.84 469298.61 4483663.86 469299.1 4483664.05 469299.32 4483664.06 469299.78 4483663.87 469299.83 4483663.82 469299.96 4483663.39 469299.89 4483662.77 469299.65 4483662.21 469299.34 4483661.87 469298.84 4483661.76 469298.54 4483661.78 469295.66 4483662.46 469295.21 4483662.7 469294.93 4483662.97 469294.68 4483663.33 469294.62 4483663.74 469294.73 4483664.23</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9539114VK6893N_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469394.65 4483740.6</gml:lowerCorner>
+         <gml:upperCorner>469397.58 4483744.94</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2019-11-28T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9539114VK6893N_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9539114VK6893N&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9539114VK6893N&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9539114VK6893N_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="29"> 469396.66 4483740.62 469396.29 4483740.6 469395.79 4483740.76 469395.12 4483741.28 469394.85 4483741.94 469394.71 4483742.43 469394.65 4483743.17 469394.71 4483743.81 469394.79 4483744.11 469395.04 4483744.64 469395.25 4483744.8 469395.47 4483744.9 469395.95 4483744.94 469396.21 4483744.92 469396.45 4483744.87 469396.68 4483744.76 469396.86 4483744.61 469397.01 4483744.42 469397.23 4483743.95 469397.31 4483743.68 469397.53 4483742.74 469397.57 4483742.42 469397.58 4483741.81 469397.54 4483741.54 469397.47 4483741.3 469397.35 4483741.08 469397.18 4483740.88 469396.96 4483740.73 469396.66 4483740.62</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9831101VK6893S_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469594.47 4483139.26</gml:lowerCorner>
+         <gml:upperCorner>469606.39 4483151.25</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2024-01-24T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9831101VK6893S_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9831101VK6893S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9831101VK6893S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9831101VK6893S_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 469602.54 4483151.25 469606.39 4483147.46 469598.32 4483139.26 469594.47 4483143.05 469602.54 4483151.25</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9831103VK6892N_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469841.24 4482946.42</gml:lowerCorner>
+         <gml:upperCorner>469859.55 4482962.41</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2025-01-15T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9831103VK6892N_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9831103VK6892N&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9831103VK6892N&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9831103VK6892N_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 469841.24 4482957.21 469845.14 4482962.41 469859.55 4482951.63 469855.65 4482946.42 469841.24 4482957.21</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9937001VK6893N_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469775.29 4483685.06</gml:lowerCorner>
+         <gml:upperCorner>469825.57 4483739.54</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2024-03-26T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9937001VK6893N_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9937001VK6893N&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9937001VK6893N&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9937001VK6893N_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 469775.29 4483724.19 469794.85 4483739.54 469825.57 4483700.41 469806.02 4483685.06 469775.29 4483724.19</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9937001VK6893N_PI.2">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>470039.3 4483325.64</gml:lowerCorner>
+         <gml:upperCorner>470056.26 4483343.54</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2026-03-13T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9937001VK6893N_PI.2</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9937001VK6893N&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9937001VK6893N&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9937001VK6893N_PI.2" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="31"> 470049.52 4483325.77 470047.63 4483325.64 470045.75 4483325.92 470043.99 4483326.6 470042.41 4483327.65 470041.1 4483329.01 470040.11 4483330.63 470039.5 4483332.42 470039.3 4483334.31 470039.5 4483336.19 470040.12 4483337.98 470041.1 4483339.6 470042.42 4483340.96 470044.14 4483342.24 470046.09 4483343.54 470047.59 4483341.45 470049 4483341.72 470050.42 4483341.67 470051.8 4483341.32 470053.07 4483340.66 470054.17 4483339.75 470055.04 4483338.62 470055.64 4483337.32 470055.93 4483335.92 470055.92 4483334.5 470055.59 4483333.11 470054.97 4483331.82 470056.26 4483329.96 470052.99 4483327.23 470051.33 4483326.31 470049.52 4483325.77</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9937001VK6893N_PI.3">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>470046.84 4483336.72</gml:lowerCorner>
+         <gml:upperCorner>470085.63 4483378.05</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2026-03-13T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9937001VK6893N_PI.3</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9937001VK6893N&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9937001VK6893N&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9937001VK6893N_PI.3" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 470067.84 4483336.72 470046.84 4483364.64 470064.62 4483378.05 470085.63 4483350.1 470067.84 4483336.72</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9937002VK7803S_PI.1">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469833.91 4483089.99</gml:lowerCorner>
+         <gml:upperCorner>469840.07 4483096.08</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2026-03-13T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9937002VK7803S_PI.1</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9937002VK7803S_PI.1" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 469833.91 4483093.17 469837.43 4483096.08 469840.07 4483092.9 469836.55 4483089.99 469833.91 4483093.17</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9937002VK7803S_PI.2">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469848.16 4483137.54</gml:lowerCorner>
+         <gml:upperCorner>469851.98 4483141.89</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2026-03-13T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9937002VK7803S_PI.2</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9937002VK7803S_PI.2" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 469849.7 4483141.89 469851.98 4483138.61 469850.46 4483137.54 469848.16 4483140.82 469849.7 4483141.89</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9937002VK7803S_PI.3">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469860.18 4483113.7</gml:lowerCorner>
+         <gml:upperCorner>469865.3 4483119.02</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2026-03-13T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9937002VK7803S_PI.3</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9937002VK7803S_PI.3" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="6"> 469865.3 4483115.64 469862.78 4483113.7 469860.18 4483117.08 469862.06 4483118.54 469862.7 4483119.02 469865.3 4483115.64</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9937002VK7803S_PI.4">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469882.98 4483083.68</gml:lowerCorner>
+         <gml:upperCorner>469887.84 4483088.74</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2026-03-13T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9937002VK7803S_PI.4</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9937002VK7803S_PI.4" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 469882.98 4483087 469885.16 4483088.74 469887.84 4483085.42 469885.66 4483083.68 469882.98 4483087</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9937002VK7803S_PI.5">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469887.85 4483154.89</gml:lowerCorner>
+         <gml:upperCorner>469893.23 4483160.05</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2026-03-13T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9937002VK7803S_PI.5</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9937002VK7803S_PI.5" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 469889.73 4483154.89 469887.85 4483157.23 469891.35 4483160.05 469893.23 4483157.71 469889.73 4483154.89</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9937002VK7803S_PI.6">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469996.68 4483253.09</gml:lowerCorner>
+         <gml:upperCorner>470004.9 4483260.58</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2026-03-13T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9937002VK7803S_PI.6</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9937002VK7803S_PI.6" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="15"> 469996.8 4483254.06 469996.68 4483254.6 469996.76 4483255.14 469997.03 4483255.62 469997.25 4483255.83 469996.94 4483256.22 470002.41 4483260.58 470004.9 4483257.45 469999.43 4483253.09 469999.12 4483253.48 469998.63 4483253.23 469998.09 4483253.16 469997.56 4483253.29 469997.11 4483253.61 469996.8 4483254.06</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9937002VK7803S_PI.7">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>470005.51 4483125.79</gml:lowerCorner>
+         <gml:upperCorner>470012.02 4483131.94</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2026-03-13T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9937002VK7803S_PI.7</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9937002VK7803S_PI.7" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 470007.63 4483125.79 470005.51 4483128.48 470009.9 4483131.94 470012.02 4483129.25 470007.63 4483125.79</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9937002VK7803S_PI.8">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>470009.06 4483200.84</gml:lowerCorner>
+         <gml:upperCorner>470012.67 4483204.74</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2026-03-13T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9937002VK7803S_PI.8</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9937002VK7803S_PI.8" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="26"> 470012.18 4483201.07 470011.94 4483200.93 470011.67 4483200.84 470011.42 4483200.87 470011.1 4483201.02 470010.34 4483201.69 470009.22 4483202.93 470009.11 4483203.14 470009.06 4483203.37 470009.08 4483203.73 470009.21 4483204.06 470009.53 4483204.47 470009.76 4483204.62 470010.01 4483204.71 470010.15 4483204.74 470010.42 4483204.74 470010.55 4483204.71 470011.11 4483204.3 470011.5 4483203.9 470011.92 4483203.39 470012.32 4483202.77 470012.55 4483202.26 470012.67 4483201.91 470012.6 4483201.63 470012.47 4483201.38 470012.18 4483201.07</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9937002VK7803S_PI.9">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>470033.08 4483208.5</gml:lowerCorner>
+         <gml:upperCorner>470038.55 4483214.4</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2026-03-13T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9937002VK7803S_PI.9</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9937002VK7803S_PI.9" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 470035.25 4483214.4 470038.55 4483210.21 470036.39 4483208.5 470033.08 4483212.69 470035.25 4483214.4</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9937002VK7803S_PI.10">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469932.77 4483113.61</gml:lowerCorner>
+         <gml:upperCorner>469939.08 4483119.52</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2026-03-13T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9937002VK7803S_PI.10</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9937002VK7803S_PI.10" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 469932.77 4483116.11 469937.12 4483119.52 469939.08 4483117.02 469934.73 4483113.61 469932.77 4483116.11</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9937002VK7803S_PI.11">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>470049.14 4483140.03</gml:lowerCorner>
+         <gml:upperCorner>470053.36 4483144.18</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2026-03-13T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9937002VK7803S_PI.11</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9937002VK7803S_PI.11" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 470050.85 4483144.18 470053.36 4483142.07 470051.65 4483140.03 470049.14 4483142.14 470050.85 4483144.18</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9937002VK7803S_PI.12">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469942.66 4483052.32</gml:lowerCorner>
+         <gml:upperCorner>469947.78 4483060.86</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2026-03-13T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9937002VK7803S_PI.12</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9937002VK7803S_PI.12" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="6"> 469945.62 4483060.86 469947.78 4483055.88 469946.78 4483052.57 469946.14 4483052.32 469942.66 4483059.1 469945.62 4483060.86</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9937002VK7803S_PI.13">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469954.57 4483067.3</gml:lowerCorner>
+         <gml:upperCorner>469959.57 4483072.14</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2026-03-13T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9937002VK7803S_PI.13</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9937002VK7803S_PI.13" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 469954.57 4483069.8 469956.45 4483072.14 469959.57 4483069.63 469957.69 4483067.3 469954.57 4483069.8</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9937002VK7803S_PI.14">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>470133.25 4483348.45</gml:lowerCorner>
+         <gml:upperCorner>470138.53 4483354</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2026-03-13T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9937002VK7803S_PI.14</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9937002VK7803S_PI.14" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 470135.65 4483348.45 470133.25 4483350.34 470136.14 4483354 470138.53 4483352.11 470135.65 4483348.45</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9937002VK7803S_PI.15">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>470138.54 4483362.03</gml:lowerCorner>
+         <gml:upperCorner>470143.45 4483367.4</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2026-03-13T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9937002VK7803S_PI.15</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9937002VK7803S_PI.15" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 470138.54 4483363.48 470141.56 4483367.4 470143.45 4483365.95 470140.43 4483362.03 470138.54 4483363.48</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9937002VK7803S_PI.16">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>470194.88 4483375.68</gml:lowerCorner>
+         <gml:upperCorner>470203.59 4483383.04</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2026-03-13T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9937002VK7803S_PI.16</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9937002VK7803S_PI.16" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="6"> 470200.57 4483376.5 470194.88 4483380.49 470196.86 4483383.04 470203.59 4483378.07 470201.74 4483375.68 470200.57 4483376.5</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9937002VK7803S_PI.17">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469816.51 4483095.11</gml:lowerCorner>
+         <gml:upperCorner>469821.29 4483100.04</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2026-03-13T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9937002VK7803S_PI.17</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9937002VK7803S_PI.17" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 469816.51 4483096.95 469818.89 4483100.04 469821.29 4483098.19 469818.91 4483095.11 469816.51 4483096.95</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9937002VK7803S_PI.18">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>469966.21 4483190.98</gml:lowerCorner>
+         <gml:upperCorner>469974.63 4483198.32</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2026-03-13T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9937002VK7803S_PI.18</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9937002VK7803S_PI.18" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="5"> 469966.21 4483196.25 469968.34 4483198.32 469974.63 4483194.06 469970.83 4483190.98 469966.21 4483196.25</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+  <gml:featureMember>
+    <bu-ext2d:OtherConstruction gml:id="ES.SDGC.BU.9937002VK7803S_PI.19">
+    <gml:boundedBy>
+      <gml:Envelope srsName="urn:ogc:def:crs:EPSG::25830">
+         <gml:lowerCorner>470230.41 4483410.77</gml:lowerCorner>
+         <gml:upperCorner>470236.08 4483415.68</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+      <bu-core2d:beginLifespanVersion>2026-03-13T00:00:00</bu-core2d:beginLifespanVersion>
+      <bu-core2d:conditionOfConstruction xsi:nil="true" nilReason="other:unpopulated"></bu-core2d:conditionOfConstruction>
+      <bu-core2d:inspireId>
+        <base:Identifier>
+          <base:localId>9937002VK7803S_PI.19</base:localId>
+          <base:namespace>ES.SDGC.BU</base:namespace>
+        </base:Identifier>
+      </bu-core2d:inspireId>
+      <bu-core2d:addresses xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetadByRefcat&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:addresses>
+      <bu-core2d:cadastralParcels xlink:href="http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&amp;version=2&amp;request=GetFeature&amp;STOREDQUERIE_ID=GetParcel&amp;refcat=9937002VK7803S&amp;srsname=EPSG::25830"></bu-core2d:cadastralParcels>
+      <bu-ext2d:constructionNature>openAirPool</bu-ext2d:constructionNature>
+      <bu-ext2d:geometry>
+            <gml:Polygon gml:id="Polygon_ES.SDGC.BU.9937002VK7803S_PI.19" srsName="urn:ogc:def:crs:EPSG::25830">
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="28"> 470235.7 4483411.11 470235.28 4483410.84 470234.8 4483410.77 470234.32 4483410.89 470233.94 4483411.19 470233.7 4483411.62 470232.79 4483412.34 470232.63 4483412.53 470232.47 4483412.64 470232.27 4483412.71 470231.62 4483412.72 470231.08 4483412.92 470230.64 4483413.33 470230.46 4483413.73 470230.41 4483414.28 470230.55 4483414.81 470230.88 4483415.26 470231.34 4483415.56 470231.6 4483415.64 470231.88 4483415.68 470232.43 4483415.59 470232.91 4483415.32 470235.61 4483413.06 470235.7 4483412.98 470235.98 4483412.55 470236.08 4483412.04 470235.98 4483411.54 470235.7 4483411.11</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+      </bu-ext2d:geometry>
+    </bu-ext2d:OtherConstruction>
+  </gml:featureMember>
+</gml:FeatureCollection>

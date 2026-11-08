@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ListStoredQueriesResponse xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:cp="http://inspire.ec.europa.eu/schemas/cp/4.0/" xsi:schemaLocation="http://www.opengis.net/gml/3.2 http://schemas.opengis.net/gml/3.2.1/gml.xsd http://www.opengis.net/wfs/2.0 http://schemas.opengis.net/wfs/2.0/wfs.xsd" xmlns="http://www.opengis.net/wfs/2.0">
+  <StoredQuery id="GetZoning">
+    <Title xml:lang="sp">Catastro por identificador común</Title>
+    <Title xml:lang="en">Cadastre by common identification</Title>
+    <ReturnFeatureType>cp:CadastralZoning</ReturnFeatureType>
+  </StoredQuery>
+  <StoredQuery id="GetParcel">
+    <Title xml:lang="sp">Parcela por identificador común</Title>
+    <Title xml:lang="en">Parcel by common identification</Title>
+    <ReturnFeatureType>cp:CadastralParcel</ReturnFeatureType>
+  </StoredQuery>
+  <StoredQuery id="GetFeatureById">
+    <Title xml:lang="sp">Parcela por identificador de elemento</Title>
+    <Title xml:lang="en">Parcel by feature identification</Title>
+    <ReturnFeatureType>cp:CadastralParcel</ReturnFeatureType>
+  </StoredQuery>
+  <StoredQuery id="GetNeighbourParcel">
+    <Title xml:lang="sp">Parcelas vecinas por identificador común</Title>
+    <Title xml:lang="en">Neighboring parcels by common identification</Title>
+    <ReturnFeatureType>cp:CadastralParcel</ReturnFeatureType>
+  </StoredQuery>
+  <StoredQuery id="GetParcelsByZoning">
+    <Title xml:lang="sp">Lista de parcelas por identificador de zona</Title>
+    <Title xml:lang="en">Parcel's list by common zone identification</Title>
+    <ReturnFeatureType>cp:CadastralParcel</ReturnFeatureType>
+  </StoredQuery>
+</ListStoredQueriesResponse>
