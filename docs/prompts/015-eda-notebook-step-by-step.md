@@ -605,3 +605,25 @@ The commit that carries this handoff, whose parent is
 holds the records of handoffs 013 and 014, the ignore rules of the
 self-contained folder, and the notebook with its map working. Whoever opens step
 0 records the exact hash in that step's record.
+
+---
+
+## Amendments
+
+### 2026-11-07 · the shared helper module and the notebooks README are deleted
+
+The user's decision, taken before step 4 opens and recorded here rather than in
+step 8: `notebooks/eda_helpers.py` and `notebooks/README.md` are **deleted**.
+One of step 8's two open decisions is therefore closed early; the other —
+whether `notebooks/exp-001/_draft/` stays on disk — is untouched and remains
+step 8's.
+
+What this changes for steps 4 to 8, and nothing else changes:
+
+- **Files to Read** no longer resolves for `notebooks/eda_helpers.py`.
+  `notebooks/exp-001/eda.py` is the only module and the source of record from
+  here on. No step reconstructs anything from the deleted file, and
+  `notebooks/exp-001/_draft/` is still not an input to any step.
+- **Out of Scope** keeps both paths listed, now with nothing left to protect.
+- Step 8's criterion keeps everything except the deletion question.
+- No step's criterion and no measured fact changes.
