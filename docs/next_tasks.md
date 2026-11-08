@@ -47,7 +47,11 @@ table is in [roadmap.md](roadmap.md).
   blocked: it advances one notebook section per session. Instrumented by
   Sprint 5 above;
   the Analysis, the Conclusion and the two `docs/research/` documents are the
-  orchestrator's, written from whatever the user's run measures.
+  orchestrator's, written from whatever the user's run measures. Steps 0 to 4
+  of handoff 015 are accepted: the orthophoto and the cadastral reference are
+  measured, and what is still missing from EXP-001 is the elevation (step 5,
+  which has no instrument — EDA-ELEV), the example buildings and the manual
+  labelling pass (step 6), and the findings section (step 7).
 
 Completed sprints of Block 1: Sprint 1 · Foundations and Quality Gate
 (2026-10-14, [log](sprints/sprint-01-foundations.md)), Sprint 2 · Runtime
@@ -376,4 +380,4 @@ Tracked findings from the project review, deferred with their identifiers:
 
 ## Last Updated
 
-2026-11-05
+2026-11-08

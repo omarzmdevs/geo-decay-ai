@@ -20,8 +20,14 @@ live services before the next is written. **Handoff 015 is in progress**: step 0
 self-contained folder in `notebooks/exp-001/`) ACCEPTED 2026-11-04, step 1 (section 4 ·
 provider capabilities) ACCEPTED 2026-11-05 and step 2 (sections 5 and 6 · epoch availability
 and image quality) ACCEPTED 2026-11-06, from a live run the user committed with its outputs,
-and step 3 (section 7 · the spectral check) ACCEPTED 2026-11-06: no near infrared is served;
-**step 4 (section 8 · the cadastral footprints) is next**. The sprint produces no production code:
+step 3 (section 7 · the spectral check) ACCEPTED 2026-11-06 — no near infrared is served —
+and step 4 (sections 8 to 8.3 · the cadastral footprints) ACCEPTED 2026-11-08, from four
+live runs: the cadastre serves 787 buildings over the extent, only in tiles under an area
+ceiling it enforces, and its condition attribute is uniform, so it is **not** a weak label
+source and the manual labelling pass stands. All five feature sources it publishes have
+now been asked, and the storey count lives on the building parts, not on the buildings.
+**Step 5 (section 9 · elevation availability) is next**, and it will report absence: the
+provider entry still describes no elevation endpoint (EDA-ELEV). The sprint produces no production code:
 it makes EXP-001 measurable and re-measurable by the user's own run. The extent is no longer
 open: it was drawn and committed on 2026-11-04 as `notebooks/exp-001/out/extent.json`
 (`EPSG:25830`, 1.204224 km², 21 × 14 tiles).
@@ -35,9 +41,10 @@ The feasibility experiment that produces ADR-004 (`docs/experiments/exp-001-*.md
 progress through this sprint. ADR-004 still follows from its measured figures, and it gates
 Block 3. The bounding box is a configuration variable (Sprint 2) and its value is now chosen
 and committed, so the experiment advances one notebook section per session. The provider
-capabilities and the per-epoch figures are settled — about 7 usable epochs of the 21
-advertised, at a measured 0.25 m/px — while the cadastral, elevation and labelling figures
-are still unmeasured.
+capabilities, the per-epoch figures and the cadastral reference are settled — about
+7 usable epochs of the 21 advertised at a measured 0.25 m/px, and 787 buildings with a
+median footprint of 70.9 m² whose attributes cannot label them — while the elevation and
+labelling figures are still unmeasured.
 
 ## Completed Sprints
 
@@ -55,7 +62,7 @@ contract, a null adapter, and composition in delivery, configured through the
 `GEO_DECAY_TRACKING_*` variables. Blocks 1 and 2 are closed. Sprint 5 has accepted handoffs
 013 (the EDA helper module and provider configuration) and 014 (the notebook, whose deliverable
 the user then discarded), and is now rebuilding the notebook section by section under handoff
-015, with steps 0, 1, 2 and 3 accepted. The
+015, with steps 0 to 4 accepted. The
 feasibility experiment (ADR-004) is still open and gates Block 3, on top of the
 Sprint 2 baseline (validated `Settings`, `BoundingBox` configuration, logging
 configured once per process) and the Sprint 1 baseline (skeleton, reference container
@@ -104,4 +111,4 @@ See [ADR-001](architecture/adr/adr-001-agent-governance.md) and
 
 ## Last Updated
 
-2026-11-06
+2026-11-08

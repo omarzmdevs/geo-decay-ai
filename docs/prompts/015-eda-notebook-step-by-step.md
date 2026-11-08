@@ -138,7 +138,7 @@ each step: its offline run, and the user's live run.
 - [x] **1 · Section 4 · Provider capabilities** — ACCEPTED 2026-11-05
 - [x] **2 · Sections 5 and 6 · Epoch availability and image quality** — ACCEPTED 2026-11-06
 - [x] **3 · Section 7 · Spectral check** — ACCEPTED 2026-11-06
-- [ ] **4 · Section 8 · Cadastral footprints**
+- [x] **4 · Section 8 · Cadastral footprints** — ACCEPTED 2026-11-08
 - [ ] **5 · Section 9 · Elevation availability**
 - [ ] **6 · Sections 10 and 11 · Example buildings and the labelling table**
 - [ ] **7 · Section 12 · Findings**
@@ -514,13 +514,12 @@ question 4.
      outlines fall on visible pools. One defect came out of it: the address
      service sends GML as `text/html`, so a body is now named after its bytes
      rather than its declared type (EDA-CTYPE).
-- Verdict: **not closed.** The measurement stands and is recorded in EXP-001,
-  but two things are owed. The notebook's stored outputs come from the run
-  before correction 4, so a confirming re-run is needed to carry the corrected
-  wording in — no figure changes, which was checked by replaying the archived
-  replies through the corrected cells offline. And the code of this step was
-  written and checked in the same session, so the independent verification the
-  contract asks for has not happened.
+- Verdict: **ACCEPTED 2026-11-08**, closed by the user. The confirming run
+  happened: the notebook's stored outputs now come from a full run of the
+  corrected cells, and the only change made after it — naming a body by its
+  bytes — alters a file name and no printed figure. See `## Verification ·
+  Step 4` below, including the one caveat the contract would have wanted
+  otherwise.
 
 ---
 
@@ -685,3 +684,51 @@ What this changes for steps 4 to 8, and nothing else changes:
 - **Out of Scope** keeps both paths listed, now with nothing left to protect.
 - Step 8's criterion keeps everything except the deletion question.
 - No step's criterion and no measured fact changes.
+
+---
+
+## Verification · Step 4
+
+Verdict: **ACCEPTED** (2026-11-08)
+
+Files changed: 21, all inside the step's declared scope — `notebooks/exp-001/`
+(the notebook, `eda.py`, and `out/` with three capability documents, eight
+feature replies, the manifest and the extent) and `docs/` (EXP-001,
+`next_tasks.md`, this handoff). Nothing under `src/`, `tests/`, `scripts/` or
+any protected path. No file of `tests/acceptance/` exists for this handoff, as
+its `Acceptance tests: no` requires.
+
+Gate: `uv run pre-commit run --all-files` — ruff, ruff-format, mypy (strict),
+import-linter, pytest and the policy guard all pass; `eda.py --selftest`
+passes with 24 offline checks; `--check-notebook` reports `notebook ok`; and
+the notebook executed offline reaches its last cell with `ABSENT:` lines and
+no traceback, which is criterion 4.
+
+Criteria, one by one: format (`FeatureCollection`, served as `.xml`), CRS
+(`urn:ogc:def:crs:EPSG::25830` normalised to the requested `EPSG:25830`, axis
+order checked against where the geometry lands), feature count (787 buildings,
+and 6,355 / 124 / 782 / 826 for the other four sources), the full attribute
+inventory (26 fields with their coverage **and** how many carry a value),
+value counts for the condition and age attributes, and the footprints drawn
+over the latest measured epoch. Every attribute the entry claims is reported
+by its real name, including the one that is published empty. The three WFS
+parameters the step had to settle are settled by replies that carry features.
+
+Notes, all of them follow-ups rather than objections:
+
+1. **The independent verification the contract asks for did not happen.** The
+   code of this step was written and checked inside one session, and this
+   verification is by that same session. What stands in its place is the
+   user's own live runs against the real services, four rounds of them, each
+   one of which contradicted something and forced a correction. Recorded here
+   because the thesis methodology depends on the distinction.
+2. Open findings carried to `next_tasks.md`: **EDA-WFSTRUST** (the service
+   declares no `numberReturned`/`numberMatched`, so completeness is
+   unverifiable, and its bbox filter over-selects by up to ~90 m) and
+   **EDA-CTYPE** (GML served as `text/html`). Neither blocks the step.
+3. `.gitignore` still carries a bare `*.bin` in its model-weights block. It
+   blocks nothing today, because a body is now named after its bytes, but it
+   is what silently kept the first feature replies out of the audit trail.
+4. For ADR-004, not for this experiment: how a per-building height is
+   aggregated from about eight parts, and whether the parcel is the unit a
+   vegetation indicator should use.

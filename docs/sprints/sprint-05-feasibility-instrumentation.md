@@ -121,7 +121,7 @@ when the measurement exists and is recorded.
   does not.
 - 015 · The EDA notebook, one section at a time — IN PROGRESS
   ([handoff](../prompts/015-eda-notebook-step-by-step.md)); interactive, never
-  headless, one step per session. Four of its nine steps are closed:
+  headless, one step per session. Five of its nine steps are closed:
   - **Step 0 · The self-contained folder — ACCEPTED 2026-11-04.** It settles
     nothing about the services: `eda.py` and `README.md` were created inside
     `notebooks/exp-001/`, the notebook reaches its last cell offline with
@@ -161,6 +161,28 @@ when the measurement exists and is recorded.
     is not served over WMS or WFS. Section 7 closes with **four declared
     products** and **seven unknowns** (`PENDIENTE`), none verified and none
     reachable over OGC, tracked as EDA-DOWNLOADS in `next_tasks.md`.
+  - **Step 4 · Sections 8, 8.1, 8.2 and 8.3 · Cadastral footprints — ACCEPTED
+    2026-11-08**, from four live runs by the user, each of which contradicted
+    something. **The extent cannot be requested in one go**: the service
+    refuses 1.204 km² with `OperationProcessingFailed` / "Area of extension out
+    of limits", delivered as **HTTP 200**, and accepts 0.975 km² in 58.8 s, so
+    the extent is served as **two tiles** merged by `gml:id`. **787 distinct
+    buildings** arrive, with **26 attributes** each and all five the provider
+    entry claims present under their real names. **`conditionOfConstruction`
+    is uniform** — `functional` in all 787 — so **the cadastre is not a weak
+    label source over this extent** and the manual pass of EXP-001 step 6
+    stands. Median footprint **70.9 m²**, an 8.4 m equivalent side against the
+    10 m earlier sections assumed, **1,134 px² per median building** at
+    0.25 m/px. Section 8.3 then asked the **four remaining sources** and all
+    answered: 6,355 building parts, 124 other constructions (every one an
+    open-air pool), 782 address features and 826 cadastral parcels. **The
+    storey count is empty on every building and filled on every part**, which
+    moves a height indicator from impossible to a question of aggregation.
+    Three service behaviours were recorded rather than worked around: no
+    declared feature counts, a bbox filter that over-selects by up to ~90 m,
+    and GML served as `text/html` (EDA-WFSTRUST, EDA-CTYPE). Figures
+    transcribed into [EXP-001](../experiments/exp-001-data-feasibility.md) →
+    Results; verification in the handoff's `## Verification · Step 4`.
 
 ## Notes
 
