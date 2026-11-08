@@ -242,6 +242,47 @@ Tracked findings from the project review, deferred with their identifiers:
   sheets are the only option and the cost of every one of these products changes
   completely. Raised 2026-11-06 writing section 7.
 
+- [x] **EDA-WFSAREA · The cadastral WFS caps the area of one request** —
+  **measured and closed 2026-11-08.** The ceiling is bracketed by two replies
+  of the service's own: it refused 1.204 km² with `OperationProcessingFailed`
+  and **"Area of extension out of limits"**, delivered as **HTTP 200** in a
+  300-byte `ExceptionReport`, and accepted 0.975 km², taking 58.8 seconds over
+  it. The accepted figure is now `wfs_max_area_km2` in the provider entry and
+  the extent is requested as two tiles merged by `gml:id`. Two things stay with
+  it: the consequence is recorded in
+  [EXP-001](experiments/exp-001-data-feasibility.md) → Portability Constraints
+  for ADR-004 and Sprint 8, and the wait is a provider value too
+  (`wfs_timeout_s`, 120 s), because 30 s turned a slow service into an
+  apparently broken one.
+
+- [ ] **EDA-WFSTRUST · The feature reply cannot be checked, and the filter
+  over-selects** — two separate things the same run found, both the service's
+  doing. The collection declares neither `numberReturned` nor `numberMatched`
+  and the service advertises no result paging, so **nothing in a reply says
+  whether it is complete**; 562 and 228 features are not round numbers, which
+  argues against a cap without ruling one out. And **10 of the 787 buildings
+  fall entirely outside the requested extent**, up to about 90 m beyond it, so
+  the bounding-box filter is approximate. The notebook already reports both
+  rather than hiding them — "sin declarar" instead of "no truncada", and a
+  count of footprints outside the extent. What is open is the pipeline rule:
+  Sprint 8 clips on our side after the reply and treats completeness as
+  unknown. Raised 2026-11-08, step 4 of handoff 015.
+
+- [ ] **EDA-BUTYPES · Only one of the three feature types has been asked for**
+  — the WFS advertises `bu:Building`, `bu:BuildingPart` and
+  `bu:OtherConstruction`; only the first has been queried. This is not
+  academic: `numberOfFloorsAboveGround` arrives on all 787 buildings **empty**,
+  and in the INSPIRE model the storey count belongs to the parts, so the
+  attribute that an abandonment indicator would want may be one feature type
+  away. `bu:OtherConstruction` covers what is not a building — pools, silos,
+  canopies — which is either noise or signal for abandonment, and nobody has
+  looked. The replies also link two sibling services of the same cadastre,
+  `wfsAD.aspx` (addresses) and `wfsCP.aspx` (cadastral parcels); parcels would
+  give the plot around the building, which is where vegetation shows. None of
+  this is in scope for handoff 015 — it is a candidate for Sprint 8 or for a
+  follow-up step, and it is the first thing to ask about if a height or plot
+  indicator survives ADR-004. Raised 2026-11-08, step 4 of handoff 015.
+
 - [ ] **EDA-JUMP · The resolution table prints a meaningless jump factor** —
   section 6 reports, beside each measured resolution, the factor by which the
   detail residual jumps between rungs. Past the flattening point that residual

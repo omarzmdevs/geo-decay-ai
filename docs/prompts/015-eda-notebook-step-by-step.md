@@ -457,12 +457,53 @@ present or absent by its real name.
 query, the version string and the `srsname` form — and the basis of EXP-001
 question 4.
 
-**Record** — filled in when the step closes.
+**Record**
 
-- Date:
+- Date: 2026-11-08, three live runs by the user; restore point `dce4abb` for
+  the last round of corrections.
 - What the live run printed:
-- Corrections applied:
-- Verdict:
+  - **The request form is confirmed.** `GetFeature` with `TYPENAMES`,
+    `NAMESPACES`, `version=2.0.0` and a URN `srsname` returns features. The
+    stored query the entry used to name does not exist on this service, which
+    step 1 had already reported; no parameter was ever objected to.
+  - **The service caps a request by area**: 1.204 km² refused with
+    `OperationProcessingFailed` / "Area of extension out of limits" as **HTTP
+    200**, 0.975 km² accepted in 58.8 s. The extent is served as two tiles of
+    0.602 km², merged by `gml:id`: **787 distinct buildings, 3 repeated**.
+  - **26 attributes per building**, the entry's five among them, all present
+    under their real names. `numberOfFloorsAboveGround` arrives **empty in all
+    787**.
+  - **`conditionOfConstruction` is uniform** (`functional`, 787 of 787): over
+    this extent the cadastre is **not** a weak label source, so EXP-001
+    question 4 keeps its shape and the manual pass stands.
+  - **Median footprint 70.9 m²** (8.4 m equivalent side, 1,134 px² at
+    0.25 m/px), retiring the 10 m assumption; 30 features are multi-part, one
+    of them joining 113 parts.
+  - **Two service caveats**: the collection declares no `numberReturned` or
+    `numberMatched`, so completeness is unverifiable; and 10 buildings fall
+    entirely outside the requested extent.
+- Corrections applied, each one found by a live run:
+  1. The stored query was replaced by a standard `GetFeature` with `TYPENAMES`
+     and `BBOX`, from the service's own capabilities document.
+  2. A timeout became its own outcome (`Fetch.timed_out`): it is neither a
+     refusal nor an unreachable host, so the probe keeps going down instead of
+     stopping. The wait moved into the provider entry (`wfs_timeout_s`, 120 s)
+     after 30 s proved too short at 0.975 km².
+  3. The measured ceiling went into the entry as `wfs_max_area_km2 = 0.975`,
+     and the extent is tiled under it rather than requested whole.
+  4. Reporting defects fixed after the third run: a reply that declares no
+     counts now reads "sin declarar" instead of being called complete; a field
+     published with no value in any feature is reported as such, beside the
+     count of features that carry a value; the age line counted distinct dates
+     where it meant buildings; and an XML body is filed as `.xml` rather than
+     `.bin`.
+- Verdict: **not closed.** The measurement stands and is recorded in EXP-001,
+  but two things are owed. The notebook's stored outputs come from the run
+  before correction 4, so a confirming re-run is needed to carry the corrected
+  wording in — no figure changes, which was checked by replaying the archived
+  replies through the corrected cells offline. And the code of this step was
+  written and checked in the same session, so the independent verification the
+  contract asks for has not happened.
 
 ---
 
