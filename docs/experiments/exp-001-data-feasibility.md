@@ -361,6 +361,14 @@ largest joining **113 parts** and another spanning 781 × 639 m as a single
 public-services feature. Per-building indicators cannot assume one footprint
 per building without deciding what to do with these aggregates.
 
+**Only one of five feature sources had been asked.** Section 8.3 now probes
+the other four over the same tiles — `bu:BuildingPart`, `bu:OtherConstruction`,
+and the sibling address and parcel services the replies themselves link to —
+so that what the cadastre can supply is settled rather than assumed. Their
+figures are **pending the next live run**; the request path is the same one
+the buildings confirmed, and each type is an entry in `PROVIDERS` rather than
+a branch in the code.
+
 **Two caveats on the reply itself**, both of them the service's doing:
 
 - **Completeness cannot be verified.** The collection declares neither

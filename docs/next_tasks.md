@@ -278,10 +278,16 @@ Tracked findings from the project review, deferred with their identifiers:
   canopies — which is either noise or signal for abandonment, and nobody has
   looked. The replies also link two sibling services of the same cadastre,
   `wfsAD.aspx` (addresses) and `wfsCP.aspx` (cadastral parcels); parcels would
-  give the plot around the building, which is where vegetation shows. None of
-  this is in scope for handoff 015 — it is a candidate for Sprint 8 or for a
-  follow-up step, and it is the first thing to ask about if a height or plot
-  indicator survives ADR-004. Raised 2026-11-08, step 4 of handoff 015.
+  give the plot around the building, which is where vegetation shows.
+  **Instrumented 2026-11-08** on the user's decision to settle the question
+  inside step 4: the five types and the two sibling endpoints are now entries
+  in `PROVIDERS`, one request function covers them all, and section 8.3 asks
+  each of them over the same tiles and reports what answers. The result is
+  pending the next live run; what the probe cannot settle is whether the two
+  siblings accept a bounding box at all, since their own links use stored
+  queries per cadastral reference (`GetadByRefcat`, `GetParcel`) and asking
+  one request per building is not a route this project would take.
+  Raised 2026-11-08, step 4 of handoff 015.
 
 - [ ] **EDA-JUMP · The resolution table prints a meaningless jump factor** —
   section 6 reports, beside each measured resolution, the factor by which the

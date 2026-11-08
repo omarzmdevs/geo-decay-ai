@@ -497,6 +497,14 @@ question 4.
      count of features that carry a value; the age line counted distinct dates
      where it meant buildings; and an XML body is filed as `.xml` rather than
      `.bin`.
+  5. Scope extended on the user's instruction of 2026-11-08, to settle the
+     feature types inside this step rather than defer them: `PROVIDERS` gained
+     `wfs_types` and `wfs_namespaces`, `wfs_buildings` became `wfs_features`
+     for any declared type, section 4 now reads the capabilities of every
+     feature endpoint instead of one, and section 8.3 asks the remaining four
+     types over the same tiles and draws the new footprints over the same
+     orthophoto. Two endpoints were added to the entry from the links the
+     service's own replies carry.
 - Verdict: **not closed.** The measurement stands and is recorded in EXP-001,
   but two things are owed. The notebook's stored outputs come from the run
   before correction 4, so a confirming re-run is needed to carry the corrected
