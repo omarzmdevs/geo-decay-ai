@@ -320,19 +320,23 @@ def _append_manifest(out_dir: Path, row: Fetch, timestamp_utc: str) -> None:
 
 
 def _extension(content_type: str, body: bytes) -> str:
-    lowered = content_type.lower()
-    for token, extension in _CONTENT_EXTENSIONS.items():
-        if token in lowered:
-            return extension
+    """What to call a body on disk: the bytes first, the declared type after.
+
+    The bytes win because the label is not always right. The address service
+    of this cadastre sends GML under ``text/html``, and a body filed as
+    ``.html`` or ``.bin`` is an audit trail nobody can open by name. A content
+    type is only consulted for what the bytes do not announce themselves.
+    """
     if body.startswith(b"\x89PNG"):
         return ".png"
     if body.startswith(b"\xff\xd8"):
         return ".jpg"
     if body.lstrip()[:5].lower() == b"<?xml":
-        # The cadastral feature service sends GML under a content type none of
-        # the tokens above match, and a body filed as ``.bin`` is an audit
-        # trail nobody can open by name. The bytes themselves say what it is.
         return ".xml"
+    lowered = content_type.lower()
+    for token, extension in _CONTENT_EXTENSIONS.items():
+        if token in lowered:
+            return extension
     return ".bin"
 
 
@@ -2207,6 +2211,18 @@ def _selftest() -> int:
             "5 a bare OSError still leaves its manifest row",
             len(bare_rows) == 2 and bare_rows[1][2] == "0",
             bare_rows,
+        )
+
+        # 5: a body is named after what it is, not after what it is called
+        check(
+            "5 the bytes name the file, even under a wrong content type",
+            (
+                _extension("text/html", b'<?xml version="1.0"?><f/>') == ".xml"
+                and _extension("text/html", b"<html></html>") == ".html"
+                and _extension("image/png", b"\x89PNG\r\n") == ".png"
+                and _extension("", b"\x00\x01") == ".bin"
+            ),
+            _extension("text/html", b'<?xml version="1.0"?><f/>'),
         )
 
         # 5: a wait that runs out is its own outcome, and still audited
