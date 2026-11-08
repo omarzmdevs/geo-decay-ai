@@ -83,6 +83,15 @@ class Provider:
     feature_info_format: str
     wfs_service: str
     wfs_params: dict[str, str]
+    # Logical feature kind -> (service key, the type name that service uses).
+    # One service may publish several types and a provider may split them
+    # across endpoints, so both travel together and nothing is derived from
+    # the other.
+    wfs_types: dict[str, tuple[str, str]]
+    # Namespace prefix -> its URI, as the service's own replies declare them.
+    # A qualified type name is useless to a server that cannot resolve its
+    # prefix, and the prefix is read from the type name rather than repeated.
+    wfs_namespaces: dict[str, str]
     attributes: dict[str, str]
     # The area ceiling the feature service enforces on one request, in square
     # kilometres. ``0.0`` means no ceiling has been measured yet, and the
@@ -106,6 +115,8 @@ PROVIDERS: dict[str, Provider] = {
             "ortho_history": "https://www.ign.es/wms/pnoa-historico",
             "cadastre_wms": "http://ovc.catastro.meh.es/Cartografia/WMS/ServidorWMS.aspx",
             "buildings_wfs": "http://ovc.catastro.meh.es/INSPIRE/wfsBU.aspx",
+            "addresses_wfs": "http://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx",
+            "parcels_wfs": "http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx",
         },
         wms_version="1.3.0",
         layers={
@@ -146,10 +157,27 @@ PROVIDERS: dict[str, Provider] = {
             "service": "wfs",
             "version": "2.0.0",
             "request": "getfeature",
-            "typenames": "bu:Building",
-            "namespaces": "xmlns(bu,urn:x-inspire:specification:gmlas:Buildings:3.0)",
+            "typenames": "{typename}",
+            "namespaces": "xmlns({prefix},{namespace})",
             "srsname": "urn:ogc:def:crs:EPSG::{epsg}",
             "bbox": "{bbox},urn:ogc:def:crs:EPSG::{epsg}",
+        },
+        # The three types this service publishes, plus the two sibling
+        # services its own replies link to, by stored query per cadastral
+        # reference (GetadByRefcat, GetParcel). Whether those two also answer
+        # a bounding box is what step 4 asks them; the names and the
+        # namespaces below are the ones their replies declare.
+        wfs_types={
+            "buildings": ("buildings_wfs", "bu:Building"),
+            "building_parts": ("buildings_wfs", "bu:BuildingPart"),
+            "other_constructions": ("buildings_wfs", "bu:OtherConstruction"),
+            "addresses": ("addresses_wfs", "ad:Address"),
+            "parcels": ("parcels_wfs", "cp:CadastralParcel"),
+        },
+        wfs_namespaces={
+            "bu": "urn:x-inspire:specification:gmlas:Buildings:3.0",
+            "ad": "urn:x-inspire:specification:gmlas:Addresses:3.0",
+            "cp": "urn:x-inspire:specification:gmlas:CadastralParcels:3.0",
         },
         attributes={
             "identifier": "localId",
@@ -476,45 +504,59 @@ def wms_feature_info(
     return fetch(url, params, out_dir, kind="features")
 
 
-def wfs_capabilities(provider: Provider, out_dir: Path) -> Fetch:
-    """Fetch the capabilities document of the feature service."""
+def wfs_services(provider: Provider) -> tuple[str, ...]:
+    """Every endpoint key that serves features, in the order first named."""
+    return tuple(dict.fromkeys(service for service, _ in provider.wfs_types.values()))
+
+
+def wfs_capabilities(provider: Provider, service: str, out_dir: Path) -> Fetch:
+    """Fetch the capabilities document of the feature endpoint ``service``."""
     params = {
         "SERVICE": "WFS",
         "VERSION": provider.wfs_params.get("version", ""),
         "REQUEST": "GetCapabilities",
     }
-    return fetch(
-        provider.endpoints[provider.wfs_service], params, out_dir, kind="capabilities"
-    )
+    return fetch(provider.endpoints[service], params, out_dir, kind="capabilities")
 
 
-def wfs_stored_queries(provider: Provider, out_dir: Path) -> Fetch:
-    """Ask the feature service which stored queries it offers.
+def wfs_stored_queries(provider: Provider, service: str, out_dir: Path) -> Fetch:
+    """Ask a feature endpoint which stored queries it offers.
 
-    A stored query is a named, server-side query the client calls by id. The
-    entry claims one; this is what shows whether the service has it.
+    A stored query is a named, server-side query the client calls by id, and
+    a service may publish nothing else. This is what shows which ones exist.
     """
     params = {
         "SERVICE": "WFS",
         "VERSION": provider.wfs_params.get("version", ""),
         "REQUEST": "ListStoredQueries",
     }
-    return fetch(
-        provider.endpoints[provider.wfs_service], params, out_dir, kind="capabilities"
-    )
+    return fetch(provider.endpoints[service], params, out_dir, kind="capabilities")
 
 
-def wfs_buildings(provider: Provider, bbox: Bbox, crs: str, out_dir: Path) -> Fetch:
-    """Fetch the building footprints that intersect ``bbox``."""
+def wfs_features(
+    provider: Provider, kind: str, bbox: Bbox, crs: str, out_dir: Path
+) -> Fetch:
+    """Fetch the features of one type of ``wfs_types`` that intersect ``bbox``.
+
+    Every type goes out through the same request template; what changes is the
+    type name, the namespace its prefix resolves to and, where the provider
+    splits them, the endpoint. So asking a service for something it has never
+    been asked for is an entry edit, not a code change.
+    """
+    service, type_name = provider.wfs_types[kind]
+    prefix = type_name.partition(":")[0]
     epsg = CRS.from_user_input(crs).to_epsg()
     values = {
         "bbox": ",".join(repr(float(v)) for v in bbox),
         "crs": crs,
         "epsg": str(epsg),
+        "typename": type_name,
+        "prefix": prefix,
+        "namespace": provider.wfs_namespaces.get(prefix, ""),
     }
     params = {key: tpl.format(**values) for key, tpl in provider.wfs_params.items()}
     return fetch(
-        provider.endpoints[provider.wfs_service],
+        provider.endpoints[service],
         params,
         out_dir,
         timeout=provider.wfs_timeout_s,
@@ -2837,6 +2879,52 @@ def _selftest() -> int:
             "8 features without an identifier fall back to their own geometry",
             len(merged) == 2 and repeats == 1,
             (len(merged), repeats),
+        )
+
+        # 8: asking for a type the entry names must not need a code change
+        provider_entry = PROVIDERS["es-pnoa"]
+        askable = [
+            (kind, service, name)
+            for one in PROVIDERS.values()
+            for kind, (service, name) in one.wfs_types.items()
+            if service not in one.endpoints
+            or name.partition(":")[0] not in one.wfs_namespaces
+        ]
+        check(
+            "8 every feature type names a known endpoint and namespace",
+            not askable,
+            askable,
+        )
+        asked = {}
+        original_get = requests.get
+        try:
+            requests.get = _expire  # type: ignore[assignment]
+            for kind in provider_entry.wfs_types:
+                asked[kind] = wfs_features(
+                    provider_entry,
+                    kind,
+                    (0.0, 0.0, 1.0, 1.0),
+                    "EPSG:25830",
+                    root / "ask",
+                ).url
+        finally:
+            requests.get = original_get
+
+        def in_url(value: str, url: str) -> bool:
+            """Is ``value`` in ``url``, allowing for percent-encoded colons?"""
+            return value.replace(":", "%3A") in url or value in url
+
+        check(
+            "8 each type goes out with its own name, prefix and endpoint",
+            all(
+                in_url(name, asked[kind])
+                and in_url(
+                    provider_entry.wfs_namespaces[name.partition(":")[0]], asked[kind]
+                )
+                and provider_entry.endpoints[service].rsplit("/", 1)[-1] in asked[kind]
+                for kind, (service, name) in provider_entry.wfs_types.items()
+            ),
+            asked,
         )
 
         # 1: the output layout the ignore rules depend on
