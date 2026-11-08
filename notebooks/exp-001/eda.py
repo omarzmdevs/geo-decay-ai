@@ -84,6 +84,17 @@ class Provider:
     wfs_service: str
     wfs_params: dict[str, str]
     attributes: dict[str, str]
+    # The area ceiling the feature service enforces on one request, in square
+    # kilometres. ``0.0`` means no ceiling has been measured yet, and the
+    # notebook then probes for it instead of assuming one: a number invented
+    # here would size every later request wrongly and silently, which is the
+    # lesson of EDA-GSD. A measured figure replaces it, with its own date.
+    wfs_max_area_km2: float = 0.0
+    # How long to wait for a feature reply, in seconds. A service near its own
+    # size limit answers slowly, and a wait too short turns a slow service into
+    # an apparently broken one; how slow this particular service is, is a fact
+    # about it and belongs here rather than in a call.
+    wfs_timeout_s: float = 30.0
 
 
 PROVIDERS: dict[str, Provider] = {
@@ -119,6 +130,18 @@ PROVIDERS: dict[str, Provider] = {
         # them by parcel and none taking a bounding box. The extent query is
         # therefore the standard GetFeature with TYPENAMES and BBOX, and each
         # CRS is spelled as the URN the capabilities uses for it.
+        # Measured on 2026-11-08: at 0.975 km² the service had not answered
+        # after 30 s, the default, which is latency and not a refusal. Raised
+        # so that a slow reply is collected instead of mistaken for a failure;
+        # the probe spends at most one wait per rung of its ladder. The same
+        # window then answered in 58.8 s, so the wait is the binding limit at
+        # that size, not an arbitrary margin.
+        wfs_timeout_s=120.0,
+        # Measured on 2026-11-08, bracketed by two replies of the service's
+        # own: it refused 1.204 km² with "Area of extension out of limits" and
+        # accepted 0.975 km². The figure recorded is the accepted one, because
+        # what a request needs is a size that works, not the exact edge.
+        wfs_max_area_km2=0.975,
         wfs_params={
             "service": "wfs",
             "version": "2.0.0",
@@ -177,7 +200,15 @@ _CONTENT_EXTENSIONS = {
 
 @dataclass(frozen=True)
 class Fetch:
-    """Outcome of one request. A failed request is a value, never an exception."""
+    """Outcome of one request. A failed request is a value, never an exception.
+
+    ``timed_out`` separates the one failure that is not a verdict on what was
+    asked for: the service was reached and was still working when the wait ran
+    out. A refusal says the request was wrong, an unreachable host says nothing
+    was asked, and a timeout says only that the answer was too slow to collect
+    — asking for less is then a sensible next step, where after a refusal it
+    would be guesswork and after an unreachable host it would be pointless.
+    """
 
     url: str
     status: int
@@ -186,6 +217,7 @@ class Fetch:
     elapsed_s: float
     path: Path | None
     error: str
+    timed_out: bool = False
 
 
 # --------------------------------------------------------------------------
@@ -268,6 +300,11 @@ def _extension(content_type: str, body: bytes) -> str:
         return ".png"
     if body.startswith(b"\xff\xd8"):
         return ".jpg"
+    if body.lstrip()[:5].lower() == b"<?xml":
+        # The cadastral feature service sends GML under a content type none of
+        # the tokens above match, and a body filed as ``.bin`` is an audit
+        # trail nobody can open by name. The bytes themselves say what it is.
+        return ".xml"
     return ".bin"
 
 
@@ -296,6 +333,7 @@ def fetch(
     started = time.monotonic()
     full_url = url
     failure = ""
+    expired = False
     response: requests.Response | None = None
     try:
         prepared = requests.Request("GET", url, params=params).prepare()
@@ -308,6 +346,7 @@ def fetch(
         # that, and criterion 5 of handoff 013 is that a failed request is
         # always logged. The selftest drives this path.
         failure = f"{type(exc).__name__}: {exc}"
+        expired = isinstance(exc, requests.Timeout)
     if response is not None and response.headers.get("X-Proxy-Error"):
         # An intermediary refused the request: the target never answered.
         failure = f"refused by proxy: {response.headers['X-Proxy-Error']}"
@@ -320,6 +359,7 @@ def fetch(
             elapsed_s=time.monotonic() - started,
             path=None,
             error=failure,
+            timed_out=expired,
         )
     else:
         body = response.content
@@ -474,7 +514,11 @@ def wfs_buildings(provider: Provider, bbox: Bbox, crs: str, out_dir: Path) -> Fe
     }
     params = {key: tpl.format(**values) for key, tpl in provider.wfs_params.items()}
     return fetch(
-        provider.endpoints[provider.wfs_service], params, out_dir, kind="vectors"
+        provider.endpoints[provider.wfs_service],
+        params,
+        out_dir,
+        timeout=provider.wfs_timeout_s,
+        kind="vectors",
     )
 
 
@@ -906,6 +950,12 @@ _UNDECLARED = -1  # a count the reply does not state: unknown, and not zero
 
 Ring = tuple[tuple[float, float], ...]
 
+# Shares of an extent to probe a service's area ceiling with, largest first:
+# public, because a section has to report which sizes it asked for. They keep
+# the extent's shape, so only the area changes from one rung to the next, and
+# they stop where a window is too small to be worth a tile.
+AREA_FACTORS: tuple[float, ...] = (1.0, 0.9, 0.8, 0.7, 0.5, 0.25)
+
 
 @dataclass(frozen=True)
 class FeatureRecord:
@@ -1168,6 +1218,29 @@ def footprint_area(record: FeatureRecord) -> float:
     return sum(_shoelace(ring) for ring in record.exterior) - sum(
         _shoelace(ring) for ring in record.interior
     )
+
+
+def merge_features(
+    groups: Iterable[Iterable[FeatureRecord]],
+) -> tuple[tuple[FeatureRecord, ...], int]:
+    """One set of features out of several replies, and how many repeated.
+
+    A building that straddles the cut between two requested boxes is answered
+    for by both of them, so the counts of several replies cannot simply be
+    added up. Identity is the feature's own identifier; a reply that publishes
+    none falls back to the feature's first exterior ring, which is the only
+    other thing that tells one footprint from another.
+    """
+    seen: dict[str, FeatureRecord] = {}
+    repeated = 0
+    for group in groups:
+        for record in group:
+            key = record.fid or repr(record.exterior[:1])
+            if key in seen:
+                repeated += 1
+                continue
+            seen[key] = record
+    return tuple(seen.values()), repeated
 
 
 # --------------------------------------------------------------------------
@@ -1653,6 +1726,65 @@ def centred_window(bbox: Bbox, side_m: float) -> Bbox:
     return (centre_x - half_x, centre_y - half_y, centre_x + half_x, centre_y + half_y)
 
 
+def area_km2(bbox: Bbox) -> float:
+    """The plain area of ``bbox`` in square kilometres.
+
+    Only a measurement in a projected CRS, where the unit is the metre: the
+    caller is the one that knows which CRS the box is written in. It is kept
+    separate from ``extent_report``, which answers the much larger question of
+    what an extent costs in pixels and tiles, because a service that rejects a
+    request by area needs this one number and nothing else.
+    """
+    return (bbox[2] - bbox[0]) * (bbox[3] - bbox[1]) / 1_000_000.0
+
+
+def scaled_window(bbox: Bbox, factor: float) -> Bbox:
+    """``bbox`` shrunk about its own centre, keeping its shape.
+
+    Unlike ``centred_window`` this keeps the extent's aspect ratio, so a ladder
+    built from it changes one thing only — the area — which is what a service
+    that refuses a request by area has to be probed with.
+    """
+    if factor <= 0:
+        raise ValueError("factor must be positive")
+    centre_x = (bbox[0] + bbox[2]) / 2.0
+    centre_y = (bbox[1] + bbox[3]) / 2.0
+    half_x = (bbox[2] - bbox[0]) * factor / 2.0
+    half_y = (bbox[3] - bbox[1]) * factor / 2.0
+    return (centre_x - half_x, centre_y - half_y, centre_x + half_x, centre_y + half_y)
+
+
+def split_under(bbox: Bbox, max_area_km2: float) -> tuple[Bbox, ...]:
+    """``bbox`` cut into the fewest near-square cells that stay under a ceiling.
+
+    The cells cover the box exactly, without gaps or overlap, so a feature is
+    answered for by one cell unless it straddles a cut — and one that straddles
+    a cut comes back from both, which is why the caller merges by identifier
+    rather than by adding the counts up. A ceiling that is not positive, or
+    that the box already respects, leaves the box whole.
+    """
+    whole = (bbox,)
+    if max_area_km2 <= 0 or area_km2(bbox) <= max_area_km2:
+        return whole
+    side = math.sqrt(max_area_km2 * 1_000_000.0)
+    width = bbox[2] - bbox[0]
+    height = bbox[3] - bbox[1]
+    columns = max(1, math.ceil(width / side))
+    rows = max(1, math.ceil(height / side))
+    step_x = width / columns
+    step_y = height / rows
+    return tuple(
+        (
+            bbox[0] + column * step_x,
+            bbox[1] + row * step_y,
+            bbox[0] + (column + 1) * step_x,
+            bbox[1] + (row + 1) * step_y,
+        )
+        for row in range(rows)
+        for column in range(columns)
+    )
+
+
 def _working_crs(bbox: Bbox, crs: str) -> str:
     """The CRS in which sizes are measured: ``crs`` itself, or a UTM zone."""
     if not CRS.from_user_input(crs).is_geographic:
@@ -2033,6 +2165,35 @@ def _selftest() -> int:
             "5 a bare OSError still leaves its manifest row",
             len(bare_rows) == 2 and bare_rows[1][2] == "0",
             bare_rows,
+        )
+
+        # 5: a wait that runs out is its own outcome, and still audited
+        slow_dir = root / "slow"
+        original_get = requests.get
+
+        def _expire(*args: object, **kwargs: object) -> requests.Response:
+            raise requests.Timeout("read timed out")
+
+        try:
+            requests.get = _expire  # type: ignore[assignment]
+            waited = fetch(dead_url, {"REQUEST": "GetFeature"}, slow_dir, timeout=0.1)
+        finally:
+            requests.get = original_get
+        check(
+            "5 a wait that runs out is marked as such, not as a refusal",
+            waited.timed_out and waited.status == 0 and waited.path is None,
+            waited,
+        )
+        check(
+            "5 a request that failed for another reason is not a timeout",
+            not got.timed_out,
+            got,
+        )
+        slow_rows = list(csv.reader(manifest_path(slow_dir).open(encoding="utf-8")))
+        check(
+            "5 a timed-out request still leaves its manifest row",
+            len(slow_rows) == 2 and slow_rows[1][2] == "0",
+            slow_rows,
         )
 
         # 4: epoch verdicts, with the network replaced by synthetic replies
@@ -2633,6 +2794,49 @@ def _selftest() -> int:
             and bool(read_features(None).exception)
             and read_features(garbled).features == (),
             (read_features(garbled).exception, read_features(None).exception),
+        )
+
+        # 8: the geometry a service's area ceiling forces on every request
+        wide = (0.0, 0.0, 2000.0, 1000.0)
+        check(
+            "8 area_km2 is the plain projected area",
+            area_km2(wide) == 2.0,
+            area_km2(wide),
+        )
+        shrunk = scaled_window(wide, 0.5)
+        check(
+            "8 a scaled window keeps the shape and quarters the area",
+            area_km2(shrunk) == 0.5
+            and (shrunk[2] - shrunk[0]) / (shrunk[3] - shrunk[1]) == 2.0,
+            shrunk,
+        )
+        cells = split_under(wide, 0.6)
+        check(
+            "8 split_under covers the box with cells under the ceiling",
+            all(area_km2(cell) <= 0.6 for cell in cells)
+            and abs(sum(area_km2(cell) for cell in cells) - area_km2(wide)) < 1e-9
+            and min(cell[0] for cell in cells) == wide[0]
+            and max(cell[2] for cell in cells) == wide[2],
+            [round(area_km2(cell), 4) for cell in cells],
+        )
+        check(
+            "8 a box already under the ceiling is left whole",
+            split_under(wide, 3.0) == (wide,) and split_under(wide, 0.0) == (wide,),
+            split_under(wide, 3.0),
+        )
+        twice = merge_features([parsed.features, parsed.features])
+        check(
+            "8 a feature answered for by two boxes is counted once",
+            len(twice[0]) == len(parsed.features) and twice[1] == len(parsed.features),
+            twice[1],
+        )
+        nameless = FeatureRecord("", {}, (((0.0, 0.0), (1.0, 0.0), (1.0, 1.0)),), ())
+        other = FeatureRecord("", {}, (((9.0, 9.0), (8.0, 9.0), (8.0, 8.0)),), ())
+        merged, repeats = merge_features([[nameless], [nameless, other]])
+        check(
+            "8 features without an identifier fall back to their own geometry",
+            len(merged) == 2 and repeats == 1,
+            (len(merged), repeats),
         )
 
         # 1: the output layout the ignore rules depend on
