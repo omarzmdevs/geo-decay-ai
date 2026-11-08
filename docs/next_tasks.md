@@ -268,26 +268,30 @@ Tracked findings from the project review, deferred with their identifiers:
   Sprint 8 clips on our side after the reply and treats completeness as
   unknown. Raised 2026-11-08, step 4 of handoff 015.
 
-- [ ] **EDA-BUTYPES · Only one of the three feature types has been asked for**
-  — the WFS advertises `bu:Building`, `bu:BuildingPart` and
-  `bu:OtherConstruction`; only the first has been queried. This is not
-  academic: `numberOfFloorsAboveGround` arrives on all 787 buildings **empty**,
-  and in the INSPIRE model the storey count belongs to the parts, so the
-  attribute that an abandonment indicator would want may be one feature type
-  away. `bu:OtherConstruction` covers what is not a building — pools, silos,
-  canopies — which is either noise or signal for abandonment, and nobody has
-  looked. The replies also link two sibling services of the same cadastre,
-  `wfsAD.aspx` (addresses) and `wfsCP.aspx` (cadastral parcels); parcels would
-  give the plot around the building, which is where vegetation shows.
-  **Instrumented 2026-11-08** on the user's decision to settle the question
-  inside step 4: the five types and the two sibling endpoints are now entries
-  in `PROVIDERS`, one request function covers them all, and section 8.3 asks
-  each of them over the same tiles and reports what answers. The result is
-  pending the next live run; what the probe cannot settle is whether the two
-  siblings accept a bounding box at all, since their own links use stored
-  queries per cadastral reference (`GetadByRefcat`, `GetParcel`) and asking
-  one request per building is not a route this project would take.
-  Raised 2026-11-08, step 4 of handoff 015.
+- [x] **EDA-BUTYPES · Only one of the three feature types has been asked for**
+  — **closed 2026-11-08, all five sources answered.** `bu:BuildingPart`
+  (6,355), `bu:OtherConstruction` (124), `ad:Address` (782) and
+  `cp:CadastralParcel` (826) join the 787 buildings, every one of them over
+  the same tiles and through the same request path, which also settles that
+  the two sibling services **do accept a bounding box** rather than only the
+  per-reference stored queries their links use. The findings are in
+  [EXP-001](experiments/exp-001-data-feasibility.md) → Cadastral reference:
+  the storey count is empty on buildings and filled on all parts; the
+  condition attribute is empty on parts and other constructions, so the
+  cadastre offers no weak label by any of its three building types; and the
+  other constructions over this extent are 124 open-air pools. Two
+  consequences stay open for ADR-004 rather than for this experiment: how a
+  per-building height is aggregated from about eight parts, and whether the
+  parcel is the right unit for a vegetation indicator.
+
+- [ ] **EDA-CTYPE · A service labels GML as `text/html`** — the cadastral
+  address service sends a feature collection under a `text/html` content
+  type. The instrument now names a body after its bytes rather than after the
+  declared type, so the reply is filed as `.xml` and parses, but the lesson
+  belongs in Sprint 8: **a declared content type is a claim like any other**,
+  and a download route that dispatches on it will mis-handle this provider.
+  Found 2026-11-08, step 4 of handoff 015; the two replies already on disk
+  carry the old `.html` name.
 
 - [ ] **EDA-JUMP · The resolution table prints a meaningless jump factor** —
   section 6 reports, beside each measured resolution, the factor by which the

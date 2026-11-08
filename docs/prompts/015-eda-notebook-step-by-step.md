@@ -505,6 +505,15 @@ question 4.
      types over the same tiles and draws the new footprints over the same
      orthophoto. Two endpoints were added to the entry from the links the
      service's own replies carry.
+  6. Run of 2026-11-08, section 8.3: **the five sources answered**, 787
+     buildings, 6,355 parts, 124 other constructions, 782 addresses and 826
+     parcels. The storey count is empty on buildings and filled on every part;
+     the condition attribute is empty on parts and other constructions, so no
+     weak label exists by any route; the other constructions are 124 open-air
+     pools. The sample figure places them on the orthophoto, and the cyan
+     outlines fall on visible pools. One defect came out of it: the address
+     service sends GML as `text/html`, so a body is now named after its bytes
+     rather than its declared type (EDA-CTYPE).
 - Verdict: **not closed.** The measurement stands and is recorded in EXP-001,
   but two things are owed. The notebook's stored outputs come from the run
   before correction 4, so a confirming re-run is needed to carry the corrected

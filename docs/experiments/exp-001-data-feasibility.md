@@ -361,13 +361,49 @@ largest joining **113 parts** and another spanning 781 × 639 m as a single
 public-services feature. Per-building indicators cannot assume one footprint
 per building without deciding what to do with these aggregates.
 
-**Only one of five feature sources had been asked.** Section 8.3 now probes
-the other four over the same tiles — `bu:BuildingPart`, `bu:OtherConstruction`,
-and the sibling address and parcel services the replies themselves link to —
-so that what the cadastre can supply is settled rather than assumed. Their
-figures are **pending the next live run**; the request path is the same one
-the buildings confirmed, and each type is an entry in `PROVIDERS` rather than
-a branch in the code.
+**All five feature sources answered** (section 8.3, live run of 2026-11-08).
+The same request path the buildings confirmed works for every one of them,
+including the two sibling services, which settles a worry: their own links use
+stored queries per cadastral reference, but **they do accept a bounding box**,
+so none of this needs one request per building.
+
+| Type | Features | With geometry | Repeated | Fields | With a value |
+|---|---|---|---|---|---|
+| `bu:Building` | 787 | 787 | 3 | 26 | 23 |
+| `bu:BuildingPart` | 6,355 | 6,355 | 481 | 12 | 11 |
+| `bu:OtherConstruction` | 124 | 124 | 23 | 9 | 8 |
+| `ad:Address` | 782 | 744 | 4 | 26 | 18 |
+| `cp:CadastralParcel` | 826 | 826 | 4 | 7 | 6 |
+
+One row needs reading carefully: the **782 addresses are 744 addresses plus
+38 supporting features** — street names, postal descriptors and administrative
+unit names, which the service returns in the same collection and which carry
+no geometry of their own. That is the whole of the gap between the feature
+count and the geometry count in that row.
+
+Three findings follow, and the first one changes what is computable:
+
+- **The storey count exists — on the parts, not on the buildings.**
+  `numberOfFloorsAboveGround` is empty in all 787 buildings and **filled in all
+  6,355 parts**, 8 to 9 distinct values, alongside `numberOfFloorsBelowGround`
+  and `heightBelowGround`. There are about eight parts per building, so a
+  per-building height means aggregating parts, which ADR-004 has to decide.
+- **No condition attribute anywhere but the buildings, where it is uniform.**
+  `conditionOfConstruction` is **published empty in every part and every other
+  construction**, and `functional` in every building. The cadastre therefore
+  offers **no weak label over this extent by any of its three building types**
+  — the manual pass of step 6 stands, and this is now settled rather than
+  assumed from one type.
+- **The other constructions over this extent are 124 open-air pools**, one
+  single `constructionNature`. A pool is visible from above and its state is
+  legible, so it is a candidate *feature*, never a label.
+
+Two more facts worth carrying to Sprint 8. The **parcels** give the plot around
+each building with its own `areaValue`, which matched this instrument's
+shoelace area to better than 0.01 % on the largest parcel — an independent
+check of the geometry reader. And the **address service sends GML under a
+`text/html` content type**, so a client that trusts the declared type files
+the reply as a web page; the bytes are what name it here.
 
 **Two caveats on the reply itself**, both of them the service's doing:
 
@@ -411,12 +447,10 @@ section 12). Handoff 015, step 3, ACCEPTED 2026-11-06.
   roofing and shaded ground. Near infrared at building scale does exist in
   Spain, as a false-colour PNOA orthophoto declared at 15 to 25 cm, but not
   through the WMS and WFS services this instrument uses.
-- **Storey count is published empty.** `numberOfFloorsAboveGround` arrives on
-  every building with no value in any of them (step 4), so any indicator that
-  needs height from the cadastre has no input on `bu:Building`. The service
-  publishes two further feature types that were not queried — `bu:BuildingPart`
-  and `bu:OtherConstruction` — and the parts are where a storey count would
-  normally live. Tracked as EDA-BUTYPES in [next_tasks.md](../next_tasks.md).
+- **Storey count is available, one feature type away.** It is empty on every
+  `bu:Building` and filled on every `bu:BuildingPart` (6,355 of them over the
+  extent), so a height-based indicator has an input — at the cost of
+  aggregating parts into buildings, which ADR-004 decides. Measured in step 4.
 - **Four products are declared and unverified** (false-colour orthophoto, NDVI,
   NDWI, Landsat historical mosaics), with seven unknowns. They are catalogue
   claims with no request behind them; none is reachable over OGC. Tracked as
@@ -435,12 +469,13 @@ Of the four questions in the Objective, after three steps:
    separate an abandoned building from a kept one, which needs the example
    buildings of sections 10 and 11 (step 6), then step 7.
 4. **Manual labelling viability and cadastral weak labels** — **half
-   answered, and the half that is answered is a no.** The cadastre's condition
-   attribute has now been seen over the extent and it is **uniform**:
-   `functional` in all 787 buildings. It cannot act as a weak label here, so
-   the labelling of step 6 stays fully manual and question 4 does **not**
-   change shape. How long that manual pass takes is still unmeasured, because
-   it is the user's work and that duration is itself a result.
+   answered, and the half that is answered is a no.** The condition attribute
+   has now been seen across **all three** building types the cadastre
+   publishes: `functional` in all 787 buildings, and published empty in all
+   6,355 parts and all 124 other constructions. There is no weak label to be
+   had here, so the labelling of step 6 stays fully manual and question 4 does
+   **not** change shape. How long that manual pass takes is still unmeasured,
+   because it is the user's work and that duration is itself a result.
 
 ## Analysis
 
