@@ -685,6 +685,76 @@ What this changes for steps 4 to 8, and nothing else changes:
 - Step 8's criterion keeps everything except the deletion question.
 - No step's criterion and no measured fact changes.
 
+### 2026-11-11 · step 5 measures elevation through a coverage service
+
+Step 5 was written to report absence, because the provider entry holds no
+elevation endpoint. Research on 2026-11-11 found a route that needs no download
+portal and no new dependency, so **the step now measures, and its original
+criterion is superseded by this amendment.** The user chose the scope.
+
+**What was found, and what it is worth.** The endpoints already probed serve no
+elevation: the eight capabilities documents on disk name only
+`OrtoExpeditaLIDAR2023` and `OrtoExpeditaLIDAR2024`, which are imagery. Two OGC
+coverage services (WCS 2.0.1) of the same publisher do, both declaring
+`CC BY 4.0` and no fees in their own capabilities:
+
+| Service | Coverage | Read as |
+|---|---|---|
+| `https://servicios.idee.es/wcs-inspire/mdt` | `Elevacion25830_5` | terrain model, 5 m |
+| `https://wcs-mds.idee.es/mds` | `mds05` | surface model, 5 m |
+| `https://wcs-mds.idee.es/mds` | `mdsn_e025`, `mdsn_v025` | normalised height, 2.5 m |
+
+These are **leads from fetched content, not measurements**. The reading of the
+two `mdsn_*` identifiers as building and vegetation comes from the service
+abstract, not from a per-coverage declaration; the data is declared as the
+first LiDAR coverage, with no acquisition year. Nothing here is a finding until
+a request of ours leaves a manifest row, and the section must say what the
+service's own replies declare rather than repeat this table.
+
+**Criterion, replacing the one in Step 5.**
+
+1. The provider entry gains the two coverage endpoints and a mapping from a
+   logical elevation product (`terrain`, `surface`, `building_height`,
+   `vegetation_height`) to `(service key, coverage identifier)`, plus the WCS
+   version. No host or coverage identifier appears anywhere else (criterion 5
+   of every step). A provider with an empty mapping is valid.
+2. `eda.py` gains the least that the section needs: the coverage capabilities
+   request and one coverage request over a bounding box, both through the
+   existing `fetch`, so every request leaves its manifest row and a failure
+   never raises. No new dependency; `rasterio` is already in the `eda` group.
+3. Section 9 asks each service for its capabilities and each product for the
+   extent in `extent.json`, in the native CRS, and prints **one row per
+   product**: whether it answered, the grid step actually delivered against the
+   one the identifier suggests, the CRS, the array shape, the share of no-data
+   cells, and the value range. Rasters are written under `out/`, git-ignored
+   like the other heavy folders; the capabilities documents are versioned.
+4. A product whose request fails, or whose reply is not a raster, prints
+   `ABSENT: ` with the service's own reason. Offline, every row is `ABSENT: `
+   and the notebook still reaches its last cell (criterion 4 of every step). A
+   provider with no elevation mapping prints one `ABSENT: ` line saying so.
+5. A closing markdown cell **declares what is not pursued**: the LiDAR point
+   clouds and the models of the second and third coverages are published only
+   through the national download portal, which has no OGC interface. They are
+   named as existing and out of reach of this instrument, with that reason. No
+   request is made for them, and the portal is not made an endpoint.
+6. `--selftest` covers the new request path offline, including a failed
+   request and a reply that is not a raster, as it does for the other services.
+
+**Out of scope for this step.** Any per-building statistic, any comparison with
+the cadastral storey count, any derived product (a normalised surface computed
+by us, slopes, hillshades), point-cloud tooling, and any change to sections 1
+to 8. Whether height becomes an indicator is ADR-004's question, asked after
+this step says what the data is.
+
+**What the live run must settle**, since nothing above is confirmed: that each
+coverage accepts a subset in `EPSG:25830`, what grid step it really delivers,
+whether a request size limit exists, and whether the extent is covered at all.
+The hosts are new, so the user's run is the only place this is measured.
+
+**Settles.** EXP-001 question 2 for the raster products, and whether ADR-004's
+elevation route can be raster-only, which is what keeps PDAL deferred.
+EDA-ELEV narrows to the point cloud.
+
 ---
 
 ## Verification · Step 4
