@@ -733,12 +733,46 @@ service's own replies declare rather than repeat this table.
    and the notebook still reaches its last cell (criterion 4 of every step). A
    provider with no elevation mapping prints one `ABSENT: ` line saying so.
 5. A closing markdown cell **declares what is not pursued**: the LiDAR point
-   clouds and the models of the second and third coverages are published only
-   through the national download portal, which has no OGC interface. They are
-   named as existing and out of reach of this instrument, with that reason. No
-   request is made for them, and the portal is not made an endpoint.
+   clouds and the models of the second and third coverages. It names them as
+   existing and out of reach of this instrument and gives, in short, the four
+   reasons in *Why the point cloud is not pursued* below. No request is made
+   for them, and the portal is not made an endpoint.
 6. `--selftest` covers the new request path offline, including a failed
    request and a reply that is not a raster, as it does for the other services.
+
+**Why the point cloud is not pursued.** A decision of the user's on
+2026-11-11, recorded with its reasons so that ADR-004 inherits them rather than
+an unexplained gap:
+
+1. **No automatable route was found.** The point clouds, and the models of the
+   second and third coverages (2 m terrain, 0.5 m surface), were found only in
+   the national download portal: files cut by map sheet, chosen through an
+   interactive catalogue, with no OGC interface. The research of 2026-11-11
+   found no API, STAC catalogue or cloud-optimised point cloud for them. That
+   is a search that came back empty, not a proof of absence; it is what the
+   EDA-DOWNLOADS range-request measurement would settle.
+2. **Reaching it costs a pipeline the project does not have.** Sheets are
+   downloaded whole, so the extent drags in its whole sheet, and reading the
+   points needs PDAL, which is not in the container image and which no current
+   Debian or Ubuntu ships (ADR-005 amendment 2026-10-14). The rasters above
+   need neither.
+3. **The derived rasters cover the question this experiment asks.** Terrain,
+   surface and normalised height are the products made *from* the point cloud,
+   served by the coverage services at 5 m and 2.5 m. EXP-001 asks which
+   elevation products exist and in what form, not to build its own.
+4. **Making the portal an endpoint would corrupt the measurement.**
+   `_resolve_layer` sends an unknown layer name to the `epoch_service`, so a
+   point-cloud entry would fire a `GetMap` at the historical orthophoto
+   service, and an HTML reply with status 200 could be recorded as a point
+   cloud that is available — the worst outcome this question can have.
+
+**What the omission costs, stated plainly.** A single epoch of height, so no
+change in height over time; and no roof geometry, since a 70.9 m² median
+footprint is about 11 cells at 2.5 m against about 280 at 0.5 m. Roof
+evidence therefore stays with the 0.25 m/px orthophoto. **It reopens** if the
+live run shows the 2.5 m height cannot tell buildings apart, if an indicator
+needs roof geometry or height change, or if a range-readable URL for these
+files is found.
 
 **Out of scope for this step.** Any per-building statistic, any comparison with
 the cadastral storey count, any derived product (a normalised surface computed
