@@ -417,11 +417,40 @@ the reply as a web page; the bytes are what name it here.
 
 ### Elevation products
 
-**Not measured, and not measurable by the instrument as it stands.** The
-provider entry describes no elevation endpoint, so step 5 of handoff 015
-(section 9) reports absence with "no endpoint in the provider entry", which is
-that step passing rather than failing. Tracked as EDA-ELEV in
-[next_tasks.md](../next_tasks.md).
+**Measured 2026-11-11 (handoff 015, step 5): four raster products cover the
+whole extent through two WCS 2.0.1 services, at no cost and under CC BY 4.0.**
+
+| Product | Coverage | Delivered | Values |
+|---|---|---|---|
+| Terrain | `Elevacion25830_5` | 269 × 179 cells, ≈ 5 m | 589–609 m |
+| Surface | `mds05` | 269 × 179 cells, ≈ 5 m | 589–626 m |
+| Building height | `mdsn_e025` | 537 × 358 cells, ≈ 2.5 m | 0–27 m |
+| Vegetation height | `mdsn_v025` | 537 × 358 cells, ≈ 2.5 m | 0–27 m |
+
+- **Full coverage**: 0.0 % no-data in every product; each request answered in
+  at most 1.0 s, and no size limit was met at 1.20 km².
+- **One epoch, the first LiDAR coverage**, as the service declares; no
+  acquisition year is given. There is therefore no height change over time.
+- **Which normalised height is which** is read from the map of section 9.1,
+  which lays the four products under the 787 cadastral footprints. Neither
+  coverage declares its own title, so that overlay, not the service, is what
+  names them: `mdsn_e025` is **building height**, above zero in 82.4 % of the
+  cells inside the footprints against 6.4 % outside, and `mdsn_v025` is
+  **vegetation height**, 8.3 % inside against 28.5 % outside.
+- **Whole metres, resampled cells.** Every product is `int16`, and a subset is
+  resampled onto a grid fitted to the box (4.996 × 5.006 m here) rather than
+  cut from the native one. Surface minus terrain spans −8 to +25 m.
+- **Not pursued, by decision**: the LiDAR point clouds and the second- and
+  third-coverage models (2 m terrain, 0.5 m surface), published only through
+  the national download portal. The reasons are in the 2026-11-11 amendment of
+  handoff 015: no automatable route was found, reaching them needs PDAL and
+  whole-sheet downloads, the derived rasters already answer this question, and
+  the portal as an endpoint would record HTML as data.
+
+**What this means for ADR-004**: a raster-only elevation route exists, so
+**PDAL is not needed** for anything measured here. A building at the 70.9 m²
+median covers about 11 cells of height, enough for one height per building and
+not for roof geometry.
 
 ### Visual inspection
 
@@ -458,12 +487,14 @@ section 12). Handoff 015, step 3, ACCEPTED 2026-11-06.
 
 ### What is still unanswered
 
-Of the four questions in the Objective, after three steps:
+Of the four questions in the Objective, after five steps:
 
 1. **PNOA resolution and years** — **answered**. 9 of the 21 advertised years
    cover the extent (2006–2023), at a measured 0.25 m/px in six of them, with
    2006 a bound and 2012 and 2015 unmeasurable; about 7 usable epochs.
-2. **Elevation products** — **unanswered, and without an instrument.** EDA-ELEV.
+2. **Elevation products** — **answered for rasters.** Terrain and surface at
+   5 m, building and vegetation height at 2.5 m, one epoch, full coverage,
+   whole metres. The point cloud is not pursued, by decision.
 3. **Which indicators are computable** — **partly answered**. The spectral reach
    is settled (no NIR by this route). What remains is which RGB surrogates
    separate an abandoned building from a kept one, which needs the example

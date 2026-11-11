@@ -47,11 +47,11 @@ table is in [roadmap.md](roadmap.md).
   blocked: it advances one notebook section per session. Instrumented by
   Sprint 5 above;
   the Analysis, the Conclusion and the two `docs/research/` documents are the
-  orchestrator's, written from whatever the user's run measures. Steps 0 to 4
-  of handoff 015 are accepted: the orthophoto and the cadastral reference are
-  measured, and what is still missing from EXP-001 is the elevation (step 5,
-  which has no instrument — EDA-ELEV), the example buildings and the manual
-  labelling pass (step 6), and the findings section (step 7).
+  orchestrator's, written from whatever the user's run measures. Steps 0 to 5
+  of handoff 015 are accepted (step 5 on 2026-11-11): the orthophoto, the
+  cadastral reference and the elevation rasters are measured, and what is
+  still missing from EXP-001 is the example buildings and the manual labelling
+  pass (step 6), and the findings section (step 7).
 
 Completed sprints of Block 1: Sprint 1 · Foundations and Quality Gate
 (2026-10-14, [log](sprints/sprint-01-foundations.md)), Sprint 2 · Runtime
@@ -198,31 +198,26 @@ Tracked findings from the project review, deferred with their identifiers:
   the broader `Bash(git commit*)`; removed from `.claude/settings.json` by the
   user on 2026-10-25.
 
-- [ ] **EDA-ELEV · The provider entry describes no elevation service** — so
-  EXP-001 question 2 (which elevation products cover the extent, in what form)
-  **cannot be answered by the instrument as it stands**. `PROVIDERS["es-pnoa"]`
-  holds `ortho`, `ortho_history`, `cadastre_wms` and `buildings_wfs` and nothing
-  else, a gap in handoff 013's specification of the entry rather than a finding
-  about coverage. Section 9 of the notebook already discovers elevation services
-  generically, by token in the entry's logical keys, and reports one row per
-  product category, so it starts probing with no change to the notebook the
-  moment an entry gains one. Found verifying handoff 014, note 3.
+- [x] **EDA-ELEV · The provider entry described no elevation service** —
+  **closed 2026-11-11 for rasters.** Two WCS 2.0.1 services now sit in the
+  entry and answered for the whole extent: terrain and surface at 5 m, building
+  and vegetation height at 2.5 m (step 5 of
+  [015](prompts/015-eda-notebook-step-by-step.md);
+  [EXP-001](experiments/exp-001-data-feasibility.md) → Elevation products).
+  The **point cloud and the 2nd/3rd-coverage models are not pursued**, by the
+  user's decision, with the four reasons recorded in handoff 015's amendment of
+  2026-11-11; that part reopens if 2.5 m height cannot separate buildings, if
+  an indicator needs roof geometry or height change, or if a range-readable URL
+  for those files appears (EDA-DOWNLOADS).
 
-  **Narrowed 2026-11-04**, on the user's decision to add the endpoints as a
-  labelled hypothesis: the entry gained an INSPIRE elevation (MDT) WMS and a
-  terrain layer name, both marked unconfirmed in the data. **Reopened in full
-  2026-11-05**: that addition was part of handoff 014's discarded deliverable
-  and went with the user's revert, so `PROVIDERS["es-pnoa"]` again holds only
-  `ortho`, `ortho_history`, `cadastre_wms` and `buildings_wfs`, and step 5 of
-  handoff 015 will report absence with "no endpoint in the provider entry".
-  Also open, and never addressed: the **surface model and the point cloud**,
-  which come from the CNIG download portal. That portal is deliberately not an
-  endpoint — it has no OGC interface, and because `_resolve_layer` sends an
-  unknown layer name to the `epoch_service`, a lidar-token endpoint would have
-  fired a `GetMap` at the historical orthophoto service and could have recorded
-  the point cloud as *available*. Probing downloads needs either a `downloads`
-  field on `Provider` or a change to section 9, neither of which is authorised
-  yet. Until then EXP-001 question 2 is answerable only in part.
+- [ ] **EDA-WCSGRID · A coverage subset is resampled, and heights are whole
+  metres** — the WCS fits a grid to the requested box (4.996 × 5.006 m for a
+  1344 × 896 m extent) instead of cutting native cells, and every product is
+  `int16`. Harmless for the experiment; for Sprint 8, a pipeline that needs
+  native cells snaps its request to the coverage's own grid, whose origin
+  `DescribeCoverage` gives, and treats height as 1 m quantised. Found
+  2026-11-11, step 5 of handoff 015.
+
 - [ ] **EDA-DOWNLOADS · Three datasets are blocked on the same missing route** —
   the instrument speaks WMS and WFS, and the three datasets that would answer
   open questions are none of those: the **lidar** that EXP-001 question 2 needs
@@ -380,4 +375,4 @@ Tracked findings from the project review, deferred with their identifiers:
 
 ## Last Updated
 
-2026-11-08
+2026-11-11

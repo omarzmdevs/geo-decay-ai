@@ -139,7 +139,7 @@ each step: its offline run, and the user's live run.
 - [x] **2 · Sections 5 and 6 · Epoch availability and image quality** — ACCEPTED 2026-11-06
 - [x] **3 · Section 7 · Spectral check** — ACCEPTED 2026-11-06
 - [x] **4 · Section 8 · Cadastral footprints** — ACCEPTED 2026-11-08
-- [ ] **5 · Section 9 · Elevation availability**
+- [x] **5 · Section 9 · Elevation availability** — ACCEPTED 2026-11-11
 - [ ] **6 · Sections 10 and 11 · Example buildings and the labelling table**
 - [ ] **7 · Section 12 · Findings**
 - [ ] **8 · Close**
@@ -543,10 +543,43 @@ being silently skipped. EDA-ELEV.
 
 **Record** — filled in when the step closes.
 
-- Date:
+- Date: 2026-11-11, one live run by the user; code committed as `68bb8d6`.
+- Helpers added to `eda.py`: `wcs_services`, `wcs_capabilities`,
+  `wcs_coverage`, `read_coverage` and `CoverageReading`; `Provider` gains
+  `coverage_endpoints`, `wcs_version`, `elevation`, `elevation_step_hint_m` and
+  `wcs_axis_labels`; `fetch` accepts a repeated key and `read_capabilities`
+  reads WCS 2.0.
 - What the live run printed:
-- Corrections applied:
-- Verdict:
+  - **Both services answered their capabilities** and advertise every
+    coverage the entry names (`anunciada = sí` for all four). Neither gives a
+    coverage its own title, so the meaning of a coverage rests on the service
+    abstract: terrain "de paso de malla de 1000, 500, 200, 25 y 5m", and a
+    surface model of 5 m plus a normalised model "(clase edificación y
+    vegetación) de 2,5 metros, generados a partir del MDT-LIDAR 1ª cobertura".
+  - **All four products answered a subset in `EPSG:25830`**, axis labels
+    `x`/`y` accepted as guessed, in 0.2 to 1.0 s, 96,854 bytes at 5 m and
+    385,364 at 2.5 m. No size limit was met at 1.20 km².
+  - **The extent is fully covered**: 0.0 % no-data in every product. Terrain
+    589–609 m, surface 589–626 m, both normalised heights 0–27 m.
+  - **The cells are resampled, not native**: 4.99628 × 5.00559 m (269 × 179)
+    and 2.50279 m (537 × 358). The extent, 1344 × 896 m, is not a whole number
+    of 5 m or 2.5 m cells, so the service fits a grid to the box. The `❌` in
+    `¿coincide?` is that fact, reported honestly, not a wrong product.
+  - **Every product is `int16`**: heights are whole metres.
+  - Surface minus terrain ranges from −8 to +25 m; negative values mean the
+    two models do not share an exact epoch or interpolation.
+- Section 9.1, the map, from the same run: the four products drawn side by
+  side under the 787 cadastral footprints, saved as `out/figs/elevation.png`.
+  - **`mdsn_e025` is building height**: cells above zero are 82.4 % of those
+    inside the footprints against 6.4 % outside. **`mdsn_v025` is vegetation
+    height**: 8.3 % inside against 28.5 % outside. Courtyards count as
+    outside. Neither coverage declares a title, so these two shares are what
+    name them.
+  - The figure agrees by eye: building height fills the footprints and is
+    empty between them; vegetation height follows the streets, the gardens
+    and the open ground; the terrain slopes about 20 m across the extent.
+- Corrections applied: none needed.
+- Verdict: **ACCEPTED 2026-11-11**.
 
 ---
 
@@ -732,12 +765,22 @@ service's own replies declare rather than repeat this table.
    `ABSENT: ` with the service's own reason. Offline, every row is `ABSENT: `
    and the notebook still reaches its last cell (criterion 4 of every step). A
    provider with no elevation mapping prints one `ABSENT: ` line saying so.
-5. A closing markdown cell **declares what is not pursued**: the LiDAR point
-   clouds and the models of the second and third coverages. It names them as
+5. **Section 9.1 shows the result as a map**, in the manner of section 8.2:
+   one figure, saved under `out/figs/`, with the four products side by side
+   over the extent in metres and the cadastral footprints of section 8
+   outlined on top. Beside it the cell prints, for the two normalised heights,
+   the share of positive cells inside and outside the footprints, which is
+   what names them, since neither coverage declares a title. Its markdown says
+   what the map shows and what it implies: which raster is building and which
+   vegetation, about how many cells a median building covers, one epoch,
+   whole metres, resampled cells. The least code that draws it; it reads the
+   rasters section 9 already saved and requests nothing.
+6. A closing markdown cell, **section 9.2**, **declares what is not pursued**:
+   the LiDAR point clouds and the models of the second and third coverages. It names them as
    existing and out of reach of this instrument and gives, in short, the four
    reasons in *Why the point cloud is not pursued* below. No request is made
    for them, and the portal is not made an endpoint.
-6. `--selftest` covers the new request path offline, including a failed
+7. `--selftest` covers the new request path offline, including a failed
    request and a reply that is not a raster, as it does for the other services.
 
 **Why the point cloud is not pursued.** A decision of the user's on
@@ -774,7 +817,8 @@ live run shows the 2.5 m height cannot tell buildings apart, if an indicator
 needs roof geometry or height change, or if a range-readable URL for these
 files is found.
 
-**Out of scope for this step.** Any per-building statistic, any comparison with
+**Out of scope for this step.** Any per-building statistic beyond the two
+inside-and-outside shares of 9.1, any comparison with
 the cadastral storey count, any derived product (a normalised surface computed
 by us, slopes, hillshades), point-cloud tooling, and any change to sections 1
 to 8. Whether height becomes an indicator is ADR-004's question, asked after
@@ -836,3 +880,39 @@ Notes, all of them follow-ups rather than objections:
 4. For ADR-004, not for this experiment: how a per-building height is
    aggregated from about eight parts, and whether the parcel is the unit a
    vegetation indicator should use.
+
+---
+
+## Verification · Step 5
+
+Verdict: **ACCEPTED** (2026-11-11)
+
+Files changed: `notebooks/exp-001/eda.py` (committed as `68bb8d6`) and
+`notebooks/exp-001/01-eda-pnoa-catastro.ipynb`, which gains sections 9 and 9.1
+and moves the point-cloud declaration to 9.2 with its text unchanged, sections
+1 to 8 untouched; `.gitignore` gains `notebooks/exp-001/out/elevation/`; the
+run adds two capabilities documents and manifest rows under `out/`. No file
+under `src/`, `tests/`, `scripts/` or any protected path.
+
+Gate: `--selftest` passed (the 15.5 checks included), `--check-notebook` ok,
+`pre-commit run --all-files` 6 of 6 passed, re-run by the orchestrator on the
+final tree. Cells of 9 and 9.1 were delivered cleared and carry only the
+user's live outputs. No `.gfs` sidecar left in `out/vectors/`.
+
+Notes:
+
+1. Accepted deviations: the coverage hosts sit in `coverage_endpoints`, not in
+   `endpoints`, so section 4 does not send them a WMS request; two entry fields
+   the amendment did not list (`elevation_step_hint_m`, `wcs_axis_labels`) keep
+   numbers and axis names in the entry; the closing markdown 9.2 runs to 242
+   words, criterion 2's limit being for prose before a code cell.
+2. Every open point of the amendment is settled by the live run: subsets in
+   `EPSG:25830` accepted with axis labels `x`/`y`, full coverage, no size limit
+   met at 1.20 km², the grid step actually delivered, and the meaning of the
+   two `mdsn_*` coverages by section 9.1.
+3. The `❌` in section 9's `¿coincide?` column is true, not a fault: the
+   service resamples a subset onto a grid fitted to the box. For Sprint 8 that
+   and the whole-metre heights are recorded as EDA-WCSGRID.
+4. The figures of section 9.1, like those of 6.1, 6.2, 8.2 and 8.3, live in
+   the git-ignored `out/figs/`, so the committed notebook references an image
+   only a run produces.
