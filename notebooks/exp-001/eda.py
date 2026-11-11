@@ -14,13 +14,15 @@ Four concerns live here, each independent of any one country:
 * the drawing round-trip, so a rectangle drawn on a map is not lost when the
   kernel restarts;
 * reading what a service advertises, and what its feature replies contain, so
-  the provider entry can be confirmed or contradicted instead of trusted.
+  the provider entry can be confirmed or contradicted instead of trusted;
+* reading an elevation coverage as a raster: its grid, CRS and no-data share.
 
 Every output goes under one directory, ``out/`` beside this file by convention,
 with response bodies filed by kind: ``capabilities/``, ``vectors/``,
-``features/``, ``epochs/`` and ``chips/``, plus ``figs/`` for the figures a
-notebook draws rather than stores inside itself. The manifest sits at its root.
-The three heavy folders are git-ignored; everything else is small and versioned.
+``features/``, ``epochs/``, ``chips/`` and ``elevation/``, plus ``figs/`` for the
+figures a notebook draws rather than stores inside itself. The manifest sits at
+its root. The heavy folders are git-ignored; everything else is small and
+versioned.
 
 Run ``python notebooks/exp-001/eda.py --selftest`` for the offline checks, or
 ``--check-notebook <path>`` to validate a notebook against the project rules.
@@ -39,10 +41,11 @@ import sys
 import tempfile
 import time
 import warnings
-from collections.abc import Callable, Iterable
-from dataclasses import dataclass, field
+from collections.abc import Callable, Iterable, Mapping
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from pathlib import Path
+from urllib.parse import unquote
 from xml.etree import ElementTree
 
 import numpy as np
@@ -104,6 +107,25 @@ class Provider:
     # an apparently broken one; how slow this particular service is, is a fact
     # about it and belongs here rather than in a call.
     wfs_timeout_s: float = 30.0
+    # Elevation is served as coverages (OGC WCS): the grid values themselves,
+    # not a rendered picture of them. The coverage endpoints live apart from
+    # ``endpoints`` because every key there is asked for a map service's
+    # capabilities; a coverage service asked that question answers nothing
+    # useful. ``elevation`` maps a logical product (``terrain``, ``surface``,
+    # ``building_height``, ``vegetation_height``) to ``(coverage endpoint key,
+    # coverage identifier)``. An empty mapping is a valid provider: the notebook
+    # then reports that no elevation was probed, and why.
+    coverage_endpoints: dict[str, str] = field(default_factory=dict)
+    wcs_version: str = "2.0.1"
+    elevation: dict[str, tuple[str, str]] = field(default_factory=dict)
+    # The grid step, in metres, that each product's identifier suggests. A
+    # reading of a name, never a measurement: it is printed beside the step the
+    # reply actually delivers so the two can contradict each other.
+    elevation_step_hint_m: dict[str, float] = field(default_factory=dict)
+    # The axis labels a coverage request subsets on, ``x`` first. WCS 2.0 names
+    # them per coverage; these are the usual ones for a projected CRS, and a
+    # refusal naming other labels is corrected here, not in a call.
+    wcs_axis_labels: tuple[str, str] = ("x", "y")
 
 
 PROVIDERS: dict[str, Provider] = {
@@ -186,11 +208,38 @@ PROVIDERS: dict[str, Provider] = {
             "use": "currentUse",
             "floors": "numberOfFloorsAboveGround",
         },
+        # Leads found on 2026-11-11 in the two services' own capabilities (both
+        # declaring CC BY 4.0 and no fees), not measurements: the reading of
+        # the two ``mdsn_*`` identifiers as building and vegetation height
+        # comes from the service abstract, not from a per-coverage declaration.
+        # Section 9 of the notebook is what confirms or contradicts each line.
+        coverage_endpoints={
+            "elevation_mdt": "https://servicios.idee.es/wcs-inspire/mdt",
+            "elevation_mds": "https://wcs-mds.idee.es/mds",
+        },
+        wcs_version="2.0.1",
+        elevation={
+            "terrain": ("elevation_mdt", "Elevacion25830_5"),
+            "surface": ("elevation_mds", "mds05"),
+            "building_height": ("elevation_mds", "mdsn_e025"),
+            "vegetation_height": ("elevation_mds", "mdsn_v025"),
+        },
+        # ``mds05`` reads as 5 m by analogy with the terrain model, though by
+        # the ``025`` = 2.5 m convention of its siblings it would read 0.5 m:
+        # exactly the ambiguity the delivered grid step settles.
+        elevation_step_hint_m={
+            "terrain": 5.0,
+            "surface": 5.0,
+            "building_height": 2.5,
+            "vegetation_height": 2.5,
+        },
     ),
 }
 
 _PACKAGE_PREFIX = "geo_decay" + "_"  # the checker names it; the module never imports it
 _SCHEME = "ht" + "tp"  # kept out of one literal: endpoints live in PROVIDERS only
+# How WCS 2.0 names a CRS in a request: an identifier, not a host that is asked.
+_OGC_CRS_URI = _SCHEME + "://www.opengis.net/def/crs/EPSG/0/{epsg}"
 _MANIFEST_HEADER = [
     "timestamp_utc",
     "url",
@@ -260,6 +309,7 @@ BODY_DIRS: tuple[str, ...] = (
     "epochs",  # rendered map images: git-ignored, they are re-fetchable
     "chips",  # per-building crops drawn by the notebook: git-ignored
     "figs",  # figures the notebook shows from disk instead of storing: git-ignored
+    "elevation",  # coverage replies, rasters or their refusals: git-ignored
 )
 
 
@@ -331,6 +381,8 @@ def _extension(content_type: str, body: bytes) -> str:
         return ".png"
     if body.startswith(b"\xff\xd8"):
         return ".jpg"
+    if body[:4] in (b"II*\x00", b"MM\x00*", b"II+\x00", b"MM\x00+"):
+        return ".tif"
     if body.lstrip()[:5].lower() == b"<?xml":
         return ".xml"
     lowered = content_type.lower()
@@ -342,7 +394,7 @@ def _extension(content_type: str, body: bytes) -> str:
 
 def fetch(
     url: str,
-    params: dict[str, str],
+    params: Mapping[str, str | list[str]],
     out_dir: Path,
     *,
     timeout: float = 30.0,
@@ -358,7 +410,8 @@ def fetch(
     measurement.
 
     ``kind`` names the subfolder of ``out_dir`` the body is filed under, one of
-    ``BODY_DIRS``.
+    ``BODY_DIRS``. A parameter whose value is a list is repeated once per item,
+    which is how a coverage request subsets on two axes.
     """
     out_dir.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now(UTC).isoformat(timespec="seconds")
@@ -568,6 +621,61 @@ def wfs_features(
     )
 
 
+def wcs_services(provider: Provider) -> tuple[str, ...]:
+    """Every coverage endpoint key the elevation mapping uses, in order named."""
+    return tuple(dict.fromkeys(service for service, _ in provider.elevation.values()))
+
+
+def wcs_capabilities(provider: Provider, service: str, out_dir: Path) -> Fetch:
+    """Fetch the capabilities document of the coverage endpoint ``service``."""
+    params = {
+        "SERVICE": "WCS",
+        "VERSION": provider.wcs_version,
+        "REQUEST": "GetCapabilities",
+    }
+    return fetch(
+        provider.coverage_endpoints[service], params, out_dir, kind="capabilities"
+    )
+
+
+def wcs_coverage(
+    provider: Provider,
+    product: str,
+    bbox: Bbox,
+    crs: str,
+    out_dir: Path,
+    *,
+    media_type: str = "image/tiff",
+) -> Fetch:
+    """Fetch the grid of one ``elevation`` product over ``bbox`` (``x`` first).
+
+    One WCS 2.0 GetCoverage: the box is subset on the two axes the entry names,
+    and both the subset and the output are asked for in ``crs``, so the reply is
+    the service's grid on the extent and not a resampling of ours. The reply is
+    filed under ``elevation/`` whatever it is; whether it is a raster at all is
+    for ``read_coverage`` to say.
+    """
+    service, coverage = provider.elevation[product]
+    x_label, y_label = provider.wcs_axis_labels
+    uri = _OGC_CRS_URI.format(epsg=CRS.from_user_input(crs).to_epsg())
+    params: dict[str, str | list[str]] = {
+        "SERVICE": "WCS",
+        "VERSION": provider.wcs_version,
+        "REQUEST": "GetCoverage",
+        "COVERAGEID": coverage,
+        "SUBSET": [
+            f"{x_label}({float(bbox[0])!r},{float(bbox[2])!r})",
+            f"{y_label}({float(bbox[1])!r},{float(bbox[3])!r})",
+        ],
+        "SUBSETTINGCRS": uri,
+        "OUTPUTCRS": uri,
+        "FORMAT": media_type,
+    }
+    return fetch(
+        provider.coverage_endpoints[service], params, out_dir, kind="elevation"
+    )
+
+
 @dataclass(frozen=True)
 class Capabilities:
     """What one capabilities document advertises, read without its namespaces.
@@ -593,13 +701,18 @@ class Capabilities:
     stored_queries: tuple[str, ...]
     exception: str
     abstracts: dict[str, str] = field(default_factory=dict)
+    # What the service says about itself as a whole, title and abstract. On a
+    # coverage service this is where the products are described, when no
+    # coverage describes itself.
+    service_abstract: str = ""
 
 
-_EPSG_CODE = re.compile(r"EPSG:+(\d+)", re.IGNORECASE)
+_EPSG_CODE = re.compile(r"EPSG(?::+|/\d+/)(\d+)", re.IGNORECASE)
 _CRS_TAGS = frozenset(
-    {"CRS", "SRS", "DefaultCRS", "OtherCRS", "DefaultSRS", "OtherSRS"}
+    {"CRS", "SRS", "DefaultCRS", "OtherCRS", "DefaultSRS", "OtherSRS", "crsSupported"}
 )
-_NAMED_TAGS = frozenset({"Layer", "FeatureType"})
+_NAMED_TAGS = frozenset({"Layer", "FeatureType", "CoverageSummary"})
+_SERVICE_TAGS = frozenset({"Service", "ServiceIdentification"})
 
 
 def _local(tag: str) -> str:
@@ -619,11 +732,12 @@ def _child_text(element: ElementTree.Element, name: str) -> str:
 
 
 def read_capabilities(path: Path | None) -> Capabilities:
-    """Read what a WMS or WFS capabilities document advertises.
+    """Read what a WMS, WFS or WCS capabilities document advertises.
 
     Tags are matched on their local name and namespaces are ignored, because
-    the same facts are spelled differently in WMS 1.1.1, WMS 1.3.0 and WFS 2.0
-    and the point is to compare them against one provider entry. The document
+    the same facts are spelled differently in WMS 1.1.1, WMS 1.3.0, WFS 2.0 and
+    WCS 2.0 and the point is to compare them against one provider entry. A WCS
+    coverage is read as a layer named by its ``CoverageId``. The document
     is treated strictly as data: nothing in it is executed, resolved or
     followed.
     """
@@ -641,6 +755,7 @@ def read_capabilities(path: Path | None) -> Capabilities:
     titles: dict[str, str] = {}
     abstracts: dict[str, str] = {}
     queries: list[str] = []
+    service_abstract = ""
     for element in root.iter():
         tag = _local(element.tag)
         text = (element.text or "").strip()
@@ -652,8 +767,17 @@ def read_capabilities(path: Path | None) -> Capabilities:
             identifier = (element.get("id") or "").strip()
             if identifier:
                 queries.append(identifier)
+        elif tag in _SERVICE_TAGS and not service_abstract:
+            service_abstract = " · ".join(
+                text
+                for text in (
+                    _child_text(element, "Title"),
+                    _child_text(element, "Abstract"),
+                )
+                if text
+            )
         elif tag in _NAMED_TAGS:
-            name = _child_text(element, "Name")
+            name = _child_text(element, "Name") or _child_text(element, "CoverageId")
             if name:
                 layers.append(name)
                 titles[name] = _child_text(element, "Title")
@@ -665,6 +789,7 @@ def read_capabilities(path: Path | None) -> Capabilities:
         tuple(dict.fromkeys(queries)),
         "",
         abstracts,
+        service_abstract,
     )
 
 
@@ -1287,6 +1412,84 @@ def merge_features(
                 continue
             seen[key] = record
     return tuple(seen.values()), repeated
+
+
+# --------------------------------------------------------------------------
+# Elevation: what a coverage reply holds, read as a raster
+# --------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class CoverageReading:
+    """What one coverage reply holds, or why it holds nothing usable.
+
+    ``shape`` is ``(bands, rows, cols)`` and ``step_m`` the grid step the reply
+    delivers, ``x`` then ``y``, in the units of its CRS. ``nodata_share`` counts
+    the cells of the first band that are masked, declared no-data or not a
+    number; ``value_range`` is the span of the rest, ``None`` when nothing is
+    left. ``exception`` is set when the reply is missing or is not a raster —
+    with the service's own words when it gave any — and every other field is
+    then empty.
+    """
+
+    crs: str
+    shape: tuple[int, int, int]
+    step_m: tuple[float, float]
+    nodata_share: float
+    value_range: tuple[float, float] | None
+    dtype: str
+    exception: str
+
+
+def _no_coverage(reason: str) -> CoverageReading:
+    return CoverageReading("", (0, 0, 0), (0.0, 0.0), 0.0, None, "", reason)
+
+
+def _not_a_raster(path: Path) -> str:
+    """Why a reply that is not a raster is not one, in its own words if it has any."""
+    said = read_capabilities(path).exception
+    if said.startswith("service exception"):
+        return said
+    head = path.read_bytes()[:2048].decode("utf-8", errors="replace")
+    text = " ".join(re.sub(r"<[^>]*>", " ", head).split())
+    return f"not a raster ({path.suffix or 'no extension'}): {text[:160] or 'empty'}"
+
+
+def read_coverage(path: Path | None) -> CoverageReading:
+    """Read a coverage reply's grid, CRS, no-data share and value range.
+
+    A reply that is markup is never handed to the raster reader: a service
+    refusal is XML, and a portal or proxy page is HTML, and either one read as
+    a raster would be a measurement of nothing. Anything else that does not
+    open as a raster is a value with a reason, never an exception.
+    """
+    import rasterio
+    from rasterio.errors import RasterioError
+
+    if path is None or not path.is_file():
+        return _no_coverage("no reply was saved")
+    if path.read_bytes()[:256].lstrip().startswith(b"<"):
+        return _no_coverage(_not_a_raster(path))
+    try:
+        with rasterio.open(path) as src:
+            band = np.ma.masked_invalid(src.read(1, masked=True).astype("float64"))
+            crs = src.crs.to_string() if src.crs is not None else ""
+            shape = (src.count, src.height, src.width)
+            step = (abs(float(src.res[0])), abs(float(src.res[1])))
+            dtype = str(src.dtypes[0])
+    except (RasterioError, OSError) as exc:
+        return _no_coverage(f"{_not_a_raster(path)} — {type(exc).__name__}")
+    masked = np.ma.getmaskarray(band)
+    valid = band.compressed()
+    return CoverageReading(
+        crs=crs,
+        shape=shape,
+        step_m=step,
+        nodata_share=float(masked.mean()) if masked.size else 0.0,
+        value_range=(float(valid.min()), float(valid.max())) if valid.size else None,
+        dtype=dtype,
+        exception="",
+    )
 
 
 # --------------------------------------------------------------------------
@@ -2941,6 +3144,181 @@ def _selftest() -> int:
                 for kind, (service, name) in provider_entry.wfs_types.items()
             ),
             asked,
+        )
+
+        # 15.5: elevation coverages (handoff 015, step 5), network replaced or refused
+        check(
+            "15.5 every elevation product names a known coverage endpoint",
+            all(
+                service in one.coverage_endpoints
+                for one in PROVIDERS.values()
+                for service, _ in one.elevation.values()
+            ),
+            [one.elevation for one in PROVIDERS.values()],
+        )
+        bare_provider = replace(provider_entry, coverage_endpoints={}, elevation={})
+        check(
+            "15.5 a provider with no elevation mapping is valid and probes nothing",
+            wcs_services(bare_provider) == () and not bare_provider.elevation,
+            wcs_services(bare_provider),
+        )
+        wcs_dir = root / "wcs"
+        window = (469120.0, 4482944.0, 470464.0, 4483840.0)
+        coverage_asks: dict[str, Fetch] = {}
+        original_get = requests.get
+        try:
+            requests.get = _expire  # type: ignore[assignment]
+            listed_wcs = [
+                wcs_capabilities(provider_entry, service, wcs_dir)
+                for service in wcs_services(provider_entry)
+            ]
+            for product in provider_entry.elevation:
+                coverage_asks[product] = wcs_coverage(
+                    provider_entry, product, window, "EPSG:25830", wcs_dir
+                )
+        finally:
+            requests.get = original_get
+        wcs_rows = list(csv.reader(manifest_path(wcs_dir).open(encoding="utf-8")))
+        check(
+            "15.5 a failed coverage request is a value and leaves its manifest row",
+            all(
+                got.status == 0 and got.path is None and got.error
+                for got in [*listed_wcs, *coverage_asks.values()]
+            )
+            and len(wcs_rows) == 1 + len(listed_wcs) + len(provider_entry.elevation),
+            wcs_rows,
+        )
+        x_label, y_label = provider_entry.wcs_axis_labels
+        check(
+            "15.5 a coverage request names its id, subsets both axes, in the CRS",
+            all(
+                name in sent
+                and sent.count("SUBSET=") == 2
+                and f"{x_label}(469120.0,470464.0)" in sent
+                and f"{y_label}(4482944.0,4483840.0)" in sent
+                and sent.count("EPSG/0/25830") == 2
+                for product, (_, name) in provider_entry.elevation.items()
+                for sent in [unquote(coverage_asks[product].url)]
+            ),
+            {k: unquote(v.url) for k, v in coverage_asks.items()},
+        )
+
+        def _reply(body: bytes, content_type: str) -> Callable[..., requests.Response]:
+            def answer(*args: object, **kwargs: object) -> requests.Response:
+                response = requests.Response()
+                response.status_code = 200
+                response._content = body
+                response.headers["Content-Type"] = content_type
+                return response
+
+            return answer
+
+        refusal_xml = (
+            b'<?xml version="1.0"?><ows:ExceptionReport '
+            b'xmlns:ows="http://www.opengis.net/ows/2.0"><ows:Exception '
+            b'exceptionCode="InvalidAxisLabel"><ows:ExceptionText>Unknown axis '
+            b"label E</ows:ExceptionText></ows:Exception></ows:ExceptionReport>"
+        )
+        try:
+            requests.get = _reply(refusal_xml, "text/xml")  # type: ignore[assignment]
+            refused = wcs_coverage(
+                provider_entry, "terrain", window, "EPSG:25830", wcs_dir
+            )
+            portal_page = b"<html><title>Portal</title></html>"
+            requests.get = _reply(portal_page, "text/html")  # type: ignore[assignment]
+            portal = wcs_coverage(
+                provider_entry, "surface", window, "EPSG:25830", wcs_dir
+            )
+        finally:
+            requests.get = original_get
+        refused_reading = read_coverage(refused.path)
+        portal_reading = read_coverage(portal.path)
+        check(
+            "15.5 a service refusal with status 200 is not a raster, in its own words",
+            refused.path is not None
+            and refused.path.parent.name == "elevation"
+            and "Unknown axis label E" in refused_reading.exception
+            and refused_reading.value_range is None,
+            refused_reading,
+        )
+        check(
+            "15.5 an HTML page with status 200 is not a raster either",
+            "not a raster" in portal_reading.exception
+            and "Portal" in portal_reading.exception
+            and portal_reading.shape == (0, 0, 0),
+            portal_reading,
+        )
+        check(
+            "15.5 a missing or unreadable reply is a value with a reason",
+            bool(read_coverage(None).exception)
+            and bool(read_coverage(garbled).exception),
+            (read_coverage(None).exception, read_coverage(garbled).exception),
+        )
+
+        import rasterio
+        from rasterio.transform import from_origin
+
+        grid = np.arange(12 * 20, dtype="float32").reshape(12, 20)
+        grid[:3, :] = -9999.0
+        grid[5, 5] = np.nan
+        tif = root / "dem.tif"
+        with rasterio.open(
+            tif,
+            "w",
+            driver="GTiff",
+            width=20,
+            height=12,
+            count=1,
+            dtype="float32",
+            crs="EPSG:25830",
+            transform=from_origin(469120.0, 4483840.0, 2.5, 2.5),
+            nodata=-9999.0,
+        ) as dst:
+            dst.write(grid, 1)
+        check(
+            "15.5 a GeoTIFF body is filed as .tif, whatever it was labelled",
+            _extension("application/octet-stream", tif.read_bytes()) == ".tif",
+            _extension("application/octet-stream", tif.read_bytes()),
+        )
+        dem = read_coverage(tif)
+        check(
+            "15.5 a raster reply reports its CRS, shape and delivered grid step",
+            dem.exception == ""
+            and dem.crs == "EPSG:25830"
+            and dem.shape == (1, 12, 20)
+            and dem.step_m == (2.5, 2.5),
+            dem,
+        )
+        check(
+            "15.5 no-data counts declared no-data and NaN, the range only the rest",
+            abs(dem.nodata_share - 61 / 240) < 1e-9
+            and dem.value_range == (60.0, 239.0),
+            (dem.nodata_share, dem.value_range),
+        )
+        wcs_caps = root / "wcs-caps.xml"
+        wcs_caps.write_text(
+            '<?xml version="1.0"?><wcs:Capabilities '
+            'xmlns:wcs="http://www.opengis.net/wcs/2.0" '
+            'xmlns:ows="http://www.opengis.net/ows/2.0" '
+            'xmlns:crs="http://www.opengis.net/wcs/crs/1.0">'
+            "<ows:ServiceIdentification><ows:Title>Elevation</ows:Title>"
+            "<ows:Abstract>Surface and normalised heights</ows:Abstract>"
+            "</ows:ServiceIdentification><wcs:ServiceMetadata><crs:CrsMetadata>"
+            "<crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/25830"
+            "</crs:crsSupported></crs:CrsMetadata></wcs:ServiceMetadata>"
+            "<wcs:Contents><wcs:CoverageSummary><ows:Title>Surface 5 m</ows:Title>"
+            "<wcs:CoverageId>mds05</wcs:CoverageId></wcs:CoverageSummary>"
+            "</wcs:Contents></wcs:Capabilities>",
+            encoding="utf-8",
+        )
+        coverage_caps = read_capabilities(wcs_caps)
+        check(
+            "15.5 a WCS capabilities names its coverages, CRS and its own abstract",
+            coverage_caps.layers == ("mds05",)
+            and coverage_caps.titles["mds05"] == "Surface 5 m"
+            and coverage_caps.crs == ("EPSG:25830",)
+            and "normalised heights" in coverage_caps.service_abstract,
+            coverage_caps,
         )
 
         # 1: the output layout the ignore rules depend on
