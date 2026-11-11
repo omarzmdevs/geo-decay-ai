@@ -84,8 +84,8 @@ consequences of the sandbox shape the acceptance criteria, and are not defects:
   - [x] 1 · Section 4 · Provider capabilities — ACCEPTED 2026-11-05
   - [x] 2 · Sections 5 and 6 · Epoch availability and image quality — ACCEPTED 2026-11-06
   - [x] 3 · Section 7 · Spectral check — ACCEPTED 2026-11-06
-  - [ ] 4 · Section 8 · Cadastral footprints
-  - [ ] 5 · Section 9 · Elevation availability
+  - [x] 4 · Section 8 · Cadastral footprints — ACCEPTED 2026-11-08
+  - [x] 5 · Section 9 · Elevation availability — ACCEPTED 2026-11-11
   - [ ] 6 · Sections 10 and 11 · Example buildings and the labelling table
   - [ ] 7 · Section 12 · Findings
   - [ ] 8 · Close
@@ -121,7 +121,7 @@ when the measurement exists and is recorded.
   does not.
 - 015 · The EDA notebook, one section at a time — IN PROGRESS
   ([handoff](../prompts/015-eda-notebook-step-by-step.md)); interactive, never
-  headless, one step per session. Five of its nine steps are closed:
+  headless, one step per session. Six of its nine steps are closed:
   - **Step 0 · The self-contained folder — ACCEPTED 2026-11-04.** It settles
     nothing about the services: `eda.py` and `README.md` were created inside
     `notebooks/exp-001/`, the notebook reaches its last cell offline with
@@ -183,6 +183,18 @@ when the measurement exists and is recorded.
     and GML served as `text/html` (EDA-WFSTRUST, EDA-CTYPE). Figures
     transcribed into [EXP-001](../experiments/exp-001-data-feasibility.md) →
     Results; verification in the handoff's `## Verification · Step 4`.
+  - **Step 5 · Section 9 · Elevation availability — ACCEPTED 2026-11-11**,
+    from one live run by the user, code committed as `68bb8d6`. The step was
+    amended on 2026-11-11 to measure rather than report absence: two WCS 2.0.1
+    coverage services of the same publisher answer, and **four raster products
+    cover the whole extent** — terrain and surface at ≈5 m, building and
+    vegetation height at ≈2.5 m — with no cost, full coverage and one epoch, the
+    first LiDAR coverage. `mdsn_e025` is building height and `mdsn_v025`
+    vegetation height, read from the footprint overlay of section 9.1. The point
+    cloud was not pursued, by the user's decision; a raster-only route exists, so
+    PDAL is not needed for anything measured. Figures transcribed into
+    [EXP-001](../experiments/exp-001-data-feasibility.md) → Results;
+    verification in the handoff's `## Verification · Step 5`.
 
 ## Notes
 
@@ -225,8 +237,9 @@ folder can be moved whole; small audit artefacts are versioned, imagery is not.
 And **no measured fact is inherited** from the discarded case: the provider
 entry starts from the committed values of handoff 013 and the first live run
 settles them again. The cost of that is recorded honestly — the elevation
-endpoint went with the revert, so EXP-001 question 2 has no instrument until an
-endpoint is added, which is EDA-ELEV.
+endpoint went with the revert, so EXP-001 question 2 had no instrument until an
+endpoint was added, which was EDA-ELEV. Step 5 added two coverage services and
+answered it for rasters on 2026-11-11.
 
 ## Documents Updated
 

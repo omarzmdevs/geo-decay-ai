@@ -26,8 +26,15 @@ live runs: the cadastre serves 787 buildings over the extent, only in tiles unde
 ceiling it enforces, and its condition attribute is uniform, so it is **not** a weak label
 source and the manual labelling pass stands. All five feature sources it publishes have
 now been asked, and the storey count lives on the building parts, not on the buildings.
-**Step 5 (section 9 · elevation availability) is next**, and it will report absence: the
-provider entry still describes no elevation endpoint (EDA-ELEV). The sprint produces no production code:
+**Step 5 (section 9 · elevation availability) ACCEPTED 2026-11-11**, from a live run by the user
+that measured elevation through two WCS 2.0.1 services: four raster products cover the whole
+extent (terrain and surface ≈5 m, building and vegetation height ≈2.5 m; first LiDAR coverage,
+one epoch, whole metres, resampled cells). `mdsn_e025` is building height and `mdsn_v025`
+vegetation height, read from the footprint overlay of section 9.1 (cells above zero inside vs
+outside footprints: 82.4 % vs 6.4 % for building height, 8.3 % vs 28.5 % for vegetation). The
+point cloud was not pursued, by the user's decision, and a raster-only route exists, so PDAL is
+not needed for anything measured. **Step 6 (sections 10 and 11 · example buildings and the
+labelling table) is next.** The sprint produces no production code:
 it makes EXP-001 measurable and re-measurable by the user's own run. The extent is no longer
 open: it was drawn and committed on 2026-11-04 as `notebooks/exp-001/out/extent.json`
 (`EPSG:25830`, 1.204224 km², 21 × 14 tiles).
@@ -43,8 +50,8 @@ Block 3. The bounding box is a configuration variable (Sprint 2) and its value i
 and committed, so the experiment advances one notebook section per session. The provider
 capabilities, the per-epoch figures and the cadastral reference are settled — about
 7 usable epochs of the 21 advertised at a measured 0.25 m/px, and 787 buildings with a
-median footprint of 70.9 m² whose attributes cannot label them — while the elevation and
-labelling figures are still unmeasured.
+median footprint of 70.9 m² whose attributes cannot label them — while the elevation figures are
+measured (step 5) and the labelling figures are still unmeasured.
 
 ## Completed Sprints
 
@@ -62,7 +69,7 @@ contract, a null adapter, and composition in delivery, configured through the
 `GEO_DECAY_TRACKING_*` variables. Blocks 1 and 2 are closed. Sprint 5 has accepted handoffs
 013 (the EDA helper module and provider configuration) and 014 (the notebook, whose deliverable
 the user then discarded), and is now rebuilding the notebook section by section under handoff
-015, with steps 0 to 4 accepted. The
+015, with steps 0 to 5 accepted. The
 feasibility experiment (ADR-004) is still open and gates Block 3, on top of the
 Sprint 2 baseline (validated `Settings`, `BoundingBox` configuration, logging
 configured once per process) and the Sprint 1 baseline (skeleton, reference container
@@ -88,7 +95,8 @@ See [ADR-001](architecture/adr/adr-001-agent-governance.md) and
   commit does not exist. See the verification in `docs/prompts/003-policy-guard.md`.
 - PDAL is not in the container image and is no longer scheduled for Sprint 9:
   whether it is needed at all is decided by ADR-004, since the raster elevation
-  route requires only GDAL (ADR-005 amendment 2026-10-15). Handoffs 002 and 006
+  route requires only GDAL (ADR-005 amendment 2026-10-15), and so does the route measured in
+  step 5 of handoff 015. Handoffs 002 and 006
   were ACCEPTED 2026-10-14 and committed as d983f96. The image is `debian:trixie`
   with GDAL 3.10.3 at system level.
 - External images are referenced by tag, not digest, on purpose: the tag keeps floating
@@ -111,4 +119,4 @@ See [ADR-001](architecture/adr/adr-001-agent-governance.md) and
 
 ## Last Updated
 
-2026-11-08
+2026-11-11
