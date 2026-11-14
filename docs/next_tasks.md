@@ -49,11 +49,12 @@ table is in [roadmap.md](roadmap.md).
   the Analysis, the Conclusion and the two `docs/research/` documents are the
   orchestrator's, written from whatever the user's run measures. Steps 0 to 5
   of handoff 015 are accepted (step 5 on 2026-11-11), and step 6 is split in
-  three, with part 6a (the example buildings' chip strips) accepted on
-  2026-11-14: the orthophoto, the cadastral reference and the elevation rasters
-  are measured, and what is still missing from EXP-001 is the labelling table
-  (6b), the manual samples (6c, not executable until its amendment), the
-  manual labelling pass, and the findings section (step 7).
+  three, with parts 6a (the example buildings' chip strips) and 6b (the
+  labelling table) accepted on 2026-11-14: the orthophoto, the cadastral
+  reference and the elevation rasters are measured, and what is still missing
+  from EXP-001 is the manual samples (6c, not executable until its amendment,
+  which also decides when regeneration is refused), the manual labelling pass,
+  and the findings section (step 7).
 
 Completed sprints of Block 1: Sprint 1 · Foundations and Quality Gate
 (2026-10-14, [log](sprints/sprint-01-foundations.md)), Sprint 2 · Runtime

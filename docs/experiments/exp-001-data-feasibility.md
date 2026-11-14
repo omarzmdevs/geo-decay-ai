@@ -458,10 +458,11 @@ not for roof geometry.
 
 ### Candidate sites
 
-**Chip strips produced 2026-11-14 (handoff 015, step 6a, ACCEPTED); the
-labelling table is not produced yet** (step 6b). Step 6 now runs in three
-parts (amendment of 2026-11-14): 6a the strips, 6b the table, 6c manual samples
-drawn on the map, not executable until its own amendment exists.
+**Chip strips and the empty labelling table produced 2026-11-14 (handoff 015,
+steps 6a and 6b, both ACCEPTED).** Step 6 now runs in three parts (amendment of
+2026-11-14): 6a the strips, 6b the table, 6c manual samples drawn on the map,
+not executable until its own amendment exists — which also decides whether
+regeneration is refused only when manual work would actually be lost.
 
 - **12 example buildings**, chosen by area tertile and quadrant of the extent
   with a fixed seed. Only the years section 5 found present were requested,
@@ -486,6 +487,18 @@ drawn on the map, not executable until its own amendment exists.
 - **The sample is narrow and includes non-buildings.** The tertiles fall close
   to the 70.9 m² median, so 11 of 12 picks are 57–79 m² row houses, and the
   19.9 m² pick (no. 4) frames a wall and a tree, not a judgeable building.
+- **The labelling table** (step 6b), `out/candidates.csv`, versioned: **787
+  cadastral rows and 0 manual** (no manual-samples file exists yet), **12 with
+  a strip and a `label_year`, 2023 for all 12**. Twelve columns in order: `id`,
+  `source`, `x`, `y`, `bbox`, `area_m2`, `strip`, `label_year`, `label`,
+  `evidence`, `notes`, `minutes_spent`; every row is located by `x`, `y`.
+  `label_year` comes from the newest kept chip in `strips.csv`. `label`,
+  `evidence`, `notes` and `minutes_spent` are empty, with their vocabulary
+  fixed in the section's markdown: `label` is `abandoned`, `kept` or `unsure`,
+  and `minutes_spent` is one figure per row. The write is refused when manual
+  work exists. `strip` points into the git-ignored `out/figs/`, so it is empty
+  in a fresh clone that has not run section 10.1, while `label_year` is still
+  filled.
 
 The manual pass of methodology step 6, and the time it takes, are the user's
 work.
@@ -515,7 +528,7 @@ section 12). Handoff 015, step 3, ACCEPTED 2026-11-06.
 
 ### What is still unanswered
 
-Of the four questions in the Objective, after five steps and step 6a:
+Of the four questions in the Objective, after five steps and steps 6a and 6b:
 
 1. **PNOA resolution and years** — **answered**. 9 of the 21 advertised years
    cover the extent (2006–2023), at a measured 0.25 m/px in six of them, with
@@ -538,8 +551,9 @@ Of the four questions in the Objective, after five steps and step 6a:
    6,355 parts and all 124 other constructions. There is no weak label to be
    had here, so the labelling of step 6 stays fully manual and question 4 does
    **not** change shape. How long that manual pass takes is still unmeasured,
-   because it is the user's work and that duration is itself a result; the
-   labelling table it is done in is step 6b.
+   because it is the user's work and that duration is itself a result. The
+   labelling table it is done in exists since step 6b (ACCEPTED 2026-11-14:
+   787 cadastral rows, empty `label` and `minutes_spent`).
 
 ## Analysis
 

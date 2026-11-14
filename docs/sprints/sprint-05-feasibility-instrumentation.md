@@ -88,7 +88,7 @@ consequences of the sandbox shape the acceptance criteria, and are not defects:
   - [x] 5 · Section 9 · Elevation availability — ACCEPTED 2026-11-11
   - [ ] 6 · Sections 10 and 11 · Example buildings and the labelling table — in three parts (amendment 2026-11-14)
     - [x] 6a · Section 10 · Multi-epoch chip strips — ACCEPTED 2026-11-14
-    - [ ] 6b · Section 11 · The labelling table
+    - [x] 6b · Section 11 · The labelling table — ACCEPTED 2026-11-14
     - [ ] 6c · Manual samples on the map — not executable until its amendment exists
   - [ ] 7 · Section 12 · Findings
   - [ ] 8 · Close
@@ -212,6 +212,17 @@ when the measurement exists and is recorded.
     Figures transcribed into
     [EXP-001](../experiments/exp-001-data-feasibility.md) → Results;
     verification in the handoff's `## Verification · Step 6a`.
+  - **Step 6b · Section 11 · The labelling table — ACCEPTED 2026-11-14**,
+    from one live run by the user. `out/candidates.csv` (new, versioned) holds
+    **787 cadastral rows and 0 manual**, 12 with strip and label year (2023 for
+    all 12), in twelve columns with every row located by `x`, `y`; the label
+    columns are empty, their vocabulary fixed in the section's markdown, and
+    the write is refused when manual work exists. The manual-samples file is
+    read in a provisional format that 6c decides; 6c's amendment also decides
+    whether to refuse regeneration only when manual work would actually be
+    lost. Figures transcribed into
+    [EXP-001](../experiments/exp-001-data-feasibility.md) → Results;
+    verification in the handoff's `## Verification · Step 6b`.
 
 ## Notes
 
