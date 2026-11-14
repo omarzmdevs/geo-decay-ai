@@ -16,7 +16,8 @@ Four concerns live here, each independent of any one country:
 * reading what a service advertises, and what its feature replies contain, so
   the provider entry can be confirmed or contradicted instead of trusted;
 * reading an elevation coverage as a raster: its grid, CRS and no-data share;
-* choosing example buildings, framing their chips and judging each chip.
+* choosing example buildings, framing their chips and judging each chip;
+* the labelling table, which never overwrites manual work.
 
 Every output goes under one directory, ``out/`` beside this file by convention,
 with response bodies filed by kind: ``capabilities/``, ``vectors/``,
@@ -2487,6 +2488,214 @@ def write_strips(rows: list[dict[str, object]], out_dir: Path) -> Path:
     return path
 
 
+def read_strips(out_dir: Path) -> list[dict[str, str]] | None:
+    """The rows of ``out_dir/strips.csv``, or ``None`` when there is no table."""
+    path = out_dir / "strips.csv"
+    if not path.exists():
+        return None
+    with path.open(newline="", encoding="utf-8") as handle:
+        return list(csv.DictReader(handle))
+
+
+# --------------------------------------------------------------------------
+# The labelling table
+# --------------------------------------------------------------------------
+
+CANDIDATES_HEADER: tuple[str, ...] = (
+    "id",
+    "source",
+    "x",
+    "y",
+    "bbox",
+    "area_m2",
+    "strip",
+    "label_year",
+    "label",
+    "evidence",
+    "notes",
+    "minutes_spent",
+)
+# The columns only a person fills. A file with any of them filled holds manual
+# work, and a regeneration must never overwrite it.
+MANUAL_FIELDS: tuple[str, ...] = ("label", "evidence", "notes", "minutes_spent")
+LABELS: tuple[str, ...] = ("abandoned", "kept", "unsure")
+SOURCES: tuple[str, ...] = ("cadastre", "manual")
+
+
+def strip_figure(out_dir: Path, fid: str) -> tuple[str, str]:
+    """The strip figure section 10.1 drew for ``fid``, found by its id.
+
+    Returns ``(path relative to out_dir, "")`` for exactly one file named
+    ``strip-<number>-<id>.png`` under ``figs/``. The number is not rebuilt
+    here: it belongs to the run that drew the strip. No match gives an empty
+    path and an empty reason (the figure is not on disk, which a clone of
+    the repository never has); more than one gives an empty path and the
+    reason, because picking one would be a guess.
+    """
+    safe = re.sub(r"[^A-Za-z0-9._-]+", "_", fid)
+    pattern = re.compile(r"strip-\d+-" + re.escape(safe) + r"\.png")
+    figs = out_dir / "figs"
+    found = (
+        sorted(p for p in figs.iterdir() if pattern.fullmatch(p.name))
+        if figs.is_dir()
+        else []
+    )
+    if len(found) > 1:
+        names = ", ".join(p.name for p in found)
+        return "", f"{len(found)} strip figures match {fid}: {names}"
+    if not found:
+        return "", ""
+    return str(found[0].relative_to(out_dir)), ""
+
+
+def strips_by_id(
+    rows: Iterable[Mapping[str, str]], out_dir: Path
+) -> tuple[dict[str, tuple[str, str]], list[str]]:
+    """Each building with a kept chip: ``id -> (strip figure, label year)``.
+
+    The label year comes from the table only: the newest year whose chip was
+    kept, the date the state is judged on. A dropped chip says nothing about
+    the building, so it never sets the year. The figure is looked up on disk
+    by id and is empty when there is none or more than one; the second case
+    adds a line to the returned list, since it is never a guess.
+    """
+    newest: dict[str, int] = {}
+    for row in rows:
+        fid = row.get("id", "")
+        if fid and row.get("kept") == "yes":
+            year = int(row["year"])
+            newest[fid] = max(year, newest.get(fid, year))
+    index: dict[str, tuple[str, str]] = {}
+    problems: list[str] = []
+    for fid in sorted(newest):
+        figure, problem = strip_figure(out_dir, fid)
+        if problem:
+            problems.append(problem)
+        index[fid] = (figure, str(newest[fid]))
+    return index, problems
+
+
+def _coordinate(value: float) -> str:
+    return f"{value:.2f}"
+
+
+def cadastre_rows(
+    features: Iterable[FeatureRecord], strips: Mapping[str, tuple[str, str]]
+) -> list[dict[str, object]]:
+    """One labelling row per cadastral footprint, its manual columns empty.
+
+    Every row carries its coordinates: the area-weighted centroid and the
+    envelope, in the CRS the footprints are in. A footprint with no geometry
+    cannot be located, and so cannot be labelled; it is left out.
+    """
+    rows: list[dict[str, object]] = []
+    for record in features:
+        centroid = footprint_centroid(record)
+        envelope = rings_envelope([record])
+        if centroid is None or envelope is None:
+            continue
+        strip, label_year = strips.get(record.fid, ("", ""))
+        rows.append(
+            {
+                "id": record.fid,
+                "source": "cadastre",
+                "x": _coordinate(centroid[0]),
+                "y": _coordinate(centroid[1]),
+                "bbox": " ".join(_coordinate(v) for v in envelope),
+                "area_m2": f"{footprint_area(record):.2f}",
+                "strip": strip,
+                "label_year": label_year,
+            }
+        )
+    return rows
+
+
+def _is_number(text: str | None) -> bool:
+    try:
+        return math.isfinite(float(text or ""))
+    except ValueError:
+        return False
+
+
+def manual_work(path: Path) -> int:
+    """How many rows of a labelling table carry manual work; 0 when absent."""
+    if not path.exists():
+        return 0
+    with path.open(newline="", encoding="utf-8") as handle:
+        return sum(
+            1
+            for row in csv.DictReader(handle)
+            if any((row.get(name) or "").strip() for name in MANUAL_FIELDS)
+        )
+
+
+def read_manual(
+    path: Path, taken_ids: Iterable[str]
+) -> tuple[list[dict[str, str]], list[str]] | None:
+    """The manual samples to merge, and one line per row refused; ``None`` if absent.
+
+    The file has exactly the labelling table's columns. A row is refused when
+    its ``source`` is not ``manual``, when its id is already taken (by a
+    cadastral footprint or an earlier manual row), or when it carries no
+    numeric ``x`` and ``y``: every sample has to be locatable.
+    """
+    if not path.exists():
+        return None
+    with path.open(newline="", encoding="utf-8") as handle:
+        reader = csv.DictReader(handle)
+        header = tuple(reader.fieldnames or ())
+        rows = list(reader)
+    if header != CANDIDATES_HEADER:
+        return [], [
+            f"{path.name}: columns {list(header)} are not the table's "
+            f"{list(CANDIDATES_HEADER)}; no row merged"
+        ]
+    seen = set(taken_ids)
+    kept: list[dict[str, str]] = []
+    refused: list[str] = []
+    for line, row in enumerate(rows, 2):
+        fid = (row.get("id") or "").strip()
+        source = (row.get("source") or "").strip()
+        located = _is_number(row.get("x")) and _is_number(row.get("y"))
+        if source != "manual":
+            refused.append(f"line {line} ({fid or 'no id'}): source {source!r}")
+        elif not fid:
+            refused.append(f"line {line}: no id")
+        elif fid in seen:
+            refused.append(f"line {line} ({fid}): id already taken")
+        elif not located:
+            refused.append(f"line {line} ({fid}): no numeric x and y")
+        else:
+            seen.add(fid)
+            kept.append({name: row.get(name) or "" for name in CANDIDATES_HEADER})
+    return kept, refused
+
+
+def write_candidates(
+    rows: Iterable[Mapping[str, object]], out_dir: Path
+) -> tuple[Path, str]:
+    """Write the labelling table, unless that would overwrite manual work.
+
+    Returns the path and an empty string when written, or the path and the
+    reason when refused. A refusal leaves the existing file exactly as it was:
+    nothing is deleted, moved or backed up. The header is written even with
+    no rows.
+    """
+    out_dir.mkdir(parents=True, exist_ok=True)
+    path = out_dir / "candidates.csv"
+    filled = manual_work(path)
+    if filled:
+        return path, (
+            f"{path.name} already holds manual work in {filled} row(s) "
+            f"({', '.join(MANUAL_FIELDS)}): nothing written"
+        )
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(CANDIDATES_HEADER), restval="")
+        writer.writeheader()
+        writer.writerows(rows)
+    return path, ""
+
+
 # --------------------------------------------------------------------------
 # Notebook checker
 # --------------------------------------------------------------------------
@@ -3803,6 +4012,135 @@ def _selftest() -> int:
             and filled_rows
             == [list(STRIPS_HEADER), ["b", "2023", "yes", "0.0", "", ""]],
             filled_rows,
+        )
+
+        # 11: the labelling table
+        empty_out = root / "labels-empty"
+        empty_path, empty_refusal = write_candidates([], empty_out)
+        check(
+            "11 candidates.csv carries its header with no rows",
+            not empty_refusal
+            and empty_path.read_text(encoding="utf-8").strip()
+            == ",".join(CANDIDATES_HEADER),
+            empty_path.read_text(encoding="utf-8"),
+        )
+        strip_table = [
+            {"id": "a", "year": "2006", "kept": "yes"},
+            {"id": "a", "year": "2023", "kept": "no"},  # dropped: never the year
+            {"id": "a", "year": "2018", "kept": "yes"},
+            {"id": "b", "year": "2015", "kept": "no"},  # no kept chip, no row
+            {"id": "c/1", "year": "2009", "kept": "yes"},
+            {"id": "d", "year": "2020", "kept": "yes"},
+        ]
+        strip_out = root / "strip-out"
+        (strip_out / "figs").mkdir(parents=True)
+        for name in ("strip-07-a.png", "strip-02-xa.png"):  # NN is not ours
+            (strip_out / "figs" / name).write_bytes(b"")
+        for name in ("strip-01-c_1.png", "strip-09-c_1.png"):  # two: ambiguous
+            (strip_out / "figs" / name).write_bytes(b"")
+        by_id, strip_problems = strips_by_id(strip_table, strip_out)
+        check(
+            "11 label_year is the newest kept chip, ignoring dropped ones",
+            {fid: year for fid, (_, year) in by_id.items()}
+            == {"a": "2018", "c/1": "2009", "d": "2020"},
+            by_id,
+        )
+        check(
+            "11 the strip figure is found by id, whatever its number",
+            by_id["a"][0] == "figs/strip-07-a.png",
+            by_id,
+        )
+        check(
+            "11 a missing figure leaves the strip empty, with no complaint",
+            by_id["d"][0] == "" and by_id["d"][1] == "2020",
+            (by_id, strip_problems),
+        )
+        check(
+            "11 two matching figures leave the strip empty, and say so",
+            by_id["c/1"][0] == ""
+            and len(strip_problems) == 1
+            and "c/1" in strip_problems[0]
+            and "strip-01-c_1.png, strip-09-c_1.png" in strip_problems[0],
+            (by_id, strip_problems),
+        )
+        located = cadastre_rows([square("a", 10.0, 20.0, 4.0), houses[0]], by_id)
+        check(
+            "11 every cadastral row carries centroid, envelope, area, strip and year",
+            located[0]
+            == {
+                "id": "a",
+                "source": "cadastre",
+                "x": "12.00",
+                "y": "22.00",
+                "bbox": "10.00 20.00 14.00 24.00",
+                "area_m2": "16.00",
+                "strip": "figs/strip-07-a.png",
+                "label_year": "2018",
+            }
+            and located[1]["strip"] == ""
+            and located[1]["label_year"] == "",
+            located,
+        )
+        manual_file = root / "manual.csv"
+        with manual_file.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.writer(handle)
+            writer.writerow(CANDIDATES_HEADER)
+            writer.writerow(
+                ["m1", "manual", "15", "25", "", "", "", "2023", "unsure", "", "", "3"]
+            )
+            writer.writerow(["m2", "cadastre", "1", "2"] + [""] * 8)
+            writer.writerow(["a", "manual", "1", "2"] + [""] * 8)
+            writer.writerow(["m3", "manual", "", "2"] + [""] * 8)
+        merged_in = read_manual(manual_file, [row["id"] for row in located])
+        check(
+            "11 a manual row is merged, with its own columns kept",
+            merged_in is not None
+            and [row["id"] for row in merged_in[0]] == ["m1"]
+            and merged_in[0][0]["label"] == "unsure"
+            and merged_in[0][0]["minutes_spent"] == "3",
+            merged_in,
+        )
+        check(
+            "11 a non-manual, a colliding and an unlocated row are each refused",
+            merged_in is not None
+            and len(merged_in[1]) == 3
+            and "source 'cadastre'" in merged_in[1][0]
+            and "already taken" in merged_in[1][1]
+            and "no numeric x and y" in merged_in[1][2],
+            merged_in,
+        )
+        check(
+            "11 an absent manual file is not an error",
+            read_manual(root / "no-manual.csv", []) is None,
+        )
+        labels_out = root / "labels"
+        first_path, first_refusal = write_candidates(
+            [*located, *(merged_in[0] if merged_in else [])], labels_out
+        )
+        with first_path.open(newline="", encoding="utf-8") as handle:
+            first_rows = list(csv.DictReader(handle))
+        check(
+            "11 the table holds the cadastral rows then the manual ones",
+            not first_refusal
+            and [row["source"] for row in first_rows]
+            == ["cadastre", "cadastre", "manual"],
+            first_rows,
+        )
+        labelled = first_path.read_text(encoding="utf-8").replace(
+            "a,cadastre,12.00,22.00,10.00 20.00 14.00 24.00,16.00,"
+            "figs/strip-07-a.png,2018,,",
+            "a,cadastre,12.00,22.00,10.00 20.00 14.00 24.00,16.00,"
+            "figs/strip-07-a.png,2018,kept,",
+        )
+        first_path.write_text(labelled, encoding="utf-8")
+        before = first_path.read_bytes()
+        _, refusal = write_candidates(located, labels_out)
+        check(
+            "11 a filled label refuses the write and leaves the file byte-identical",
+            "2 row(s)" in refusal
+            and first_path.read_bytes() == before
+            and sorted(p.name for p in labels_out.iterdir()) == ["candidates.csv"],
+            refusal,
         )
 
         # 1: the output layout the ignore rules depend on
