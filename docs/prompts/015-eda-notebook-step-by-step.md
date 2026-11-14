@@ -140,7 +140,11 @@ each step: its offline run, and the user's live run.
 - [x] **3 · Section 7 · Spectral check** — ACCEPTED 2026-11-06
 - [x] **4 · Section 8 · Cadastral footprints** — ACCEPTED 2026-11-08
 - [x] **5 · Section 9 · Elevation availability** — ACCEPTED 2026-11-11
-- [ ] **6 · Sections 10 and 11 · Example buildings and the labelling table**
+- [ ] **6 · Sections 10 and 11 · Example buildings and the labelling table** —
+  in three parts (amendment 2026-11-14)
+  - [ ] **6a · Section 10 · Multi-epoch chip strips**
+  - [ ] **6b · Section 11 · The labelling table**
+  - [ ] **6c · Manual samples on the map** — not executable until its amendment exists
 - [ ] **7 · Section 12 · Findings**
 - [ ] **8 · Close**
 
@@ -595,12 +599,26 @@ its header even when there are no rows.
 **Settles.** The real manual cost per building, which is what makes EXP-001
 question 4 answerable rather than estimated.
 
-**Record** — filled in when the step closes.
+**Run in three parts** — see the amendment of 2026-11-14, whose criteria for 6a
+and 6b replace the one above. One record per part.
+
+**Record · 6a** — filled in when the part closes.
 
 - Date:
+- Restore point:
 - What the live run printed:
 - Corrections applied:
 - Verdict:
+
+**Record · 6b** — filled in when the part closes.
+
+- Date:
+- Restore point:
+- What the live run printed:
+- Corrections applied:
+- Verdict:
+
+**Record · 6c** — not executable until its amendment exists.
 
 ---
 
@@ -832,6 +850,133 @@ The hosts are new, so the user's run is the only place this is measured.
 **Settles.** EXP-001 question 2 for the raster products, and whether ADR-004's
 elevation route can be raster-only, which is what keeps PDAL deferred.
 EDA-ELEV narrows to the point cloud.
+
+---
+
+### 2026-11-14 · step 6 is split in three, and its open choices are fixed
+
+Step 6's criterion leaves the number of buildings, how they are chosen, which
+epochs a strip holds and what the table carries unstated. The user fixed them on
+2026-11-13 and 2026-11-14, and chose to run the step **in parts**, each with its
+own exchange, live run and record:
+
+| Part | Section | Live run | Amendment |
+|---|---|---|---|
+| **6a** | 10 · multi-epoch chip strips | yes | this one |
+| **6b** | 11 · the labelling table | mostly offline | this one |
+| **6c** | manual samples drawn on the map | yes | **not written**: debated first |
+
+**6a and 6b replace step 6's criterion**; its objective and what it settles
+stand. 6c is described below only so that 6a and 6b leave room for it; it is not
+executable until its own amendment exists. **One part per session**: a
+developer named for 6a writes no cell of section 11.
+
+#### Why manual samples exist at all
+
+The cadastre is used now because it gives references at scale with no detection
+model. The structures this project most wants to find — unregistered, with a
+high abandonment index — are absent from it by definition, and later sprints
+lean on detection rather than on the cadastre. A sample drawn only from the
+cadastre is biased toward what is registered, so every row records where it
+came from, and the table is shaped from 6b onward to take manual rows without
+a migration.
+
+#### Part 6a · Section 10 · Multi-epoch chip strips
+
+1. **Which buildings.** `N_EXAMPLES = 12` (the parameter cell already holds
+   the name with 6; its value changes, the name does not), drawn from the
+   footprints section 8 gathered, reproducibly with a fixed seed
+   (`EXAMPLE_SEED` in the parameter cell): the footprints are split into area
+   tertiles, and within each tertile one building is taken per quadrant of the
+   extent, falling back to any building of that tertile when a quadrant has
+   none. Three tertiles × four quadrants = 12. The cell prints the chosen ids,
+   their area and their centroid, so the choice can be checked by eye.
+2. **Which epochs.** Only the years section 5 found `present`
+   (`present_years`). The other years are **not requested again**: one
+   `ABSENT: ` line names them all, citing section 5 as the reason. With no
+   present year, one `ABSENT: ` line says so and no request is made.
+3. **The chip.** A square centred on the footprint's centroid, of side the
+   longer side of its bounding box plus `CHIP_MARGIN_M = 10.0` on each side
+   (terrain and vegetation around the building matter to the judgement), at the
+   provider's `default_gsd_m`, requested through the existing `wms_map`, so
+   every request leaves its manifest row. The same frame for every year of one
+   building. About 12 × 9 = 108 requests.
+4. **No visible gaps.** A chip is **dropped** from the strip when it is blank
+   by the test section 6 already uses, or when more than
+   `CHIP_MAX_NODATA = 0.05` of its pixels carry no data. 5 % is a thin mosaic
+   edge; any larger gap reaches the margin or the building, and that chip
+   cannot be judged. Every dropped or failed chip prints one `ABSENT: ` line
+   with the building, the year and the measured share or the service's reason.
+   Nothing empty is drawn.
+5. **The strip.** One figure per building, saved under `out/figs/`, its chips
+   left to right from oldest to newest, the **year on every chip**, the
+   footprint outlined on top, and 2006 — or any year section 6 reported only as
+   a bound — marked with that bound (`≥0.5 m/px`). Strips have different
+   lengths; that is expected.
+6. **The record.** `out/strips.csv`, versioned, one row per building and year
+   asked: `id`, `year`, `kept` (yes / no), `nodata_share`, `reason`, `chip`
+   (the git-ignored file, empty when dropped). It is what 6b reads, so the
+   table never depends on the kernel's state. Written with its header even when
+   empty.
+7. **`eda.py`** gains the least the section needs: the example selection, the
+   chip box, and the keep-or-drop verdict, all pure functions, and
+   `--selftest` covers them offline: the selection is deterministic for a seed,
+   an empty footprint list returns no examples, a blank chip and a chip over
+   the threshold are dropped, a chip under it is kept.
+8. **Parameters.** `N_EXAMPLES`, `EXAMPLE_SEED`, `CHIP_MARGIN_M` and
+   `CHIP_MAX_NODATA` live in the parameter cell (criterion 5); nothing else of
+   sections 1 to 9 changes.
+
+**Out of scope for 6a:** section 11, `candidates.csv`, manual samples, the map
+selector, any per-building statistic (storeys, `mdsn_e025` height), and any
+change to sections 1 to 9 beyond the parameter cell.
+
+**What the live run must settle:** that a chip of about 30 m answers at
+0.25 m/px for every present year, how many chips the 5 % rule drops (above all
+in 2012 and 2015), and whether the strips are legible enough to judge a
+building's state — which is what 6b's table depends on.
+
+#### Part 6b · Section 11 · The labelling table
+
+1. `out/candidates.csv`, versioned, one row per cadastral footprint, with these
+   columns in this order: `id`, `source` (`cadastre` | `manual`), `x`, `y`
+   (centroid, `EPSG:25830`), `bbox` (optional, `minx miny maxx maxy`), `area_m2`,
+   `strip` (the figure of 6a, empty when none), `label_year`, `label`,
+   `evidence`, `notes`, `minutes_spent`. Written with its header even when there
+   are no rows. **Every sample carries its coordinates.**
+2. **The state is judged on the newest year with imagery.** `label_year` is
+   filled by the notebook when known — the last kept chip of the building's
+   strip in `strips.csv` — and left empty otherwise, for the person labelling
+   to fill. Every label therefore states the date it describes.
+3. `label`, `evidence`, `notes` and `minutes_spent` are empty. Their vocabulary
+   is fixed in the section's markdown: `label` is `abandoned`, `kept` or
+   `unsure`; `minutes_spent` is **one** figure per row, the whole time the row
+   took.
+4. **Manual work is never overwritten.** If `candidates.csv` exists with any
+   non-empty `label`, `evidence`, `notes` or `minutes_spent`, the cell refuses
+   to write and prints why. Manual rows are not kept in this file as their
+   source: they come from their own file (6c) and are merged in on every
+   regeneration, so regenerating can never lose one. Until 6c exists that file
+   is absent, which is not an error: one line says no manual samples were
+   found.
+5. `--selftest` covers the writer offline: header with no rows, the refusal on
+   a filled label, the merge of a manual row, and `label_year` taken from the
+   newest kept chip.
+
+**Out of scope for 6b:** the map selector and the manual-samples file's
+writer, which are 6c.
+
+#### Part 6c · Manual samples — direction agreed, not executable
+
+The user's direction, recorded so 6a and 6b do not close it off: the person
+draws a rectangle by hand on a map — the infrastructure alone or with its
+ground — **reusing the selector of section 3**. What is drawn goes to its own
+manual-samples file and **never touches `extent.json` or `drawing.json`**: it
+does not choose a new extent. Each sample keeps the drawn box and its centre as
+coordinates, and one drawn outside the extent is refused with a log line. Left
+for the debate: the base layer at building scale, how the selector tells "draw
+the extent" from "draw a sample", and the file's format. 6c gets its own
+amendment before any developer runs it.
 
 ---
 
