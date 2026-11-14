@@ -458,9 +458,37 @@ not for roof geometry.
 
 ### Candidate sites
 
-**Not produced yet** — step 6 of handoff 015 (sections 10 and 11) writes the
-multi-epoch chip strips and the empty labelling table; the manual pass of
-methodology step 6, and the time it takes, are the user's work.
+**Chip strips produced 2026-11-14 (handoff 015, step 6a, ACCEPTED); the
+labelling table is not produced yet** (step 6b). Step 6 now runs in three
+parts (amendment of 2026-11-14): 6a the strips, 6b the table, 6c manual samples
+drawn on the map, not executable until its own amendment exists.
+
+- **12 example buildings**, chosen by area tertile and quadrant of the extent
+  with a fixed seed. Only the years section 5 found present were requested,
+  in square frames of the footprint plus 10 m at 0.25 m/px; `out/strips.csv`
+  holds one row per building and year asked (108). Blank and over-threshold
+  chips are dropped, and one strip per building carries the year on every chip,
+  the footprint outlined, and 2006 marked `≥0.5 m/px`.
+- **Eligibility and selection.** 26 of 787 footprints are excluded for a chip
+  frame wider than one 64 m tile, the largest `ES.SDGC.BU.9937001VK6893N` with
+  85 parts and 61,439 m² — a finding for ADR-004's aggregation of parts into
+  buildings. The 12 buildings come from 761 eligible, 2 by fallback, all
+  single-part, with frames of 27.7–35.0 m (111–140 px).
+- **Chips.** 108 asked, **86 kept, 22 dropped as blank, 0 over the 5 % no-data
+  threshold, 0 failed**. The 12 years without imagery were not requested again.
+- **2012 and 2015 cover only the east edge**: 11 of 12 chips are blank in each,
+  which is where section 6's 70 % and 75 % no-data went. The one chip kept in
+  each year is visibly coarser than its neighbours, consistent with those two
+  years having no measured resolution.
+- **Epochs are not co-registered to the footprint to the same degree**: in
+  strip 10 the outline sits on the roof in 2023 and is offset by roughly a
+  metre or two in 2006 and 2009. Harmless for a human judgement.
+- **The sample is narrow and includes non-buildings.** The tertiles fall close
+  to the 70.9 m² median, so 11 of 12 picks are 57–79 m² row houses, and the
+  19.9 m² pick (no. 4) frames a wall and a tree, not a judgeable building.
+
+The manual pass of methodology step 6, and the time it takes, are the user's
+work.
 
 ### Indicator viability
 
@@ -487,7 +515,7 @@ section 12). Handoff 015, step 3, ACCEPTED 2026-11-06.
 
 ### What is still unanswered
 
-Of the four questions in the Objective, after five steps:
+Of the four questions in the Objective, after five steps and step 6a:
 
 1. **PNOA resolution and years** — **answered**. 9 of the 21 advertised years
    cover the extent (2006–2023), at a measured 0.25 m/px in six of them, with
@@ -498,7 +526,11 @@ Of the four questions in the Objective, after five steps:
 3. **Which indicators are computable** — **partly answered**. The spectral reach
    is settled (no NIR by this route). What remains is which RGB surrogates
    separate an abandoned building from a kept one, which needs the example
-   buildings of sections 10 and 11 (step 6), then step 7.
+   buildings of sections 10 and 11 (step 6), then step 7. The chip strips of
+   section 10 exist (step 6a, ACCEPTED 2026-11-14); for the temporal-change
+   indicator, ADR-004 has to state whether epochs are co-registered before
+   differencing, since they are not co-registered to the footprint to the same
+   degree.
 4. **Manual labelling viability and cadastral weak labels** — **half
    answered, and the half that is answered is a no.** The condition attribute
    has now been seen across **all three** building types the cadastre
@@ -506,7 +538,8 @@ Of the four questions in the Objective, after five steps:
    6,355 parts and all 124 other constructions. There is no weak label to be
    had here, so the labelling of step 6 stays fully manual and question 4 does
    **not** change shape. How long that manual pass takes is still unmeasured,
-   because it is the user's work and that duration is itself a result.
+   because it is the user's work and that duration is itself a result; the
+   labelling table it is done in is step 6b.
 
 ## Analysis
 

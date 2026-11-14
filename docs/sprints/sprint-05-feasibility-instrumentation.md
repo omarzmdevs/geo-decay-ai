@@ -86,7 +86,10 @@ consequences of the sandbox shape the acceptance criteria, and are not defects:
   - [x] 3 · Section 7 · Spectral check — ACCEPTED 2026-11-06
   - [x] 4 · Section 8 · Cadastral footprints — ACCEPTED 2026-11-08
   - [x] 5 · Section 9 · Elevation availability — ACCEPTED 2026-11-11
-  - [ ] 6 · Sections 10 and 11 · Example buildings and the labelling table
+  - [ ] 6 · Sections 10 and 11 · Example buildings and the labelling table — in three parts (amendment 2026-11-14)
+    - [x] 6a · Section 10 · Multi-epoch chip strips — ACCEPTED 2026-11-14
+    - [ ] 6b · Section 11 · The labelling table
+    - [ ] 6c · Manual samples on the map — not executable until its amendment exists
   - [ ] 7 · Section 12 · Findings
   - [ ] 8 · Close
 - [x] The user draws the extent on the map and records it in EXP-001 →
@@ -195,6 +198,20 @@ when the measurement exists and is recorded.
     PDAL is not needed for anything measured. Figures transcribed into
     [EXP-001](../experiments/exp-001-data-feasibility.md) → Results;
     verification in the handoff's `## Verification · Step 5`.
+  - **Step 6a · Section 10 · Multi-epoch chip strips — ACCEPTED 2026-11-14**,
+    from one live run by the user, code committed as `b65e43a`. Step 6 was
+    split in three by the amendment of 2026-11-14 (6a strips, 6b table, 6c
+    manual samples, the last not executable until its own amendment). **12
+    example buildings**, chosen by area tertile and quadrant with a fixed seed,
+    each get one strip of the present years at 0.25 m/px with the year on every
+    chip, and `out/strips.csv` holds one row per building and year asked (108).
+    2012 and 2015 cover only the east edge (11 of 12 chips blank in each);
+    epochs are not co-registered to the footprint to the same degree, which
+    ADR-004 has to address before differencing; and the sample is narrow,
+    mostly 57–79 m² row houses, with one pick that is not a judgeable building.
+    Figures transcribed into
+    [EXP-001](../experiments/exp-001-data-feasibility.md) → Results;
+    verification in the handoff's `## Verification · Step 6a`.
 
 ## Notes
 

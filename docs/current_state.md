@@ -33,8 +33,14 @@ one epoch, whole metres, resampled cells). `mdsn_e025` is building height and `m
 vegetation height, read from the footprint overlay of section 9.1 (cells above zero inside vs
 outside footprints: 82.4 % vs 6.4 % for building height, 8.3 % vs 28.5 % for vegetation). The
 point cloud was not pursued, by the user's decision, and a raster-only route exists, so PDAL is
-not needed for anything measured. **Step 6 (sections 10 and 11 · example buildings and the
-labelling table) is next.** The sprint produces no production code:
+not needed for anything measured. Step 6 (sections 10 and 11 · example buildings and the
+labelling table) was split in three on 2026-11-14: **6a (section 10 · multi-epoch chip
+strips) ACCEPTED 2026-11-14**, from a live run by the user: 12 example buildings by area
+tertile and quadrant, one strip each with the year on every chip, and `out/strips.csv` with
+one row per building and year asked (108); 86 of 108 chips kept. 2012 and 2015 cover only the east edge, and the
+epochs are not co-registered to the footprint to the same degree. **6b (section 11 · the
+labelling table) is next**; 6c (manual samples on the map) is not executable until its own
+amendment exists. The sprint produces no production code:
 it makes EXP-001 measurable and re-measurable by the user's own run. The extent is no longer
 open: it was drawn and committed on 2026-11-04 as `notebooks/exp-001/out/extent.json`
 (`EPSG:25830`, 1.204224 km², 21 × 14 tiles).
@@ -51,7 +57,8 @@ and committed, so the experiment advances one notebook section per session. The 
 capabilities, the per-epoch figures and the cadastral reference are settled — about
 7 usable epochs of the 21 advertised at a measured 0.25 m/px, and 787 buildings with a
 median footprint of 70.9 m² whose attributes cannot label them — while the elevation figures are
-measured (step 5) and the labelling figures are still unmeasured.
+measured (step 5), the example chip strips exist (step 6a) and the labelling figures are still
+unmeasured.
 
 ## Completed Sprints
 
@@ -69,7 +76,7 @@ contract, a null adapter, and composition in delivery, configured through the
 `GEO_DECAY_TRACKING_*` variables. Blocks 1 and 2 are closed. Sprint 5 has accepted handoffs
 013 (the EDA helper module and provider configuration) and 014 (the notebook, whose deliverable
 the user then discarded), and is now rebuilding the notebook section by section under handoff
-015, with steps 0 to 5 accepted. The
+015, with steps 0 to 5 and part 6a of step 6 accepted. The
 feasibility experiment (ADR-004) is still open and gates Block 3, on top of the
 Sprint 2 baseline (validated `Settings`, `BoundingBox` configuration, logging
 configured once per process) and the Sprint 1 baseline (skeleton, reference container
@@ -119,4 +126,4 @@ See [ADR-001](architecture/adr/adr-001-agent-governance.md) and
 
 ## Last Updated
 
-2026-11-11
+2026-11-14
