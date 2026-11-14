@@ -15,7 +15,8 @@ Four concerns live here, each independent of any one country:
   kernel restarts;
 * reading what a service advertises, and what its feature replies contain, so
   the provider entry can be confirmed or contradicted instead of trusted;
-* reading an elevation coverage as a raster: its grid, CRS and no-data share.
+* reading an elevation coverage as a raster: its grid, CRS and no-data share;
+* choosing example buildings, framing their chips and judging each chip.
 
 Every output goes under one directory, ``out/`` beside this file by convention,
 with response bodies filed by kind: ``capabilities/``, ``vectors/``,
@@ -534,12 +535,17 @@ def wms_map(
     *,
     image_format: str = "image/png",
     transparent: bool = True,
+    kind: str = "epochs",
 ) -> Fetch:
-    """Fetch one rendered map image for ``bbox`` (``x`` first, in ``crs``)."""
+    """Fetch one rendered map image for ``bbox`` (``x`` first, in ``crs``).
+
+    ``kind`` is the body folder: ``epochs`` for views of the extent, ``chips``
+    for the crops around one building, both git-ignored.
+    """
     url, params = _wms_params(provider, "GetMap", layer, bbox, crs, size)
     params["FORMAT"] = image_format
     params["TRANSPARENT"] = "TRUE" if transparent else "FALSE"
-    return fetch(url, params, out_dir, kind="epochs")
+    return fetch(url, params, out_dir, kind=kind)
 
 
 def wms_feature_info(
@@ -1511,12 +1517,24 @@ def _read_image(path: Path) -> tuple[np.ndarray, int | None]:
     return pixels, alpha
 
 
-def is_blank_image(path: Path) -> bool:
-    """True for a fully transparent image or one holding a single pixel value."""
-    pixels, alpha = _read_image(path)
+def _blank_pixels(pixels: np.ndarray, alpha: int | None) -> bool:
+    """The blank rule on pixels already read: fully transparent, or one value."""
     if alpha is not None and not pixels[alpha].any():
         return True
     return bool((pixels == pixels[:, :1, :1]).all())
+
+
+def _nodata_mask(pixels: np.ndarray, alpha: int | None) -> np.ndarray:
+    """Pixels with zero alpha, or, without an alpha band, zero in every band."""
+    if alpha is not None:
+        return ~pixels[alpha].astype(bool)
+    return ~pixels.astype(bool).any(axis=0)
+
+
+def is_blank_image(path: Path) -> bool:
+    """True for a fully transparent image or one holding a single pixel value."""
+    pixels, alpha = _read_image(path)
+    return _blank_pixels(pixels, alpha)
 
 
 def image_stats(path: Path) -> dict[str, object]:
@@ -1531,10 +1549,7 @@ def image_stats(path: Path) -> dict[str, object]:
     pixels, alpha = _read_image(path)
     colour_idx = [i for i in range(pixels.shape[0]) if i != alpha]
     colour = pixels[colour_idx].astype(np.float64)
-    if alpha is not None:
-        nodata = ~pixels[alpha].astype(bool)
-    else:
-        nodata = ~pixels.astype(bool).any(axis=0)
+    nodata = _nodata_mask(pixels, alpha)
     if np.issubdtype(pixels.dtype, np.integer):
         ceiling = float(np.iinfo(pixels.dtype).max)
     else:
@@ -2182,6 +2197,294 @@ def forget_drawing(out_dir: Path) -> bool:
         return False
     path.unlink()
     return True
+
+
+# --------------------------------------------------------------------------
+# Example buildings and the chips cut around them
+# --------------------------------------------------------------------------
+
+# The four quadrants of an extent, in the order a selection visits them.
+QUADRANTS: tuple[str, ...] = ("NW", "NE", "SW", "SE")
+# The size classes a selection splits the footprints into, by area rank.
+AREA_CLASSES = 3
+
+
+@dataclass(frozen=True)
+class Example:
+    """One building chosen for a chip strip, and why it was chosen.
+
+    ``tertile`` is its area class, 1 the smallest. ``quadrant`` is the quadrant
+    of the extent its centroid falls in. ``fallback`` is true when the slot it
+    fills had no building of its class in its quadrant, so it was taken from
+    anywhere in its class instead.
+    """
+
+    fid: str
+    area_m2: float
+    centroid: tuple[float, float]
+    envelope: Bbox
+    tertile: int
+    quadrant: str
+    fallback: bool
+    record: FeatureRecord
+
+
+def footprint_centroid(record: FeatureRecord) -> tuple[float, float] | None:
+    """The area-weighted centroid of a footprint, holes taken out.
+
+    A footprint with no area left (a degenerate ring) falls back to the mean of
+    its exterior vertices; one with no geometry at all has no centroid.
+    """
+    weight = 0.0
+    sum_x = 0.0
+    sum_y = 0.0
+    for sign, rings in ((1.0, record.exterior), (-1.0, record.interior)):
+        for ring in rings:
+            if len(ring) < 3:
+                continue
+            signed = 0.0
+            cx = 0.0
+            cy = 0.0
+            for (x1, y1), (x2, y2) in zip(ring, ring[1:] + ring[:1], strict=True):
+                cross = x1 * y2 - x2 * y1
+                signed += cross
+                cx += (x1 + x2) * cross
+                cy += (y1 + y2) * cross
+            if signed == 0.0:
+                continue
+            area = abs(signed) / 2.0
+            # cx / (3 * signed) is the ring's centroid whatever its winding.
+            weight += sign * area
+            sum_x += sign * area * cx / (3.0 * signed)
+            sum_y += sign * area * cy / (3.0 * signed)
+    if weight > 0.0:
+        return sum_x / weight, sum_y / weight
+    points = [point for ring in record.exterior for point in ring]
+    if not points:
+        return None
+    return (
+        sum(x for x, _ in points) / len(points),
+        sum(y for _, y in points) / len(points),
+    )
+
+
+def _quadrant(point: tuple[float, float], extent: Bbox) -> str:
+    mid_x = (extent[0] + extent[2]) / 2.0
+    mid_y = (extent[1] + extent[3]) / 2.0
+    return ("N" if point[1] >= mid_y else "S") + ("E" if point[0] >= mid_x else "W")
+
+
+def frame_side(envelope: Bbox, margin_m: float) -> float:
+    """The side of a chip frame: the envelope's longer side plus both margins."""
+    return max(envelope[2] - envelope[0], envelope[3] - envelope[1]) + 2.0 * margin_m
+
+
+@dataclass(frozen=True)
+class Oversized:
+    """A footprint left out because its chip frame exceeds the largest allowed."""
+
+    fid: str
+    parts: int
+    area_m2: float
+    frame_m: float
+
+
+@dataclass(frozen=True)
+class Selection:
+    """The buildings chosen, the footprints too large to frame, and why.
+
+    ``excluded`` is sorted largest frame first. ``reason`` is empty when at
+    least one building was chosen, and says why none was otherwise.
+    """
+
+    examples: tuple[Example, ...]
+    excluded: tuple[Oversized, ...]
+    eligible: int
+    reason: str
+
+
+def choose_examples(
+    features: Iterable[FeatureRecord],
+    extent: Bbox,
+    n: int,
+    seed: int,
+    *,
+    margin_m: float,
+    max_frame_m: float,
+) -> Selection:
+    """Choose ``n`` buildings spread over size and over the extent, reproducibly.
+
+    A footprint whose chip frame (``frame_side``) exceeds ``max_frame_m`` is
+    not eligible: a strip judges one building, not a compound, and the frame
+    is capped at what the pipeline sees as one tile. Exclusion comes **first**
+    and the size classes are cut over the eligible footprints only, so the
+    classes describe what can actually be drawn and an excluded giant never
+    shifts the boundaries of the classes it could not join.
+
+    The eligible footprints are ranked by area and cut into ``AREA_CLASSES``
+    classes of as equal a size as the count allows. Slots are then filled
+    class by class, quadrant by quadrant in ``QUADRANTS`` order, each with one
+    building drawn at random from the eligible footprints of that class whose
+    centroid falls in that quadrant, or from anywhere in the class when that
+    quadrant has none left. Three classes by four quadrants make twelve slots;
+    a larger ``n`` goes round again. The draw is seeded and every candidate
+    list is sorted by identifier first, so the same footprints and seed give
+    the same buildings whatever order the service returned them in. A
+    footprint with no geometry cannot be framed and is never chosen.
+    """
+    import random
+
+    placed: list[tuple[float, str, tuple[float, float], Bbox, FeatureRecord]] = []
+    excluded: list[Oversized] = []
+    for record in features:
+        centroid = footprint_centroid(record)
+        envelope = rings_envelope([record])
+        if centroid is None or envelope is None:
+            continue
+        area = footprint_area(record)
+        side = frame_side(envelope, margin_m)
+        if side > max_frame_m:
+            excluded.append(Oversized(record.fid, len(record.exterior), area, side))
+            continue
+        placed.append((area, record.fid, centroid, envelope, record))
+    excluded.sort(key=lambda item: (-item.frame_m, item.fid))
+    if n <= 0:
+        return Selection((), tuple(excluded), len(placed), "no examples asked for")
+    if not placed:
+        reason = (
+            f"all {len(excluded)} footprints frame wider than {max_frame_m:g} m"
+            if excluded
+            else "no footprint with geometry to frame"
+        )
+        return Selection((), tuple(excluded), 0, reason)
+    placed.sort(key=lambda item: (item[0], item[1]))
+    classes = [
+        list(chunk) for chunk in np.array_split(np.arange(len(placed)), AREA_CLASSES)
+    ]
+    rng = random.Random(seed)
+    taken: set[int] = set()
+    chosen: list[Example] = []
+    while len(chosen) < n and len(taken) < len(placed):
+        for tertile, members in enumerate(classes, 1):
+            for quadrant in QUADRANTS:
+                if len(chosen) >= n:
+                    break
+                free = sorted(
+                    (int(i) for i in members if int(i) not in taken),
+                    key=lambda i: placed[i][1],
+                )
+                here = [i for i in free if _quadrant(placed[i][2], extent) == quadrant]
+                pool = here or free
+                if not pool:
+                    continue
+                index = pool[rng.randrange(len(pool))]
+                taken.add(index)
+                area, fid, centroid, envelope, record = placed[index]
+                chosen.append(
+                    Example(
+                        fid=fid,
+                        area_m2=area,
+                        centroid=centroid,
+                        envelope=envelope,
+                        tertile=tertile,
+                        quadrant=_quadrant(centroid, extent),
+                        fallback=not here,
+                        record=record,
+                    )
+                )
+    return Selection(tuple(chosen), tuple(excluded), len(placed), "")
+
+
+def chip_box(example: Example, margin_m: float) -> Bbox:
+    """The square frame of a building's chips, the same for every year.
+
+    Centred on the footprint's centroid, of side ``frame_side``: the ground
+    around a building is part of judging it.
+    """
+    half = frame_side(example.envelope, margin_m) / 2.0
+    x, y = example.centroid
+    return (x - half, y - half, x + half, y + half)
+
+
+def chip_px(box: Bbox, gsd_m: float) -> int:
+    """How many pixels a side of ``box`` takes at ``gsd_m``, never fewer than one."""
+    return max(1, round((box[2] - box[0]) / gsd_m))
+
+
+@dataclass(frozen=True)
+class ChipVerdict:
+    """Whether a chip goes into its strip, with the figure or reason behind it.
+
+    ``nodata_share`` is ``None`` when there were no pixels to measure.
+    """
+
+    kept: bool
+    nodata_share: float | None
+    reason: str
+
+
+def chip_verdict(
+    pixels: np.ndarray, alpha: int | None, max_nodata: float
+) -> ChipVerdict:
+    """Keep a chip only if it is not blank and its no-data share is in bounds.
+
+    Blank is the rule epoch availability uses: fully transparent, or a single
+    value everywhere. No data is the rule ``image_stats`` uses: zero alpha, or
+    zero in every band without an alpha. A share exactly at ``max_nodata`` is
+    kept; anything above it is dropped, because a gap that size reaches the
+    margin or the building and the chip can no longer be judged.
+    """
+    share = float(_nodata_mask(pixels, alpha).mean())
+    if _blank_pixels(pixels, alpha):
+        return ChipVerdict(
+            False, share, f"blank image: no pixel content (no-data share {share:.3f})"
+        )
+    if share > max_nodata:
+        return ChipVerdict(
+            False, share, f"no-data share {share:.3f} above {max_nodata:g}"
+        )
+    return ChipVerdict(True, share, "")
+
+
+def judge_chip(got: Fetch, max_nodata: float) -> ChipVerdict:
+    """The verdict on one chip request, a failed request included."""
+    if got.status == 0 or got.path is None:
+        return ChipVerdict(False, None, got.error or "no reply")
+    if got.status >= 400:
+        return ChipVerdict(False, None, got.error)
+    if not _is_image_file(got.path):
+        text = got.path.read_text(encoding="utf-8", errors="replace")
+        return ChipVerdict(False, None, "not an image: " + " ".join(text.split())[:160])
+    try:
+        pixels, alpha = _read_image(got.path)
+    except Exception as exc:  # undecodable bytes are evidence, not a crash
+        return ChipVerdict(False, None, f"undecodable image: {exc}")
+    return chip_verdict(pixels, alpha, max_nodata)
+
+
+STRIPS_HEADER: tuple[str, ...] = (
+    "id",
+    "year",
+    "kept",
+    "nodata_share",
+    "reason",
+    "chip",
+)
+
+
+def write_strips(rows: list[dict[str, object]], out_dir: Path) -> Path:
+    """Write ``rows`` to ``out_dir/strips.csv``, overwriting any earlier table.
+
+    One row per building and year asked. The header is written even with no
+    rows, so a reader can tell "ran and found nothing" from "never ran".
+    """
+    out_dir.mkdir(parents=True, exist_ok=True)
+    path = out_dir / "strips.csv"
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(STRIPS_HEADER), restval="")
+        writer.writeheader()
+        writer.writerows(rows)
+    return path
 
 
 # --------------------------------------------------------------------------
@@ -3319,6 +3622,187 @@ def _selftest() -> int:
             and coverage_caps.crs == ("EPSG:25830",)
             and "normalised heights" in coverage_caps.service_abstract,
             coverage_caps,
+        )
+
+        # 10: example buildings, their chip frame and the keep-or-drop verdict
+        def square(fid: str, x: float, y: float, side: float) -> FeatureRecord:
+            ring = ((x, y), (x + side, y), (x + side, y + side), (x, y + side))
+            return FeatureRecord(fid, {}, (ring,), ())
+
+        town: Bbox = (0.0, 0.0, 400.0, 400.0)
+        sides = (6.0, 9.0, 14.0)  # one size per class, so each class is known
+        corners = {"SW": (40.0, 40.0), "SE": (240.0, 40.0)}
+        corners |= {"NW": (40.0, 240.0), "NE": (240.0, 240.0)}
+        houses = [
+            square(f"b-{side:g}-{name}-{k}", x + 30.0 * k, y, side)
+            for side in sides
+            for name, (x, y) in corners.items()
+            for k in range(3)
+        ]
+
+        def pick(features: list[FeatureRecord], n: int = 12) -> Selection:
+            return choose_examples(
+                features, town, n, seed=11, margin_m=10.0, max_frame_m=64.0
+            )
+
+        picked = pick(houses).examples
+        again = pick(list(reversed(houses))).examples
+        check(
+            "10 the selection is deterministic for a seed, whatever the input order",
+            [e.fid for e in picked] == [e.fid for e in again],
+            ([e.fid for e in picked], [e.fid for e in again]),
+        )
+        check(
+            "10 three area classes by four quadrants, one building each",
+            len(picked) == 12
+            and len({e.fid for e in picked}) == 12
+            and {(e.tertile, e.quadrant) for e in picked}
+            == {(t, q) for t in (1, 2, 3) for q in QUADRANTS}
+            and all(e.fid.startswith(f"b-{sides[e.tertile - 1]:g}-") for e in picked)
+            and not any(e.fallback for e in picked),
+            [(e.fid, e.tertile, e.quadrant, e.fallback) for e in picked],
+        )
+        none_given = pick([])
+        none_asked = pick(houses, n=0)
+        check(
+            "10 an empty footprint list returns no examples, with a reason",
+            none_given.examples == ()
+            and bool(none_given.reason)
+            and none_asked.examples == ()
+            and bool(none_asked.reason),
+            (none_given, none_asked.reason),
+        )
+        west = [h for h in houses if h.exterior[0][0][0] < 200.0]
+        lopsided = pick(west).examples
+        check(
+            "10 a quadrant with no building of its class falls back to the class",
+            len(lopsided) == 12
+            and sum(e.fallback for e in lopsided) == 6
+            and all(e.quadrant in ("NW", "SW") for e in lopsided),
+            [(e.fid, e.quadrant, e.fallback) for e in lopsided],
+        )
+        # A compound in each quadrant, framed at 70-90 m against a 64 m tile, and
+        # each the largest footprint of all: it would sit in the top class.
+        giants = [
+            square(f"giant-{name}", x, y, 50.0 + 5.0 * k)
+            for k, (name, (x, y)) in enumerate(corners.items())
+        ]
+        crowded = pick(houses + giants)
+        check(
+            "10 a footprint framed wider than the tile is never chosen",
+            not any(e.fid.startswith("giant") for e in crowded.examples)
+            and [o.fid for o in crowded.excluded]
+            == ["giant-NE", "giant-NW", "giant-SE", "giant-SW"]
+            and crowded.excluded[0].frame_m == 85.0
+            and crowded.excluded[0].parts == 1
+            and crowded.eligible == len(houses),
+            crowded.excluded,
+        )
+        check(
+            "10 its slot falls to the next eligible building of its class and quadrant",
+            [e.fid for e in crowded.examples] == [e.fid for e in picked]
+            and not any(e.fallback for e in crowded.examples),
+            [(e.fid, e.quadrant, e.fallback) for e in crowded.examples],
+        )
+        only_giants = pick(giants)
+        check(
+            "10 all footprints oversized returns no examples, and says why",
+            only_giants.examples == ()
+            and only_giants.eligible == 0
+            and "wider than 64 m" in only_giants.reason,
+            only_giants,
+        )
+        holed = FeatureRecord(
+            "h",
+            {},
+            (((0.0, 0.0), (10.0, 0.0), (10.0, 10.0), (0.0, 10.0)),),
+            (((0.0, 0.0), (5.0, 0.0), (5.0, 5.0), (0.0, 5.0)),),
+        )
+        centre = footprint_centroid(holed)
+        check(
+            "10 the centroid is area-weighted, with the courtyard taken out",
+            centre is not None
+            and abs(centre[0] - 35.0 / 6.0) < 1e-9
+            and abs(centre[1] - 35.0 / 6.0) < 1e-9,
+            centre,
+        )
+        wide = Example(
+            fid="w",
+            area_m2=80.0,
+            centroid=(105.0, 52.0),
+            envelope=(100.0, 50.0, 116.0, 55.0),
+            tertile=1,
+            quadrant="SW",
+            fallback=False,
+            record=square("w", 100.0, 50.0, 1.0),
+        )
+        frame = chip_box(wide, 10.0)
+        check(
+            "10 the chip is a square on the centroid, longer side plus both margins",
+            frame == (87.0, 34.0, 123.0, 70.0) and chip_px(frame, 0.25) == 144,
+            (frame, chip_px(frame, 0.25)),
+        )
+        texture = np.random.default_rng(3).integers(1, 255, (40, 40, 3), "uint8")
+        opaque = np.full((40, 40, 1), 255, dtype="uint8")
+        gap = opaque.copy()
+        gap[:4, :] = 0  # 10 % of the pixels without data
+        sliver = opaque.copy()
+        sliver[:1, :] = 0  # 2.5 %
+        cases: dict[str, np.ndarray] = {
+            "blank": np.zeros((40, 40, 4), dtype="uint8"),
+            "flat": np.full((40, 40, 4), 200, dtype="uint8"),
+            "over": np.concatenate([texture, gap], axis=-1),
+            "under": np.concatenate([texture, sliver], axis=-1),
+        }
+        verdicts: dict[str, ChipVerdict] = {}
+        for name, array in cases.items():
+            chip = root / f"chip-{name}.png"
+            _write_png(chip, array)  # four bands: the PNG carries them as RGBA
+            reply = Fetch("chip", 200, chip.stat().st_size, "m", 0.0, chip, "")
+            verdicts[name] = judge_chip(reply, 0.05)
+        check(
+            "10 a blank chip is dropped, transparent or of a single value",
+            not verdicts["blank"].kept
+            and not verdicts["flat"].kept
+            and "blank" in verdicts["blank"].reason,
+            verdicts,
+        )
+        check(
+            "10 a chip over the no-data threshold is dropped, with its share",
+            not verdicts["over"].kept
+            and verdicts["over"].nodata_share is not None
+            and abs(verdicts["over"].nodata_share - 0.10) < 1e-9
+            and "0.100" in verdicts["over"].reason,
+            verdicts["over"],
+        )
+        check(
+            "10 a chip under the threshold is kept",
+            verdicts["under"].kept
+            and verdicts["under"].nodata_share is not None
+            and abs(verdicts["under"].nodata_share - 0.025) < 1e-9,
+            verdicts["under"],
+        )
+        failed = judge_chip(Fetch("u", 0, 0, "", 0.0, None, "ConnectionError: x"), 0.05)
+        check(
+            "10 a failed chip request is dropped with the reason it failed",
+            not failed.kept
+            and failed.nodata_share is None
+            and failed.reason == "ConnectionError: x",
+            failed,
+        )
+        strips = write_strips([], root / "strips-empty")
+        filled = write_strips(
+            [{"id": "b", "year": 2023, "kept": "yes", "nodata_share": 0.0}],
+            root / "strips-one",
+        )
+        with filled.open(newline="", encoding="utf-8") as handle:
+            filled_rows = list(csv.reader(handle))
+        check(
+            "10 strips.csv carries its header with no rows, and fills what is missing",
+            strips.read_text(encoding="utf-8").strip() == ",".join(STRIPS_HEADER)
+            and filled_rows
+            == [list(STRIPS_HEADER), ["b", "2023", "yes", "0.0", "", ""]],
+            filled_rows,
         )
 
         # 1: the output layout the ignore rules depend on
