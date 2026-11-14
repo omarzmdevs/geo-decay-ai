@@ -1063,6 +1063,30 @@ refusal rule (item 4, second sentence onward), by the user's decision.
    The file is also the fallback: if the browser↔kernel bridge is dead, rows
    written by hand in this format are accepted, and **every rule of item 4 is
    applied again when the file is read**, not only when a drawing arrives.
+
+   *Changed 2026-11-15, after the first live run of 6c, by the user's
+   decision* — the map kept only one sample when each draw event wrote the
+   file and redrew the map. From now on:
+   - **The map opens with every sample already in `manual_samples.csv`**
+     drawn on it, each tagged with its id, so the map always shows the file and
+     every change starts from it.
+   - **Nothing is written per event.** A **«Guardar muestras» button** reads
+     every rectangle the map holds at that moment and reconciles it with the
+     file: a rectangle with an id updates that row (edit, same id); a
+     rectangle without one becomes a new row with the next id; an id in the
+     file that is no longer on the map is a deletion, under item 4's rule. Each
+     action prints one line, the rules of item 4 apply to each rectangle, and
+     after saving the map is redrawn from the file.
+   - Between saves a label beside the button says how many rectangles the map
+     holds and whether they differ from the file. As in section 3, if the
+     label does not change when the button is pressed, the bridge is dead and
+     the CSV is edited by hand.
+   - If an edited rectangle reaches the kernel without its id, it is matched to
+     the sample whose saved box it overlaps most, and the line says so; if
+     none overlaps, it is treated as new. A sample is never deleted because its
+     tag was lost.
+
+   The rest of item 3, and items 4 to 9, stand.
 4. **Rules, each with its own log line.**
    - A rectangle with any part outside the extent is **refused**.
    - A rectangle that overlaps a cadastral footprint's envelope is **kept with a
