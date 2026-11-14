@@ -143,7 +143,7 @@ each step: its offline run, and the user's live run.
 - [ ] **6 · Sections 10 and 11 · Example buildings and the labelling table** —
   in three parts (amendment 2026-11-14)
   - [x] **6a · Section 10 · Multi-epoch chip strips** — ACCEPTED 2026-11-14
-  - [ ] **6b · Section 11 · The labelling table**
+  - [x] **6b · Section 11 · The labelling table** — ACCEPTED 2026-11-14
   - [ ] **6c · Manual samples on the map** — not executable until its amendment exists
 - [ ] **7 · Section 12 · Findings**
 - [ ] **8 · Close**
@@ -621,11 +621,17 @@ and 6b replace the one above. One record per part.
 
 **Record · 6b** — filled in when the part closes.
 
-- Date:
-- Restore point:
-- What the live run printed:
-- Corrections applied:
-- Verdict:
+- Date: 2026-11-14
+- Restore point: `88a25969d8ade227d976801b0938aa4de77727d3`.
+- What the live run printed: strips read from disk, 12 buildings with at least
+  one kept chip, 12 with their figure in `out/figs/`; no manual samples found
+  (`out/manual_samples.csv` absent), so the table carries the cadastre only;
+  `out/candidates.csv` written with **787 cadastral rows and 0 manual, 12 with
+  strip and label year** (2023 for all 12). No `NO ESCRITA`, no `SIN FIGURA:`.
+- Corrections applied: one, before the live run — the strip figure is found
+  in `out/figs/` by building id instead of rebuilding section 10.1's
+  numbering; missing or ambiguous figures leave `strip` empty.
+- Verdict: ACCEPTED.
 
 **Record · 6c** — not executable until its amendment exists.
 
@@ -1131,3 +1137,46 @@ Notes:
    changes of measurement.
 6. The strip figures live in the git-ignored `out/figs/`, like the figures of
    earlier sections.
+
+---
+
+## Verification · Step 6b
+
+Verdict: **ACCEPTED** (2026-11-14)
+
+Files changed: `notebooks/exp-001/eda.py` and the notebook's parameter cell
+(`MANUAL_SAMPLES`) and section 11; the live run adds the notebook's outputs,
+`out/candidates.csv` (new, versioned), manifest rows and four new feature
+replies under `out/vectors/`. Sections 1 to 10.1 unchanged in source. Nothing
+under `src/`, `tests/`, `scripts/` or any protected path.
+
+Gate: `--selftest` passed (107 checks), `--check-notebook` ok,
+`pre-commit run --all-files` 6 of 6 passed, re-run by the orchestrator on the
+delivered tree before the live run. The live run reached its last cell with no
+error output in any cell.
+
+Criteria of Part 6b, one by one: one row per cadastral footprint (787) with
+the twelve columns in the stated order and every sample located by `x`, `y`;
+`label_year` from the newest kept chip in `strips.csv` on disk; `label`,
+`evidence`, `notes` and `minutes_spent` empty, their vocabulary fixed in the
+section's markdown; the write refused, file left byte-identical, when manual
+work exists (selftest); manual rows merged from their own file and refused row
+by row when not `manual`, colliding or unlocated (selftest; no file in the live
+run); header written with no rows (offline run).
+
+Notes:
+
+1. Accepted deviations: the manual-samples file is read as a CSV with exactly
+   `candidates.csv`'s columns, a **provisional** format that 6c decides;
+   footprints with no geometry are left out (none of 787); coordinates and area
+   carry two decimals.
+2. **Open for 6c**: the refusal fires on any manual work, so once a merged
+   manual row is labelled every regeneration is refused even when nothing
+   would be lost. 6c's amendment decides whether to refuse only when manual
+   work would actually be lost.
+3. `strip` points into the git-ignored `out/figs/`, so in a fresh clone that
+   has not run section 10.1 every `strip` is empty while `label_year` is still
+   filled from the versioned `strips.csv`.
+4. Re-running section 10.1 rewrites `strips.csv`, so a run with failed chips
+   would change the `label_year` that section 11 reads; this run left it
+   byte-identical.
