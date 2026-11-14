@@ -17,6 +17,7 @@ Four concerns live here, each independent of any one country:
   the provider entry can be confirmed or contradicted instead of trusted;
 * reading an elevation coverage as a raster: its grid, CRS and no-data share;
 * choosing example buildings, framing their chips and judging each chip;
+* manual samples drawn where the cadastre holds nothing, checked by rule;
 * the labelling table, which never overwrites manual work.
 
 Every output goes under one directory, ``out/`` beside this file by convention,
@@ -2617,27 +2618,344 @@ def _is_number(text: str | None) -> bool:
         return False
 
 
-def manual_work(path: Path) -> int:
-    """How many rows of a labelling table carry manual work; 0 when absent."""
+def manual_work(path: Path) -> dict[str, dict[str, str]]:
+    """The rows of a labelling table that carry manual work, by id; ``{}`` if absent.
+
+    Only the ``MANUAL_FIELDS`` columns are returned for each id: they are what a
+    regeneration carries over, and nothing else of the row is the person's.
+    """
     if not path.exists():
-        return 0
+        return {}
     with path.open(newline="", encoding="utf-8") as handle:
-        return sum(
-            1
+        return {
+            row.get("id") or "": {name: row.get(name) or "" for name in MANUAL_FIELDS}
             for row in csv.DictReader(handle)
             if any((row.get(name) or "").strip() for name in MANUAL_FIELDS)
+        }
+
+
+# --------------------------------------------------------------------------
+# Manual samples: rectangles a person draws where the cadastre holds nothing
+# --------------------------------------------------------------------------
+
+_MANUAL_ID = re.compile(r"M-(\d+)")
+
+
+def is_manual_id(fid: str) -> bool:
+    """True for an identifier of the ``M-0001`` form a manual sample gets."""
+    return _MANUAL_ID.fullmatch(fid) is not None
+
+
+def next_manual_id(rows: Iterable[Mapping[str, str]]) -> str:
+    """One more than the highest manual id in ``rows``, as ``M-0001``."""
+    highest = 0
+    for row in rows:
+        found = _MANUAL_ID.fullmatch(row.get("id") or "")
+        if found:
+            highest = max(highest, int(found.group(1)))
+    return f"M-{highest + 1:04d}"
+
+
+def parse_bbox(text: str | None) -> Bbox | None:
+    """``minx miny maxx maxy`` as four numbers, or ``None`` when it is not that."""
+    parts = (text or "").split()
+    if len(parts) != 4 or not all(_is_number(part) for part in parts):
+        return None
+    minx, miny, maxx, maxy = (float(part) for part in parts)
+    if minx >= maxx or miny >= maxy:
+        return None
+    return (minx, miny, maxx, maxy)
+
+
+def geojson_bbox(feature: object) -> Bbox | None:
+    """The envelope of a GeoJSON polygon feature, or ``None`` when it is not one."""
+    geometry = feature.get("geometry") if isinstance(feature, dict) else None
+    if not isinstance(geometry, dict) or geometry.get("type") != "Polygon":
+        return None
+    try:
+        ring = [(float(x), float(y)) for x, y, *_ in geometry["coordinates"][0]]
+    except (KeyError, IndexError, TypeError, ValueError):
+        return None
+    if not ring:
+        return None
+    return (
+        min(x for x, _ in ring),
+        min(y for _, y in ring),
+        max(x for x, _ in ring),
+        max(y for _, y in ring),
+    )
+
+
+def sample_id_of(feature: object) -> str:
+    """The manual id a map feature was tagged with, or an empty string."""
+    properties = feature.get("properties") if isinstance(feature, dict) else None
+    if not isinstance(properties, dict):
+        return ""
+    return str(properties.get("sample_id") or "")
+
+
+@dataclass(frozen=True)
+class ManualRules:
+    """What a manual rectangle is checked against, on the map and on reading.
+
+    ``extent`` and every envelope are in the CRS the samples are stored in.
+    ``tile_m`` is the side above which a sample is kept with a warning, and
+    ``max_side_m`` the side above which it is refused.
+    """
+
+    extent: Bbox
+    envelopes: tuple[tuple[str, Bbox], ...]
+    tile_m: float
+    max_side_m: float
+
+
+def manual_rules(
+    extent: Bbox, features: Iterable[FeatureRecord], tile_m: float, max_side_m: float
+) -> ManualRules:
+    """The rules for this extent and these footprints."""
+    envelopes: list[tuple[str, Bbox]] = []
+    for record in features:
+        envelope = rings_envelope([record])
+        if envelope is not None:
+            envelopes.append((record.fid, envelope))
+    box = (float(extent[0]), float(extent[1]), float(extent[2]), float(extent[3]))
+    return ManualRules(box, tuple(envelopes), tile_m, max_side_m)
+
+
+def check_manual_box(box: Bbox, rules: ManualRules) -> tuple[bool, list[str]]:
+    """Whether a rectangle may be a sample, with one line per rule it touched.
+
+    Refused: any part outside the extent, or a longer side above
+    ``max_side_m``. Kept with a warning: a longer side above one tile, or an
+    overlap with a cadastral footprint's envelope, naming up to three of them,
+    since the person may be marking something the cadastre records badly.
+    """
+    extent = rules.extent
+    side = max(box[2] - box[0], box[3] - box[1])
+    if not (
+        box[0] >= extent[0]
+        and box[1] >= extent[1]
+        and box[2] <= extent[2]
+        and box[3] <= extent[3]
+    ):
+        return False, ["refused: part of the rectangle lies outside the extent"]
+    if side > rules.max_side_m:
+        return False, [
+            f"refused: longer side {side:.1f} m above the {rules.max_side_m:g} m limit"
+        ]
+    lines: list[str] = []
+    if side > rules.tile_m:
+        lines.append(
+            f"warning: longer side {side:.1f} m above one tile ({rules.tile_m:g} m)"
         )
+    touched = [
+        fid
+        for fid, env in rules.envelopes
+        if box[0] < env[2] and env[0] < box[2] and box[1] < env[3] and env[1] < box[3]
+    ]
+    if touched:
+        more = f" and {len(touched) - 3} more" if len(touched) > 3 else ""
+        lines.append(
+            "warning: overlaps the envelope of cadastral footprint(s) "
+            + ", ".join(touched[:3])
+            + more
+        )
+    return True, lines
+
+
+def manual_row(fid: str, box: Bbox) -> dict[str, str]:
+    """A manual-samples row: id, source, centre, the rectangle, nothing else."""
+    row = {name: "" for name in CANDIDATES_HEADER}
+    row.update(
+        {
+            "id": fid,
+            "source": "manual",
+            "x": _coordinate((box[0] + box[2]) / 2.0),
+            "y": _coordinate((box[1] + box[3]) / 2.0),
+            "bbox": " ".join(_coordinate(v) for v in box),
+        }
+    )
+    return row
+
+
+def apply_draw(
+    rows: list[dict[str, str]],
+    action: str,
+    feature: object,
+    *,
+    draw_crs: str,
+    native_crs: str,
+    rules: ManualRules,
+    labelled: Iterable[str],
+) -> tuple[list[dict[str, str]], list[str]]:
+    """What one map event does to the manual samples: new rows, and why.
+
+    ``created`` adds a row with the next id when the rules allow it.
+    ``edited`` replaces the rectangle of the row whose id the feature carries,
+    keeping the id; a refused edit keeps the old rectangle. ``deleted`` removes
+    the row only when that id holds no manual work in the labelling table
+    (``labelled``). The input list is never changed; a refusal returns the
+    rows as they were.
+    """
+    lines: list[str] = []
+    current = [dict(row) for row in rows]
+    if action == "deleted":
+        fid = sample_id_of(feature)
+        if not any(row["id"] == fid for row in current):
+            return current, [
+                f"refused: the deleted rectangle names no sample ({fid!r})"
+            ]
+        if fid in set(labelled):
+            return current, [
+                f"refused: {fid} carries manual work in candidates.csv; its row stays"
+            ]
+        return [row for row in current if row["id"] != fid], [f"deleted {fid}"]
+    drawn = geojson_bbox(feature)
+    if drawn is None:
+        return current, [f"refused: '{action}' carried no rectangle"]
+    box = to_projected(drawn, draw_crs, native_crs)
+    allowed, lines = check_manual_box(box, rules)
+    side = max(box[2] - box[0], box[3] - box[1])
+    if action == "created":
+        if not allowed:
+            return current, lines
+        fid = next_manual_id(current)
+        current.append(manual_row(fid, box))
+        return current, [*lines, f"created {fid} · longer side {side:.1f} m"]
+    if action == "edited":
+        fid = sample_id_of(feature)
+        index = next((i for i, row in enumerate(current) if row["id"] == fid), None)
+        if index is None:
+            return current, [f"refused: the edited rectangle names no sample ({fid!r})"]
+        if not allowed:
+            return current, [*lines, f"{fid} keeps its previous rectangle"]
+        current[index] = manual_row(fid, box)
+        return current, [*lines, f"edited {fid} · longer side {side:.1f} m"]
+    return current, [f"ignored: map action '{action}'"]
+
+
+def read_manual_samples(path: Path) -> list[dict[str, str]]:
+    """The raw rows of the manual-samples file, ``[]`` when it does not exist."""
+    if not path.exists():
+        return []
+    with path.open(newline="", encoding="utf-8") as handle:
+        return [
+            {name: row.get(name) or "" for name in CANDIDATES_HEADER}
+            for row in csv.DictReader(handle)
+        ]
+
+
+def write_manual_samples(rows: Iterable[Mapping[str, str]], path: Path) -> Path:
+    """Write the manual samples with the labelling table's columns, header always."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(CANDIDATES_HEADER), restval="")
+        writer.writeheader()
+        writer.writerows(rows)
+    return path
+
+
+def ring_lonlat(box: Bbox, source_crs: str, target_crs: str) -> list[list[float]]:
+    """The four corners of ``box``, each reprojected, as a closed GeoJSON ring."""
+    transformer = Transformer.from_crs(source_crs, target_crs, always_xy=True)
+    corners = [
+        (box[0], box[1]),
+        (box[2], box[1]),
+        (box[2], box[3]),
+        (box[0], box[3]),
+        (box[0], box[1]),
+    ]
+    return [list(transformer.transform(x, y)) for x, y in corners]
+
+
+def sample_features(
+    rows: Iterable[Mapping[str, str]], source_crs: str, target_crs: str
+) -> list[dict[str, object]]:
+    """The manual samples as map features, each tagged with its id.
+
+    The tag is what lets an edit or a deletion on the map find its row again.
+    """
+    features: list[dict[str, object]] = []
+    for row in rows:
+        box = parse_bbox(row.get("bbox"))
+        if box is None:
+            continue
+        features.append(
+            {
+                "type": "Feature",
+                "properties": {"sample_id": row.get("id", "")},
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [ring_lonlat(box, source_crs, target_crs)],
+                },
+            }
+        )
+    return features
+
+
+def footprints_geojson(
+    features: Iterable[FeatureRecord], source_crs: str, target_crs: str
+) -> dict[str, object]:
+    """The footprints' exterior rings as a GeoJSON collection in ``target_crs``."""
+    transformer = Transformer.from_crs(source_crs, target_crs, always_xy=True)
+    collection: list[dict[str, object]] = []
+    for record in features:
+        rings = [
+            [list(transformer.transform(x, y)) for x, y in ring]
+            for ring in record.exterior
+            if len(ring) >= 3
+        ]
+        if rings:
+            collection.append(
+                {
+                    "type": "Feature",
+                    "properties": {"id": record.fid},
+                    "geometry": {
+                        "type": "MultiPolygon",
+                        "coordinates": [[ring] for ring in rings],
+                    },
+                }
+            )
+    return {"type": "FeatureCollection", "features": collection}
+
+
+def manual_frame(box: Bbox) -> Bbox:
+    """The chip frame of a manual sample: the rectangle squared, no margin.
+
+    The person already chose how much ground to include, so the square takes
+    the longer side and keeps the rectangle's centre.
+    """
+    half = max(box[2] - box[0], box[3] - box[1]) / 2.0
+    x = (box[0] + box[2]) / 2.0
+    y = (box[1] + box[3]) / 2.0
+    return (x - half, y - half, x + half, y + half)
+
+
+def append_strips(rows: list[dict[str, object]], out_dir: Path) -> Path:
+    """Add the manual samples' rows to ``strips.csv`` after the ones already there.
+
+    The rows of section 10.1 are kept as they are. Every earlier row of a
+    manual id is replaced, so re-running the manual strips never duplicates a
+    row and a deleted sample leaves no row behind.
+    """
+    kept = [row for row in (read_strips(out_dir) or []) if not is_manual_id(row["id"])]
+    merged: list[dict[str, object]] = [dict(row) for row in kept]
+    merged.extend(rows)
+    return write_strips(merged, out_dir)
 
 
 def read_manual(
-    path: Path, taken_ids: Iterable[str]
-) -> tuple[list[dict[str, str]], list[str]] | None:
-    """The manual samples to merge, and one line per row refused; ``None`` if absent.
+    path: Path, taken_ids: Iterable[str], rules: ManualRules | None = None
+) -> tuple[list[dict[str, str]], list[str], list[str]] | None:
+    """The manual samples to merge, refusals and warnings; ``None`` if absent.
 
     The file has exactly the labelling table's columns. A row is refused when
     its ``source`` is not ``manual``, when its id is already taken (by a
     cadastral footprint or an earlier manual row), or when it carries no
-    numeric ``x`` and ``y``: every sample has to be locatable.
+    numeric ``x`` and ``y``: every sample has to be locatable. With ``rules``,
+    every rule a drawing is checked against on the map is applied again here,
+    so a row written by hand cannot bypass them; its ``bbox`` is then
+    required.
     """
     if not path.exists():
         return None
@@ -2646,54 +2964,94 @@ def read_manual(
         header = tuple(reader.fieldnames or ())
         rows = list(reader)
     if header != CANDIDATES_HEADER:
-        return [], [
-            f"{path.name}: columns {list(header)} are not the table's "
-            f"{list(CANDIDATES_HEADER)}; no row merged"
-        ]
+        return (
+            [],
+            [
+                f"{path.name}: columns {list(header)} are not the table's "
+                f"{list(CANDIDATES_HEADER)}; no row merged"
+            ],
+            [],
+        )
     seen = set(taken_ids)
     kept: list[dict[str, str]] = []
     refused: list[str] = []
+    warned: list[str] = []
     for line, row in enumerate(rows, 2):
         fid = (row.get("id") or "").strip()
         source = (row.get("source") or "").strip()
         located = _is_number(row.get("x")) and _is_number(row.get("y"))
         if source != "manual":
             refused.append(f"line {line} ({fid or 'no id'}): source {source!r}")
-        elif not fid:
+            continue
+        if not fid:
             refused.append(f"line {line}: no id")
-        elif fid in seen:
+            continue
+        if fid in seen:
             refused.append(f"line {line} ({fid}): id already taken")
-        elif not located:
+            continue
+        if not located:
             refused.append(f"line {line} ({fid}): no numeric x and y")
-        else:
-            seen.add(fid)
-            kept.append({name: row.get(name) or "" for name in CANDIDATES_HEADER})
-    return kept, refused
+            continue
+        if rules is not None:
+            box = parse_bbox(row.get("bbox"))
+            if box is None:
+                refused.append(f"line {line} ({fid}): no bbox 'minx miny maxx maxy'")
+                continue
+            allowed, notes = check_manual_box(box, rules)
+            if not allowed:
+                refused.extend(f"line {line} ({fid}): {note}" for note in notes)
+                continue
+            warned.extend(f"line {line} ({fid}): {note}" for note in notes)
+        seen.add(fid)
+        kept.append({name: row.get(name) or "" for name in CANDIDATES_HEADER})
+    return kept, refused, warned
+
+
+@dataclass(frozen=True)
+class CandidatesWrite:
+    """What a regeneration of the labelling table did.
+
+    ``written`` is false only when an id holding manual work would disappear;
+    ``missing`` names those ids and the file is then left as it was.
+    ``carried`` counts the rows whose manual columns came from the old file.
+    """
+
+    path: Path
+    written: bool
+    carried: int
+    missing: tuple[str, ...]
 
 
 def write_candidates(
     rows: Iterable[Mapping[str, object]], out_dir: Path
-) -> tuple[Path, str]:
-    """Write the labelling table, unless that would overwrite manual work.
+) -> CandidatesWrite:
+    """Rebuild the labelling table, carrying every row's manual work over by id.
 
-    Returns the path and an empty string when written, or the path and the
-    reason when refused. A refusal leaves the existing file exactly as it was:
-    nothing is deleted, moved or backed up. The header is written even with
-    no rows.
+    ``label``, ``evidence``, ``notes`` and ``minutes_spent`` are taken from the
+    existing file for every id that is still there. The write is refused, and
+    the file left byte-identical, only when an id holding manual work would
+    disappear: nothing is deleted, moved or backed up. The header is written
+    even with no rows.
     """
     out_dir.mkdir(parents=True, exist_ok=True)
     path = out_dir / "candidates.csv"
-    filled = manual_work(path)
-    if filled:
-        return path, (
-            f"{path.name} already holds manual work in {filled} row(s) "
-            f"({', '.join(MANUAL_FIELDS)}): nothing written"
-        )
+    work = manual_work(path)
+    fresh = [dict(row) for row in rows]
+    ids = {str(row.get("id", "")) for row in fresh}
+    missing = tuple(sorted(fid for fid in work if fid not in ids))
+    if missing:
+        return CandidatesWrite(path, False, 0, missing)
+    carried = 0
+    for row in fresh:
+        done = work.get(str(row.get("id", "")))
+        if done:
+            row.update(done)
+            carried += 1
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(CANDIDATES_HEADER), restval="")
         writer.writeheader()
-        writer.writerows(rows)
-    return path, ""
+        writer.writerows(fresh)
+    return CandidatesWrite(path, True, carried, ())
 
 
 # --------------------------------------------------------------------------
@@ -4016,13 +4374,13 @@ def _selftest() -> int:
 
         # 11: the labelling table
         empty_out = root / "labels-empty"
-        empty_path, empty_refusal = write_candidates([], empty_out)
+        empty_write = write_candidates([], empty_out)
         check(
             "11 candidates.csv carries its header with no rows",
-            not empty_refusal
-            and empty_path.read_text(encoding="utf-8").strip()
+            empty_write.written
+            and empty_write.path.read_text(encoding="utf-8").strip()
             == ",".join(CANDIDATES_HEADER),
-            empty_path.read_text(encoding="utf-8"),
+            empty_write.path.read_text(encoding="utf-8"),
         )
         strip_table = [
             {"id": "a", "year": "2006", "kept": "yes"},
@@ -4091,7 +4449,7 @@ def _selftest() -> int:
             writer.writerow(["m2", "cadastre", "1", "2"] + [""] * 8)
             writer.writerow(["a", "manual", "1", "2"] + [""] * 8)
             writer.writerow(["m3", "manual", "", "2"] + [""] * 8)
-        merged_in = read_manual(manual_file, [row["id"] for row in located])
+        merged_in = read_manual(manual_file, [str(row["id"]) for row in located])
         check(
             "11 a manual row is merged, with its own columns kept",
             merged_in is not None
@@ -4113,34 +4471,255 @@ def _selftest() -> int:
             "11 an absent manual file is not an error",
             read_manual(root / "no-manual.csv", []) is None,
         )
+
+        # 10.2: manual samples drawn on their own map
+        manual_rule_set = ManualRules(
+            (0.0, 0.0, 400.0, 400.0),
+            (("fp-1", (100.0, 100.0, 110.0, 110.0)),),
+            64.0,
+            512.0,
+        )
+
+        def drawn_feature(box: Bbox, sid: str = "") -> dict[str, object]:
+            ring = [
+                [box[0], box[1]],
+                [box[2], box[1]],
+                [box[2], box[3]],
+                [box[0], box[3]],
+                [box[0], box[1]],
+            ]
+            return {
+                "type": "Feature",
+                "properties": {"sample_id": sid} if sid else {"style": {}},
+                "geometry": {"type": "Polygon", "coordinates": [ring]},
+            }
+
+        def draw_event(
+            current: list[dict[str, str]],
+            action: str,
+            feature: object,
+            labelled: Iterable[str] = (),
+        ) -> tuple[list[dict[str, str]], list[str]]:
+            return apply_draw(
+                current,
+                action,
+                feature,
+                draw_crs="EPSG:25830",
+                native_crs="EPSG:25830",
+                rules=manual_rule_set,
+                labelled=labelled,
+            )
+
+        check(
+            "10.2 the next id is one more than the highest in the file",
+            next_manual_id([]) == "M-0001"
+            and next_manual_id([{"id": "M-0007"}, {"id": "M-0002"}, {"id": "x"}])
+            == "M-0008",
+        )
+        drawn_rows, said_new = draw_event(
+            [], "created", drawn_feature((20.0, 20.0, 40.0, 30.0))
+        )
+        check(
+            "10.2 a drawn rectangle becomes a row: centre, envelope, no area",
+            drawn_rows
+            == [
+                {
+                    **{name: "" for name in CANDIDATES_HEADER},
+                    "id": "M-0001",
+                    "source": "manual",
+                    "x": "30.00",
+                    "y": "25.00",
+                    "bbox": "20.00 20.00 40.00 30.00",
+                }
+            ]
+            and said_new[-1].startswith("created M-0001"),
+            (drawn_rows, said_new),
+        )
+        refused_rows, said_out = draw_event(
+            drawn_rows, "created", drawn_feature((390.0, 10.0, 410.0, 20.0))
+        )
+        check(
+            "10.2 a rectangle with any part outside the extent is refused",
+            refused_rows == drawn_rows and "outside the extent" in said_out[0],
+            said_out,
+        )
+        overlap_rows, said_overlap = draw_event(
+            drawn_rows, "created", drawn_feature((105.0, 105.0, 120.0, 120.0))
+        )
+        check(
+            "10.2 an overlap with a footprint is kept with a warning naming it",
+            len(overlap_rows) == 2
+            and overlap_rows[1]["id"] == "M-0002"
+            and any("warning" in s and "fp-1" in s for s in said_overlap),
+            said_overlap,
+        )
+        wide_rows, said_wide = draw_event(
+            drawn_rows, "created", drawn_feature((0.0, 0.0, 100.0, 50.0))
+        )
+        huge_rows, said_huge = draw_event(
+            drawn_rows,
+            "created",
+            drawn_feature((0.0, 0.0, 300.0, 300.0)),
+        )
+        strict = replace(manual_rule_set, max_side_m=200.0)
+        too_big, said_big = apply_draw(
+            drawn_rows,
+            "created",
+            drawn_feature((0.0, 0.0, 300.0, 300.0)),
+            draw_crs="EPSG:25830",
+            native_crs="EPSG:25830",
+            rules=strict,
+            labelled=(),
+        )
+        check(
+            "10.2 size bands: a tile kept, above it warned, above the limit refused",
+            not any("warning" in s for s in said_new)
+            and len(wide_rows) == 2
+            and any("above one tile" in s for s in said_wide)
+            and len(huge_rows) == 2
+            and too_big == drawn_rows
+            and any("above the 200 m limit" in s for s in said_big),
+            (said_new, said_wide, said_huge, said_big),
+        )
+        edited_rows, said_edit = draw_event(
+            overlap_rows, "edited", drawn_feature((50.0, 50.0, 60.0, 70.0), "M-0001")
+        )
+        bad_edit, said_bad = draw_event(
+            overlap_rows, "edited", drawn_feature((390.0, 50.0, 420.0, 70.0), "M-0001")
+        )
+        check(
+            "10.2 an edit keeps the id; a refused edit keeps the old rectangle",
+            [row["id"] for row in edited_rows] == ["M-0001", "M-0002"]
+            and edited_rows[0]["bbox"] == "50.00 50.00 60.00 70.00"
+            and edited_rows[1] == overlap_rows[1]
+            and bad_edit == overlap_rows
+            and any("keeps its previous rectangle" in s for s in said_bad),
+            (edited_rows, said_edit, said_bad),
+        )
+        kept_back, said_keep = draw_event(
+            overlap_rows,
+            "deleted",
+            drawn_feature((20.0, 20.0, 40.0, 30.0), "M-0001"),
+            ["M-0001"],
+        )
+        removed_rows, _ = draw_event(
+            overlap_rows, "deleted", drawn_feature((20.0, 20.0, 40.0, 30.0), "M-0001")
+        )
+        check(
+            "10.2 a deletion is refused for an id with manual work, allowed without",
+            kept_back == overlap_rows
+            and "carries manual work" in said_keep[0]
+            and [row["id"] for row in removed_rows] == ["M-0002"],
+            (said_keep, removed_rows),
+        )
+        by_hand = root / "manual-by-hand.csv"
+        write_manual_samples(
+            [
+                manual_row("M-0001", (20.0, 20.0, 40.0, 30.0)),
+                manual_row("M-0002", (390.0, 20.0, 410.0, 30.0)),  # outside
+                manual_row("M-0003", (105.0, 105.0, 120.0, 120.0)),  # overlap
+                {**manual_row("M-0004", (1.0, 1.0, 2.0, 2.0)), "bbox": ""},
+            ],
+            by_hand,
+        )
+        read_back = read_manual(by_hand, [], manual_rule_set)
+        check(
+            "10.2 a hand-written row breaking a rule is refused when read",
+            read_back is not None
+            and [row["id"] for row in read_back[0]] == ["M-0001", "M-0003"]
+            and len(read_back[1]) == 2
+            and "outside the extent" in read_back[1][0]
+            and "no bbox" in read_back[1][1]
+            and any("fp-1" in line for line in read_back[2]),
+            read_back,
+        )
+        check(
+            "10.2 a map feature is tagged with its sample id, and found again",
+            sample_id_of(sample_features(drawn_rows, "EPSG:25830", "EPSG:25830")[0])
+            == "M-0001"
+            and geojson_bbox(sample_features(drawn_rows, "EPSG:25830", "EPSG:25830")[0])
+            == (20.0, 20.0, 40.0, 30.0),
+        )
+
+        # 10.3: strips for manual samples
+        check(
+            "10.3 the manual frame is the rectangle squared, with no margin",
+            manual_frame((20.0, 20.0, 40.0, 30.0)) == (20.0, 15.0, 40.0, 35.0),
+            manual_frame((20.0, 20.0, 40.0, 30.0)),
+        )
+        strip_dir = root / "strips-appended"
+        write_strips(
+            [
+                {"id": "ES.1", "year": 2023, "kept": "yes"},
+                {"id": "M-0001", "year": 2020, "kept": "yes"},  # an earlier run's
+            ],
+            strip_dir,
+        )
+        append_strips([{"id": "M-0001", "year": 2023, "kept": "no"}], strip_dir)
+        append_strips(
+            [
+                {"id": "M-0001", "year": 2023, "kept": "yes"},
+                {"id": "M-0002", "year": 2023, "kept": "yes"},
+            ],
+            strip_dir,
+        )
+        appended = read_strips(strip_dir) or []
+        check(
+            "10.3 manual strip rows are appended after 10.1's, never duplicated",
+            [(row["id"], row["year"], row["kept"]) for row in appended]
+            == [
+                ("ES.1", "2023", "yes"),
+                ("M-0001", "2023", "yes"),
+                ("M-0002", "2023", "yes"),
+            ],
+            appended,
+        )
+
+        # 11: the regeneration keeps manual work
         labels_out = root / "labels"
-        first_path, first_refusal = write_candidates(
+        first_write = write_candidates(
             [*located, *(merged_in[0] if merged_in else [])], labels_out
         )
-        with first_path.open(newline="", encoding="utf-8") as handle:
+        with first_write.path.open(newline="", encoding="utf-8") as handle:
             first_rows = list(csv.DictReader(handle))
         check(
             "11 the table holds the cadastral rows then the manual ones",
-            not first_refusal
+            first_write.written
             and [row["source"] for row in first_rows]
             == ["cadastre", "cadastre", "manual"],
             first_rows,
         )
-        labelled = first_path.read_text(encoding="utf-8").replace(
+        labelled_text = first_write.path.read_text(encoding="utf-8").replace(
             "a,cadastre,12.00,22.00,10.00 20.00 14.00 24.00,16.00,"
-            "figs/strip-07-a.png,2018,,",
+            "figs/strip-07-a.png,2018,,,,",
             "a,cadastre,12.00,22.00,10.00 20.00 14.00 24.00,16.00,"
-            "figs/strip-07-a.png,2018,kept,",
+            "figs/strip-07-a.png,2018,kept,roof intact,,4",
         )
-        first_path.write_text(labelled, encoding="utf-8")
-        before = first_path.read_bytes()
-        _, refusal = write_candidates(located, labels_out)
+        first_write.path.write_text(labelled_text, encoding="utf-8")
+        again_write = write_candidates(
+            [*located, *(merged_in[0] if merged_in else [])], labels_out
+        )
+        with again_write.path.open(newline="", encoding="utf-8") as handle:
+            again_rows = {row["id"]: row for row in csv.DictReader(handle)}
         check(
-            "11 a filled label refuses the write and leaves the file byte-identical",
-            "2 row(s)" in refusal
-            and first_path.read_bytes() == before
+            "11 regeneration carries the manual columns over by id",
+            again_write.written
+            and again_write.carried == 2
+            and again_rows["a"]["label"] == "kept"
+            and again_rows["a"]["evidence"] == "roof intact"
+            and again_rows["a"]["minutes_spent"] == "4"
+            and again_rows["m1"]["label"] == "unsure",
+            again_rows,
+        )
+        before = again_write.path.read_bytes()
+        lost = write_candidates(located, labels_out)
+        check(
+            "11 a labelled id that would disappear refuses the write, byte-identical",
+            not lost.written
+            and lost.missing == ("m1",)
+            and again_write.path.read_bytes() == before
             and sorted(p.name for p in labels_out.iterdir()) == ["candidates.csv"],
-            refusal,
+            lost,
         )
 
         # 1: the output layout the ignore rules depend on
