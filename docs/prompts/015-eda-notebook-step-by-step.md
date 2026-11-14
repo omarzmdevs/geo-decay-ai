@@ -142,7 +142,7 @@ each step: its offline run, and the user's live run.
 - [x] **5 · Section 9 · Elevation availability** — ACCEPTED 2026-11-11
 - [ ] **6 · Sections 10 and 11 · Example buildings and the labelling table** —
   in three parts (amendment 2026-11-14)
-  - [ ] **6a · Section 10 · Multi-epoch chip strips**
+  - [x] **6a · Section 10 · Multi-epoch chip strips** — ACCEPTED 2026-11-14
   - [ ] **6b · Section 11 · The labelling table**
   - [ ] **6c · Manual samples on the map** — not executable until its amendment exists
 - [ ] **7 · Section 12 · Findings**
@@ -604,11 +604,20 @@ and 6b replace the one above. One record per part.
 
 **Record · 6a** — filled in when the part closes.
 
-- Date:
-- Restore point:
-- What the live run printed:
-- Corrections applied:
-- Verdict:
+- Date: 2026-11-14
+- Restore point: `515871420eff55386dfdd7f35ad1b26004a0bfed`; code committed as
+  `b65e43a`.
+- What the live run printed: 26 of 787 footprints excluded for a frame wider
+  than 64 m (the largest `ES.SDGC.BU.9937001VK6893N`, 85 parts, 61,439 m²,
+  801 m frame); 12 of 12 buildings chosen from 761 eligible, 2 by fallback in
+  the north-east quadrant, all single-part, 19.9–78.8 m², frames 27.7–35.0 m
+  (111–140 px). 108 chips asked over the 9 present years, **86 kept, 22
+  dropped as blank, 0 over the 5 % no-data threshold, 0 failed**. 2012 and 2015
+  are kept for one building only (no. 10, at the east edge); every other year
+  is kept for all 12. The 12 other years were not requested again.
+- Corrections applied: one, before the live run — footprints whose frame
+  exceeds one tile are not eligible (addition of 2026-11-14 to item 1).
+- Verdict: ACCEPTED.
 
 **Record · 6b** — filled in when the part closes.
 
@@ -1070,3 +1079,55 @@ Notes:
 4. The figures of section 9.1, like those of 6.1, 6.2, 8.2 and 8.3, live in
    the git-ignored `out/figs/`, so the committed notebook references an image
    only a run produces.
+
+---
+
+## Verification · Step 6a
+
+Verdict: **ACCEPTED** (2026-11-14)
+
+Files changed: `notebooks/exp-001/eda.py` and the notebook's parameter cell and
+section 10 (10 and 10.1), committed as `b65e43a`; the live run adds the
+notebook's outputs, `out/strips.csv` (new, versioned), 194 manifest rows and
+four new feature replies under `out/vectors/`. Nothing under `src/`, `tests/`,
+`scripts/` or any protected path.
+
+Gate: `--selftest` passed (96 checks), `--check-notebook` ok,
+`pre-commit run --all-files` 6 of 6 passed, re-run by the orchestrator on the
+delivered tree before the live run. The live run reached its last cell with no
+error output in any cell.
+
+Criteria of Part 6a, one by one: 12 buildings by tertile and quadrant with a
+fixed seed, ids, area and centroid printed; only `present_years` requested and
+the rest named in one `ABSENT: ` line; square frames of footprint plus 10 m at
+0.25 m/px; blank and over-threshold chips dropped with their own `ABSENT: `
+line and nothing empty drawn; one strip per building with the year on every
+chip, the footprint outlined, and 2006 marked `≥0.5 m/px`; `strips.csv` with
+one row per building and year asked (108).
+
+Notes:
+
+1. Accepted deviations: `wms_map` gains `kind=` so chips land in
+   `out/chips/`; the blank and no-data tests are shared with sections 5 and 6;
+   section 10 is two code cells; the selection table carries `partes`,
+   `marco m` and `px por lado`; tertiles are cut over the eligible footprints.
+2. **2012 and 2015 cover only the east edge**: 11 of 12 chips blank in each,
+   which is where section 6's 70 % and 75 % no-data went. The one chip each
+   year kept is visibly coarser than its neighbours, consistent with those two
+   years having no measured resolution.
+3. **Epochs are not co-registered to the footprint to the same degree**: in
+   strip 10 the outline sits on the roof in 2023 and is offset by roughly a
+   metre or two in 2006 and 2009. Harmless for a human judgement; for the
+   temporal-change indicator, ADR-004 has to state whether epochs are
+   co-registered before differencing.
+4. **The sample is narrow and includes non-buildings.** The tertiles fall
+   close to the 70.9 m² median, so 11 of 12 picks are 57–79 m² row houses, and
+   the 19.9 m² pick (no. 4) frames a wall and a tree, not a judgeable
+   building. Not a defect of 6a; it is what 6b's table and the manual pass
+   should expect, and a reason 6c's manual samples matter.
+5. Re-running section 3.1 rewrites `extent.json`'s `timestamp_utc` with the
+   extent unchanged, and section 8 stores new reply bodies because the
+   cadastre's bytes differ between runs. Both are noise in the diff, not
+   changes of measurement.
+6. The strip figures live in the git-ignored `out/figs/`, like the figures of
+   earlier sections.
