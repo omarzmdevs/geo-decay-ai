@@ -36,6 +36,7 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
+import io
 import json
 import math
 import os
@@ -2618,20 +2619,99 @@ def _is_number(text: str | None) -> bool:
         return False
 
 
-def manual_work(path: Path) -> dict[str, dict[str, str]]:
-    """The rows of a labelling table that carry manual work, by id; ``{}`` if absent.
+_DELIMITERS: dict[str, str] = {",": "comma", ";": "semicolon", "\t": "tab"}
 
-    Only the ``MANUAL_FIELDS`` columns are returned for each id: they are what a
-    regeneration carries over, and nothing else of the row is the person's.
+
+@dataclass(frozen=True)
+class LabelsRead:
+    """An existing labelling table as read back, whatever saved it last.
+
+    A spreadsheet in a Spanish locale saves ``;``-separated, often with a
+    UTF-8 byte-order mark, so both are detected rather than assumed.
+    ``problem`` is set when the file cannot be read as the table at all: it
+    does not decode as UTF-8, or its header lacks ``id`` or a manual column.
+    ``work`` then is empty and must not be taken to mean "no manual work".
+    """
+
+    exists: bool
+    work: dict[str, dict[str, str]]
+    delimiter: str
+    bom: bool
+    problem: str
+
+    @property
+    def canonical(self) -> bool:
+        """True when the file is already comma-separated UTF-8 without a BOM."""
+        return self.delimiter == "," and not self.bom
+
+
+def read_labels(path: Path) -> LabelsRead:
+    """Read the manual work of a labelling table, detecting its format.
+
+    Only the ``MANUAL_FIELDS`` columns are kept for each id that has any of
+    them filled: they are what a regeneration carries over, and nothing else
+    of the row is the person's.
     """
     if not path.exists():
-        return {}
-    with path.open(newline="", encoding="utf-8") as handle:
-        return {
-            row.get("id") or "": {name: row.get(name) or "" for name in MANUAL_FIELDS}
-            for row in csv.DictReader(handle)
-            if any((row.get(name) or "").strip() for name in MANUAL_FIELDS)
-        }
+        return LabelsRead(False, {}, ",", False, "")
+    raw = path.read_bytes()
+    bom = raw.startswith(b"\xef\xbb\xbf")
+    try:
+        text = raw.decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        return LabelsRead(
+            True, {}, "", bom, f"not UTF-8 ({exc.reason} at byte {exc.start})"
+        )
+    if not text.strip():
+        return LabelsRead(True, {}, ",", bom, "")
+    first = text.splitlines()[0]
+    delimiter = max(_DELIMITERS, key=first.count)
+    if not first.count(delimiter):
+        delimiter = ","
+    reader = csv.DictReader(io.StringIO(text, newline=""), delimiter=delimiter)
+    header = list(reader.fieldnames or [])
+    lacking = [name for name in ("id", *MANUAL_FIELDS) if name not in header]
+    if lacking:
+        shown = ", ".join(repr(name) for name in header[:4])
+        return LabelsRead(
+            True,
+            {},
+            delimiter,
+            bom,
+            f"read as {_DELIMITERS[delimiter]}-separated UTF-8"
+            + (" with BOM" if bom else "")
+            + f", its header starts {shown} and lacks {', '.join(lacking)}",
+        )
+    work = {
+        row.get("id") or "": {name: row.get(name) or "" for name in MANUAL_FIELDS}
+        for row in reader
+        if any((row.get(name) or "").strip() for name in MANUAL_FIELDS)
+    }
+    return LabelsRead(True, work, delimiter, bom, "")
+
+
+class ManualWork(dict[str, dict[str, str]]):
+    """Manual work by id, plus why the table could not be read, if it could not.
+
+    An empty mapping alone cannot tell "no manual work" from "a table nobody
+    could read"; ``problem`` does, so a caller about to destroy something can
+    refuse on the second.
+    """
+
+    problem: str = ""
+
+
+def manual_work(path: Path) -> ManualWork:
+    """The rows of a labelling table that carry manual work, by id.
+
+    Empty when the file is absent. When it exists but cannot be read as the
+    table, the mapping is empty and ``problem`` says why: it must then not be
+    taken to mean "no manual work".
+    """
+    read = read_labels(path)
+    work = ManualWork(read.work)
+    work.problem = read.problem
+    return work
 
 
 # --------------------------------------------------------------------------
@@ -2778,60 +2858,134 @@ def manual_row(fid: str, box: Bbox) -> dict[str, str]:
     return row
 
 
-def apply_draw(
+# Two boxes closer than this on every side are the same rectangle. They are
+# compared in the map's own CRS, against the very corners the map was given
+# when it opened: reprojecting a box and taking the envelope again would grow
+# it by decimetres (the grid is rotated against the meridians), and an
+# untouched sample must not read as an edit.
+SAME_BOX_M = 0.01
+SAME_BOX_DEG = 1e-7
+
+
+def _same_box(one: Bbox, other: Bbox, tolerance: float) -> bool:
+    return all(abs(a - b) <= tolerance for a, b in zip(one, other, strict=True))
+
+
+def _overlap_area(one: Bbox, other: Bbox) -> float:
+    width = min(one[2], other[2]) - max(one[0], other[0])
+    height = min(one[3], other[3]) - max(one[1], other[1])
+    return width * height if width > 0 and height > 0 else 0.0
+
+
+def reconcile_samples(
+    features: Iterable[object],
     rows: list[dict[str, str]],
-    action: str,
-    feature: object,
     *,
     draw_crs: str,
     native_crs: str,
     rules: ManualRules,
     labelled: Iterable[str],
 ) -> tuple[list[dict[str, str]], list[str]]:
-    """What one map event does to the manual samples: new rows, and why.
+    """The manual samples after one save of the map, and one line per action.
 
-    ``created`` adds a row with the next id when the rules allow it.
-    ``edited`` replaces the rectangle of the row whose id the feature carries,
-    keeping the id; a refused edit keeps the old rectangle. ``deleted`` removes
-    the row only when that id holds no manual work in the labelling table
-    (``labelled``). The input list is never changed; a refusal returns the
-    rows as they were.
+    ``features`` is every rectangle the map holds at the moment of saving;
+    ``rows`` is the file as it stands. A rectangle tagged with an id that is
+    in the file is that sample: an unchanged one is left alone, a moved one is
+    an edit that keeps the id. A rectangle without a usable tag is matched to
+    the not-yet-matched sample whose saved box it overlaps most, and the line
+    says so: a tag lost on the way must never turn an edit into a duplicate or
+    a deletion. One that overlaps none is a new sample with the next id. A
+    sample in the file that no rectangle matches was removed from the map,
+    and is deleted only when it carries no manual work in the labelling table
+    and that table could be read (a ``ManualWork`` with a ``problem`` refuses
+    every deletion). Every rectangle passes the rules of ``check_manual_box``;
+    a refused edit keeps the old box, a refused new one is not added. The
+    input is never changed; saving an unchanged map returns equal rows.
     """
-    lines: list[str] = []
     current = [dict(row) for row in rows]
-    if action == "deleted":
+    saved = {
+        row["id"]: box
+        for row in current
+        if (box := parse_bbox(row["bbox"])) is not None
+    }
+    # Each saved box as the map draws it: the envelope of its reprojected corners.
+    shown: dict[str, Bbox] = {}
+    for feature in sample_features(current, native_crs, draw_crs):
+        drawn_box = geojson_bbox(feature)
+        if drawn_box is not None:
+            shown[sample_id_of(feature)] = drawn_box
+    geographic = CRS.from_user_input(draw_crs).is_geographic
+    tolerance = SAME_BOX_DEG if geographic else SAME_BOX_M
+    lines: list[str] = []
+    matched: dict[str, Bbox] = {}
+    unmoved: set[str] = set()
+    untagged: list[Bbox] = []
+    for feature in features:
+        drawn = geojson_bbox(feature)
+        if drawn is None:
+            lines.append("ignored: a shape on the map that is not a rectangle")
+            continue
+        box = to_projected(drawn, draw_crs, native_crs)
         fid = sample_id_of(feature)
-        if not any(row["id"] == fid for row in current):
-            return current, [
-                f"refused: the deleted rectangle names no sample ({fid!r})"
-            ]
-        if fid in set(labelled):
-            return current, [
-                f"refused: {fid} carries manual work in candidates.csv; its row stays"
-            ]
-        return [row for row in current if row["id"] != fid], [f"deleted {fid}"]
-    drawn = geojson_bbox(feature)
-    if drawn is None:
-        return current, [f"refused: '{action}' carried no rectangle"]
-    box = to_projected(drawn, draw_crs, native_crs)
-    allowed, lines = check_manual_box(box, rules)
-    side = max(box[2] - box[0], box[3] - box[1])
-    if action == "created":
+        if fid in saved and fid not in matched:
+            matched[fid] = box
+            if fid in shown and _same_box(drawn, shown[fid], tolerance):
+                unmoved.add(fid)
+        else:
+            untagged.append(box)
+    fresh: list[Bbox] = []
+    for box in untagged:
+        free = [fid for fid in saved if fid not in matched]
+        best = max(free, key=lambda fid: _overlap_area(box, saved[fid]), default="")
+        if best and _overlap_area(box, saved[best]) > 0.0:
+            matched[best] = box
+            lines.append(f"matched by overlap: a rectangle without its id is {best}")
+        else:
+            fresh.append(box)
+    for index, row in enumerate(current):
+        fid = row["id"]
+        box = matched.get(fid)
+        if box is None or fid not in saved or fid in unmoved:
+            continue
+        allowed, notes = check_manual_box(box, rules)
+        side = max(box[2] - box[0], box[3] - box[1])
         if not allowed:
-            return current, lines
-        fid = next_manual_id(current)
+            lines.extend(f"{fid}: {note}" for note in notes)
+            lines.append(f"{fid} keeps its previous rectangle")
+            continue
+        current[index] = {**row, **manual_row(fid, box)} | {
+            name: row[name] for name in MANUAL_FIELDS
+        }
+        lines.extend(f"{fid}: {note}" for note in notes)
+        lines.append(f"edited {fid} · longer side {side:.1f} m")
+    problem = labelled.problem if isinstance(labelled, ManualWork) else ""
+    done = set(labelled)
+    gone = [fid for fid in saved if fid not in matched]
+    for fid in gone:
+        if problem:
+            lines.append(
+                f"refused: deleting {fid} — candidates.csv cannot be read "
+                f"({problem}); its row stays"
+            )
+        elif fid in done:
+            lines.append(
+                f"refused: deleting {fid} — it carries manual work in "
+                "candidates.csv; its row stays"
+            )
+        else:
+            current = [row for row in current if row["id"] != fid]
+            lines.append(f"deleted {fid}")
+    for box in fresh:
+        allowed, notes = check_manual_box(box, rules)
+        side = max(box[2] - box[0], box[3] - box[1])
+        if not allowed:
+            lines.extend(f"new rectangle: {note}" for note in notes)
+            continue
+        fid = next_manual_id([*rows, *current])
         current.append(manual_row(fid, box))
-        return current, [*lines, f"created {fid} · longer side {side:.1f} m"]
-    if action == "edited":
-        fid = sample_id_of(feature)
-        index = next((i for i, row in enumerate(current) if row["id"] == fid), None)
-        if index is None:
-            return current, [f"refused: the edited rectangle names no sample ({fid!r})"]
-        if not allowed:
-            return current, [*lines, f"{fid} keeps its previous rectangle"]
-        current[index] = manual_row(fid, box)
-        return current, [*lines, f"edited {fid} · longer side {side:.1f} m"]
-    return current, [f"ignored: map action '{action}'"]
+        lines.extend(f"{fid}: {note}" for note in notes)
+        lines.append(f"created {fid} · longer side {side:.1f} m")
+    return current, lines
 
 
 def read_manual_samples(path: Path) -> list[dict[str, str]]:
@@ -3011,15 +3165,20 @@ def read_manual(
 class CandidatesWrite:
     """What a regeneration of the labelling table did.
 
-    ``written`` is false only when an id holding manual work would disappear;
-    ``missing`` names those ids and the file is then left as it was.
+    ``written`` is false when an id holding manual work would disappear
+    (``missing`` names them) or when the existing file cannot be read as the
+    table (``reason`` says what was seen); the file is then left as it was.
     ``carried`` counts the rows whose manual columns came from the old file.
+    ``normalised`` is set when the old file was readable but not canonical,
+    and says which format was replaced by comma-separated UTF-8.
     """
 
     path: Path
     written: bool
     carried: int
     missing: tuple[str, ...]
+    reason: str = ""
+    normalised: str = ""
 
 
 def write_candidates(
@@ -3028,22 +3187,27 @@ def write_candidates(
     """Rebuild the labelling table, carrying every row's manual work over by id.
 
     ``label``, ``evidence``, ``notes`` and ``minutes_spent`` are taken from the
-    existing file for every id that is still there. The write is refused, and
-    the file left byte-identical, only when an id holding manual work would
-    disappear: nothing is deleted, moved or backed up. The header is written
-    even with no rows.
+    existing file for every id that is still there, whether it was saved
+    comma- or semicolon-separated, with or without a BOM. The write is
+    refused, and the file left byte-identical, when an id holding manual work
+    would disappear, or when the file cannot be read as the table at all:
+    a file this function cannot read is never overwritten. Nothing is
+    deleted, moved or backed up. The table is always written comma-separated
+    UTF-8 without a BOM, header included even with no rows.
     """
     out_dir.mkdir(parents=True, exist_ok=True)
     path = out_dir / "candidates.csv"
-    work = manual_work(path)
+    old = read_labels(path)
+    if old.problem:
+        return CandidatesWrite(path, False, 0, (), reason=old.problem)
     fresh = [dict(row) for row in rows]
     ids = {str(row.get("id", "")) for row in fresh}
-    missing = tuple(sorted(fid for fid in work if fid not in ids))
+    missing = tuple(sorted(fid for fid in old.work if fid not in ids))
     if missing:
         return CandidatesWrite(path, False, 0, missing)
     carried = 0
     for row in fresh:
-        done = work.get(str(row.get("id", "")))
+        done = old.work.get(str(row.get("id", "")))
         if done:
             row.update(done)
             carried += 1
@@ -3051,7 +3215,31 @@ def write_candidates(
         writer = csv.DictWriter(handle, fieldnames=list(CANDIDATES_HEADER), restval="")
         writer.writeheader()
         writer.writerows(fresh)
-    return CandidatesWrite(path, True, carried, ())
+    normalised = ""
+    if old.exists and not old.canonical:
+        normalised = f"{_DELIMITERS[old.delimiter]}-separated" + (
+            ", UTF-8 with BOM" if old.bom else ""
+        )
+    return CandidatesWrite(path, True, carried, (), normalised=normalised)
+
+
+def strip_years(rows: Iterable[Mapping[str, str]]) -> list[int]:
+    """The years section 10.1 asked, read from its rows of ``strips.csv``."""
+    return sorted(
+        {
+            int(row["year"])
+            for row in rows
+            if not is_manual_id(row.get("id", "")) and _is_number(row.get("year"))
+        }
+    )
+
+
+def samples_without_strips(
+    sample_ids: Iterable[str], rows: Iterable[Mapping[str, str]]
+) -> list[str]:
+    """The manual samples with no row at all in ``strips.csv``, in order."""
+    asked = {row.get("id", "") for row in rows}
+    return [fid for fid in sample_ids if fid not in asked]
 
 
 # --------------------------------------------------------------------------
@@ -4472,7 +4660,7 @@ def _selftest() -> int:
             read_manual(root / "no-manual.csv", []) is None,
         )
 
-        # 10.2: manual samples drawn on their own map
+        # 10.2: manual samples drawn on their own map, saved by a button
         manual_rule_set = ManualRules(
             (0.0, 0.0, 400.0, 400.0),
             (("fp-1", (100.0, 100.0, 110.0, 110.0)),),
@@ -4494,19 +4682,18 @@ def _selftest() -> int:
                 "geometry": {"type": "Polygon", "coordinates": [ring]},
             }
 
-        def draw_event(
+        def save_map(
+            features: list[dict[str, object]],
             current: list[dict[str, str]],
-            action: str,
-            feature: object,
             labelled: Iterable[str] = (),
+            rule_set: ManualRules = manual_rule_set,
         ) -> tuple[list[dict[str, str]], list[str]]:
-            return apply_draw(
+            return reconcile_samples(
+                features,
                 current,
-                action,
-                feature,
                 draw_crs="EPSG:25830",
                 native_crs="EPSG:25830",
-                rules=manual_rule_set,
+                rules=rule_set,
                 labelled=labelled,
             )
 
@@ -4516,101 +4703,155 @@ def _selftest() -> int:
             and next_manual_id([{"id": "M-0007"}, {"id": "M-0002"}, {"id": "x"}])
             == "M-0008",
         )
-        drawn_rows, said_new = draw_event(
-            [], "created", drawn_feature((20.0, 20.0, 40.0, 30.0))
+        two_new, said_two = save_map(
+            [
+                drawn_feature((20.0, 20.0, 40.0, 30.0)),
+                drawn_feature((200.0, 200.0, 210.0, 215.0)),
+            ],
+            [],
         )
         check(
-            "10.2 a drawn rectangle becomes a row: centre, envelope, no area",
-            drawn_rows
-            == [
-                {
-                    **{name: "" for name in CANDIDATES_HEADER},
-                    "id": "M-0001",
-                    "source": "manual",
-                    "x": "30.00",
-                    "y": "25.00",
-                    "bbox": "20.00 20.00 40.00 30.00",
-                }
-            ]
-            and said_new[-1].startswith("created M-0001"),
-            (drawn_rows, said_new),
+            "10.2 two new rectangles in one save get two ids; centre, box, no area",
+            [row["id"] for row in two_new] == ["M-0001", "M-0002"]
+            and two_new[0]
+            == {
+                **{name: "" for name in CANDIDATES_HEADER},
+                "id": "M-0001",
+                "source": "manual",
+                "x": "30.00",
+                "y": "25.00",
+                "bbox": "20.00 20.00 40.00 30.00",
+            }
+            and sum(line.startswith("created") for line in said_two) == 2,
+            (two_new, said_two),
         )
-        refused_rows, said_out = draw_event(
-            drawn_rows, "created", drawn_feature((390.0, 10.0, 410.0, 20.0))
-        )
-        check(
-            "10.2 a rectangle with any part outside the extent is refused",
-            refused_rows == drawn_rows and "outside the extent" in said_out[0],
-            said_out,
-        )
-        overlap_rows, said_overlap = draw_event(
-            drawn_rows, "created", drawn_feature((105.0, 105.0, 120.0, 120.0))
-        )
-        check(
-            "10.2 an overlap with a footprint is kept with a warning naming it",
-            len(overlap_rows) == 2
-            and overlap_rows[1]["id"] == "M-0002"
-            and any("warning" in s and "fp-1" in s for s in said_overlap),
-            said_overlap,
-        )
-        wide_rows, said_wide = draw_event(
-            drawn_rows, "created", drawn_feature((0.0, 0.0, 100.0, 50.0))
-        )
-        huge_rows, said_huge = draw_event(
-            drawn_rows,
-            "created",
-            drawn_feature((0.0, 0.0, 300.0, 300.0)),
-        )
-        strict = replace(manual_rule_set, max_side_m=200.0)
-        too_big, said_big = apply_draw(
-            drawn_rows,
-            "created",
-            drawn_feature((0.0, 0.0, 300.0, 300.0)),
-            draw_crs="EPSG:25830",
+        loaded_file = write_manual_samples(two_new, root / "manual-loaded.csv")
+        loaded_bytes = loaded_file.read_bytes()
+        loaded_rows = read_manual_samples(loaded_file)
+        on_map = sample_features(loaded_rows, "EPSG:25830", "EPSG:4326")
+        unchanged, said_unchanged = reconcile_samples(
+            on_map,
+            loaded_rows,
+            draw_crs="EPSG:4326",
             native_crs="EPSG:25830",
-            rules=strict,
+            rules=replace(
+                manual_rule_set,
+                extent=(-1e7, -1e7, 1e7, 1e7),
+            ),
             labelled=(),
+        )
+        if unchanged != loaded_rows:  # what the button does
+            write_manual_samples(unchanged, loaded_file)
+        check(
+            "10.2 load then save, unchanged, is a no-op: file byte-identical",
+            unchanged == loaded_rows
+            and not said_unchanged
+            and loaded_file.read_bytes() == loaded_bytes,
+            said_unchanged,
+        )
+        moved, said_moved = save_map(
+            [
+                drawn_feature((50.0, 50.0, 60.0, 70.0), "M-0001"),
+                drawn_feature((200.0, 200.0, 210.0, 215.0), "M-0002"),
+            ],
+            two_new,
+        )
+        check(
+            "10.2 an edit keeps the id and touches no other row",
+            [row["id"] for row in moved] == ["M-0001", "M-0002"]
+            and moved[0]["bbox"] == "50.00 50.00 60.00 70.00"
+            and moved[1] == two_new[1]
+            and said_moved == ["edited M-0001 · longer side 20.0 m"],
+            (moved, said_moved),
+        )
+        tagless, said_tagless = save_map(
+            [
+                drawn_feature((22.0, 21.0, 41.0, 31.0)),  # M-0001, tag lost, moved
+                drawn_feature((200.0, 200.0, 210.0, 215.0), "M-0002"),
+            ],
+            two_new,
+        )
+        check(
+            "10.2 a rectangle that lost its tag is matched by overlap, not duplicated",
+            [row["id"] for row in tagless] == ["M-0001", "M-0002"]
+            and tagless[0]["bbox"] == "22.00 21.00 41.00 31.00"
+            and any("matched by overlap" in s and "M-0001" in s for s in said_tagless)
+            and not any(s.startswith(("deleted", "created")) for s in said_tagless),
+            said_tagless,
+        )
+        apart, said_apart = save_map(
+            [
+                drawn_feature((20.0, 20.0, 40.0, 30.0), "M-0001"),
+                drawn_feature((200.0, 200.0, 210.0, 215.0), "M-0002"),
+                drawn_feature((300.0, 300.0, 310.0, 310.0)),
+            ],
+            two_new,
+        )
+        check(
+            "10.2 a tagless rectangle overlapping no sample is created",
+            [row["id"] for row in apart] == ["M-0001", "M-0002", "M-0003"]
+            and said_apart[-1].startswith("created M-0003"),
+            said_apart,
+        )
+        removed_rows, said_removed = save_map(
+            [drawn_feature((200.0, 200.0, 210.0, 215.0), "M-0002")], two_new
+        )
+        kept_back, said_kept = save_map(
+            [drawn_feature((200.0, 200.0, 210.0, 215.0), "M-0002")],
+            two_new,
+            ["M-0001"],
+        )
+        check(
+            "10.2 removing an unlabelled sample deletes it; a labelled one is refused",
+            [row["id"] for row in removed_rows] == ["M-0002"]
+            and said_removed == ["deleted M-0001"]
+            and kept_back == two_new
+            and "carries manual work" in said_kept[0],
+            (said_removed, said_kept),
+        )
+        outside_rows, said_out = save_map(
+            [drawn_feature((390.0, 10.0, 410.0, 20.0))], []
+        )
+        overlap_rows, said_overlap = save_map(
+            [drawn_feature((105.0, 105.0, 120.0, 120.0))], []
+        )
+        check(
+            "10.2 outside the extent refused; overlap with a footprint kept, warned",
+            outside_rows == []
+            and "outside the extent" in said_out[0]
+            and [row["id"] for row in overlap_rows] == ["M-0001"]
+            and any("warning" in s and "fp-1" in s for s in said_overlap),
+            (said_out, said_overlap),
+        )
+        tile_rows, said_tile = save_map([drawn_feature((0.0, 0.0, 60.0, 50.0))], [])
+        wide_rows, said_wide = save_map([drawn_feature((0.0, 0.0, 100.0, 50.0))], [])
+        big_rows, said_big = save_map(
+            [drawn_feature((0.0, 0.0, 300.0, 300.0))],
+            [],
+            rule_set=replace(manual_rule_set, max_side_m=200.0),
         )
         check(
             "10.2 size bands: a tile kept, above it warned, above the limit refused",
-            not any("warning" in s for s in said_new)
-            and len(wide_rows) == 2
+            len(tile_rows) == 1
+            and not any("warning" in s for s in said_tile)
+            and len(wide_rows) == 1
             and any("above one tile" in s for s in said_wide)
-            and len(huge_rows) == 2
-            and too_big == drawn_rows
+            and big_rows == []
             and any("above the 200 m limit" in s for s in said_big),
-            (said_new, said_wide, said_huge, said_big),
+            (said_tile, said_wide, said_big),
         )
-        edited_rows, said_edit = draw_event(
-            overlap_rows, "edited", drawn_feature((50.0, 50.0, 60.0, 70.0), "M-0001")
-        )
-        bad_edit, said_bad = draw_event(
-            overlap_rows, "edited", drawn_feature((390.0, 50.0, 420.0, 70.0), "M-0001")
+        bad_edit, said_bad = save_map(
+            [
+                drawn_feature((390.0, 50.0, 420.0, 70.0), "M-0001"),
+                drawn_feature((200.0, 200.0, 210.0, 215.0), "M-0002"),
+            ],
+            two_new,
         )
         check(
-            "10.2 an edit keeps the id; a refused edit keeps the old rectangle",
-            [row["id"] for row in edited_rows] == ["M-0001", "M-0002"]
-            and edited_rows[0]["bbox"] == "50.00 50.00 60.00 70.00"
-            and edited_rows[1] == overlap_rows[1]
-            and bad_edit == overlap_rows
+            "10.2 an edit that breaks a rule keeps the old rectangle",
+            bad_edit == two_new
             and any("keeps its previous rectangle" in s for s in said_bad),
-            (edited_rows, said_edit, said_bad),
-        )
-        kept_back, said_keep = draw_event(
-            overlap_rows,
-            "deleted",
-            drawn_feature((20.0, 20.0, 40.0, 30.0), "M-0001"),
-            ["M-0001"],
-        )
-        removed_rows, _ = draw_event(
-            overlap_rows, "deleted", drawn_feature((20.0, 20.0, 40.0, 30.0), "M-0001")
-        )
-        check(
-            "10.2 a deletion is refused for an id with manual work, allowed without",
-            kept_back == overlap_rows
-            and "carries manual work" in said_keep[0]
-            and [row["id"] for row in removed_rows] == ["M-0002"],
-            (said_keep, removed_rows),
+            said_bad,
         )
         by_hand = root / "manual-by-hand.csv"
         write_manual_samples(
@@ -4635,9 +4876,9 @@ def _selftest() -> int:
         )
         check(
             "10.2 a map feature is tagged with its sample id, and found again",
-            sample_id_of(sample_features(drawn_rows, "EPSG:25830", "EPSG:25830")[0])
+            sample_id_of(sample_features(two_new, "EPSG:25830", "EPSG:25830")[0])
             == "M-0001"
-            and geojson_bbox(sample_features(drawn_rows, "EPSG:25830", "EPSG:25830")[0])
+            and geojson_bbox(sample_features(two_new, "EPSG:25830", "EPSG:25830")[0])
             == (20.0, 20.0, 40.0, 30.0),
         )
 
@@ -4720,6 +4961,128 @@ def _selftest() -> int:
             and again_write.path.read_bytes() == before
             and sorted(p.name for p in labels_out.iterdir()) == ["candidates.csv"],
             lost,
+        )
+
+        # 11: a table saved by a spreadsheet is read, or refused, never lost
+        table_rows = [
+            {"id": "a", "source": "cadastre"},
+            {"id": "b", "source": "cadastre"},
+        ]
+        header_line = ";".join(CANDIDATES_HEADER)
+        semicolon_dir = root / "labels-semicolon"
+        semicolon_dir.mkdir()
+        (semicolon_dir / "candidates.csv").write_text(
+            header_line + "\na;cadastre;1;2;;;;2023;abandoned;caved roof;;5\n"
+            "b;cadastre;3;4;;;;;;;;\n",
+            encoding="utf-8",
+        )
+        semicolon = write_candidates(table_rows, semicolon_dir)
+        with semicolon.path.open(newline="", encoding="utf-8") as handle:
+            semicolon_back = {row["id"]: row for row in csv.DictReader(handle)}
+        check(
+            "11 a ';'-separated table keeps its labels and is rewritten with commas",
+            semicolon.written
+            and semicolon.carried == 1
+            and semicolon_back["a"]["label"] == "abandoned"
+            and semicolon_back["a"]["evidence"] == "caved roof"
+            and semicolon_back["a"]["minutes_spent"] == "5"
+            and semicolon.normalised == "semicolon-separated"
+            and semicolon.path.read_text(encoding="utf-8").startswith("id,source,"),
+            (semicolon, semicolon_back),
+        )
+        bom_dir = root / "labels-bom"
+        bom_dir.mkdir()
+        (bom_dir / "candidates.csv").write_bytes(
+            b"\xef\xbb\xbf"
+            + (header_line + "\na;cadastre;1;2;;;;;kept;;;1\n").encode("utf-8")
+        )
+        with_bom = write_candidates(table_rows, bom_dir)
+        check(
+            "11 a table with a UTF-8 BOM keeps its labels, and says it was normalised",
+            with_bom.written
+            and with_bom.carried == 1
+            and "BOM" in with_bom.normalised
+            and not (bom_dir / "candidates.csv").read_bytes().startswith(b"\xef"),
+            with_bom,
+        )
+        broken_dir = root / "labels-broken"
+        broken_dir.mkdir()
+        (broken_dir / "candidates.csv").write_text(
+            "id source x y label\na cadastre 1 2 kept\n", encoding="utf-8"
+        )
+        broken_before = (broken_dir / "candidates.csv").read_bytes()
+        broken = write_candidates(table_rows, broken_dir)
+        latin_dir = root / "labels-latin"
+        latin_dir.mkdir()
+        (latin_dir / "candidates.csv").write_bytes(
+            (header_line + "\na;cadastre;1;2;;;;;kept;tejado caído;;1\n").encode(
+                "latin-1"
+            )
+        )
+        latin = write_candidates(table_rows, latin_dir)
+        check(
+            "11 a table that cannot be read is refused and left byte-identical",
+            not broken.written
+            and "lacks" in broken.reason
+            and "'id source x y label'" in broken.reason
+            and (broken_dir / "candidates.csv").read_bytes() == broken_before
+            and not latin.written
+            and "not UTF-8" in latin.reason,
+            (broken, latin),
+        )
+
+        # 10.2: a deletion is refused when the table cannot be read
+        unreadable_dir = root / "labels-unreadable"
+        unreadable_dir.mkdir()
+        (unreadable_dir / "candidates.csv").write_text("id source\nx y\n", "utf-8")
+        samples_file = write_manual_samples(
+            [manual_row("M-0001", (20.0, 20.0, 40.0, 30.0))],
+            unreadable_dir / "manual_samples.csv",
+        )
+        samples_before = samples_file.read_bytes()
+        stored_samples = read_manual_samples(samples_file)
+        after_delete, said_delete = reconcile_samples(
+            [],
+            stored_samples,
+            draw_crs="EPSG:25830",
+            native_crs="EPSG:25830",
+            rules=manual_rule_set,
+            labelled=manual_work(unreadable_dir / "candidates.csv"),
+        )
+        if after_delete != stored_samples:  # what the button does
+            write_manual_samples(after_delete, samples_file)
+        allowed_delete, _ = reconcile_samples(
+            [],
+            stored_samples,
+            draw_crs="EPSG:25830",
+            native_crs="EPSG:25830",
+            rules=manual_rule_set,
+            labelled=manual_work(unreadable_dir / "absent.csv"),
+        )
+        check(
+            "10.2 an unreadable table refuses a deletion; an absent one allows it",
+            after_delete == stored_samples
+            and "cannot be read" in said_delete[0]
+            and samples_file.read_bytes() == samples_before
+            and allowed_delete == [],
+            (said_delete, allowed_delete),
+        )
+
+        # 10.3 and 11: the order of the cells is visible, not assumed
+        on_disk_rows = [
+            {"id": "ES.1", "year": "2023", "kept": "yes"},
+            {"id": "ES.1", "year": "2006", "kept": "no"},
+            {"id": "ES.2", "year": "2012", "kept": "no"},
+            {"id": "M-0001", "year": "2030", "kept": "yes"},
+        ]
+        check(
+            "10.3 the years fall back to those 10.1 asked, read from strips.csv",
+            strip_years(on_disk_rows) == [2006, 2012, 2023] and strip_years([]) == [],
+            strip_years(on_disk_rows),
+        )
+        check(
+            "11 a manual sample with no strip rows is named",
+            samples_without_strips(["M-0001", "M-0002"], on_disk_rows) == ["M-0002"],
         )
 
         # 1: the output layout the ignore rules depend on
