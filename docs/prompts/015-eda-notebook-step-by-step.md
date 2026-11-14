@@ -144,7 +144,7 @@ each step: its offline run, and the user's live run.
   in three parts (amendment 2026-11-14)
   - [x] **6a · Section 10 · Multi-epoch chip strips** — ACCEPTED 2026-11-14
   - [x] **6b · Section 11 · The labelling table** — ACCEPTED 2026-11-14
-  - [ ] **6c · Manual samples on the map** — not executable until its amendment exists
+  - [ ] **6c · Sections 10.2 and 10.3 · Manual samples on the map** (amendment 2026-11-15)
 - [ ] **7 · Section 12 · Findings**
 - [ ] **8 · Close**
 
@@ -633,7 +633,13 @@ and 6b replace the one above. One record per part.
   numbering; missing or ambiguous figures leave `strip` empty.
 - Verdict: ACCEPTED.
 
-**Record · 6c** — not executable until its amendment exists.
+**Record · 6c** — filled in when the part closes (amendment 2026-11-15).
+
+- Date:
+- Restore point:
+- What the live run printed:
+- Corrections applied:
+- Verdict:
 
 ---
 
@@ -1001,6 +1007,113 @@ coordinates, and one drawn outside the extent is refused with a log line. Left
 for the debate: the base layer at building scale, how the selector tells "draw
 the extent" from "draw a sample", and the file's format. 6c gets its own
 amendment before any developer runs it.
+
+*Superseded by the amendment of 2026-11-15 below, which makes 6c executable.*
+
+---
+
+### 2026-11-15 · part 6c: manual samples drawn on their own map
+
+The debate of 2026-11-14 closed with the user accepting every point put to
+them. **6c is one part, developed in one exchange and closed by one live run,
+but split in the notebook into two sections**, placed *before* the table so a
+single run carries new samples into it:
+
+| Section | What it does | Requests |
+|---|---|---|
+| **10.2** | a map to draw manual samples; writes `out/manual_samples.csv` | none (tiles load in the browser) |
+| **10.3** | one multi-epoch strip per manual sample, appended to `strips.csv` | ~9 per sample |
+| **11** | the table, as in 6b, with the regeneration rule of item 6 | none |
+
+This replaces the "direction agreed" paragraph of Part 6c and the provisional
+format of Part 6b item 4 and verification note 1. It also replaces Part 6b's
+refusal rule (item 4, second sentence onward), by the user's decision.
+
+#### Criteria
+
+1. **Its own map, never section 3's.** Section 3's map treats every rectangle
+   as the extent: it writes `drawing.json` on arrival, deletes it on removal,
+   and section 3.1 resolves the extent from it. Section 10.2 therefore builds
+   a **separate map instance** from the same pieces — the satellite basemap,
+   the provider's orthophoto as a WMS layer, a rectangle-only `DrawControl`
+   with edit and remove, and the four-corner reprojection of section 3.1 —
+   and its handler writes only `out/manual_samples.csv`. It reads no
+   variable of section 3's map and calls none of `save_drawing`,
+   `load_drawing`, `forget_drawing` or `save_extent`. Sections 1 to 10.1 do
+   not change in source; a helper section 3 uses may be moved into `eda.py` if
+   10.2 needs it, provided section 3 behaves the same.
+2. **What the map shows.** The extent as an outline; the cadastral footprints
+   of section 8 on top, so what is already registered is visible and what is
+   not can be drawn; the provider's orthophoto of the **newest present year**
+   (from `present_years` and the provider's epoch layer pattern, no literal);
+   zoom allowed down to building scale. No host or layer name outside the
+   provider entry (criterion 5).
+3. **What a sample is.** One row of `out/manual_samples.csv`, versioned, with
+   exactly `candidates.csv`'s columns, written **the moment the drawing
+   arrives**:
+   - `id`: `M-0001`, `M-0002`, … — one more than the highest in the file;
+   - `source`: `manual`;
+   - `x`, `y`: the centre of the drawn rectangle in `EPSG:25830`;
+   - `bbox`: the drawn rectangle reprojected as the envelope of its four
+     corners, `minx miny maxx maxy`;
+   - `area_m2`: **empty** — in the cadastre it is the footprint, here it would
+     be the rectangle with its ground, and the two must not be mixed;
+   - every other column empty.
+
+   The file is also the fallback: if the browser↔kernel bridge is dead, rows
+   written by hand in this format are accepted, and **every rule of item 4 is
+   applied again when the file is read**, not only when a drawing arrives.
+4. **Rules, each with its own log line.**
+   - A rectangle with any part outside the extent is **refused**.
+   - A rectangle that overlaps a cadastral footprint's envelope is **kept with a
+     warning** naming up to three of them: the person may be marking something
+     the cadastre records badly.
+   - Longer side up to one tile (64 m): accepted. Above it: accepted with a
+     warning. Above `MANUAL_MAX_SIDE_M = 512.0` (2048 px at 0.25 m/px, the
+     largest image the service has served): **refused**.
+   - Editing a rectangle on the map updates its row and keeps its id.
+   - Deleting it removes the row **only if** that id carries no manual work in
+     `out/candidates.csv`; otherwise the deletion is refused and the row stays.
+5. **Strips for manual samples (section 10.3).** The 6a helpers, with the drawn
+   rectangle as the frame — squared on its longer side, **no extra margin**,
+   since the person already chose how much ground to include — the rectangle
+   outlined, the same years, the same keep-or-drop rule and `ABSENT: ` lines.
+   Figures are `out/figs/strip-NN-<id>.png` with `NN` continuing after section
+   10's; rows are **appended** to `out/strips.csv` after the ones 10.1 wrote in
+   the same run. No manual sample → one plain line, no request.
+6. **Regeneration keeps manual work (section 11, replacing 6b's refusal).**
+   The table is rebuilt every run and `label`, `evidence`, `notes` and
+   `minutes_spent` are **carried over by id** from the existing
+   `candidates.csv`. The write is refused, the file left byte-identical, only
+   if an id holding manual work would disappear, and the cell names those ids.
+   Manual rows get `strip` and `label_year` from `strips.csv` exactly as
+   cadastral rows do.
+7. **Parameters**, in the parameter cell: `MANUAL_MAX_SIDE_M`; `MANUAL_SAMPLES`
+   already exists. Nothing else of the parameter cell changes.
+8. **Run All still reaches the last cell.** The map cell needs a person, as
+   section 3's does, but nothing waits on it: 10.3 and 11 work from whatever
+   `manual_samples.csv` holds, including nothing.
+9. **`--selftest`** covers offline: next id; a rectangle outside the extent
+   refused; overlap warned and kept; the size bands; edit keeps the id; delete
+   refused for an id with manual work and allowed without; a hand-written row
+   breaking a rule refused at read time; the manual frame squared without
+   margin; strips rows appended, not overwritten; regeneration carrying manual
+   columns by id; refusal when a labelled id would disappear, file
+   byte-identical.
+
+**Out of scope for 6c:** any change to section 3's map or to how the extent is
+resolved; shapes other than rectangles; labelling itself; any per-sample
+statistic; sections 1 to 10.1 beyond moving a helper into `eda.py`.
+
+**What the live run must settle:** that the bridge delivers drawings from a
+second map in the same notebook; that the orthophoto is legible at building
+scale in the browser; and, with **two or three samples drawn by the user**,
+that their rows, strips and `label_year` reach `candidates.csv`, and that a
+re-run keeps a label typed into the table by hand.
+
+**Settles.** The route by which samples the cadastre does not hold enter the
+validation reference, with their source recorded, so the bias toward
+registered buildings can be measured instead of assumed.
 
 ---
 
