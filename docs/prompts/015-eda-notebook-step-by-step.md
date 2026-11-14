@@ -891,6 +891,15 @@ a migration.
    extent, falling back to any building of that tertile when a quadrant has
    none. Three tertiles × four quadrants = 12. The cell prints the chosen ids,
    their area and their centroid, so the choice can be checked by eye.
+   *Added 2026-11-14, after the offline run of 6a:* a footprint whose chip
+   frame (item 3) exceeds one pipeline tile, `TILE_PX` pixels at the
+   provider's `default_gsd_m` (64 m), is **not eligible**, and its slot takes
+   the next eligible building of the same tertile and quadrant, with the
+   existing fallback after that. A strip judges one building, not a compound,
+   and the tile is the unit the model will see. The cell prints how many
+   footprints this excludes and the largest of them, since footprints that
+   size (one of 85 parts, 61,439 m²) are a finding for ADR-004's aggregation
+   of parts into buildings. No new parameter.
 2. **Which epochs.** Only the years section 5 found `present`
    (`present_years`). The other years are **not requested again**: one
    `ABSENT: ` line names them all, citing section 5 as the reason. With no
