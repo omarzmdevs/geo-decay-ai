@@ -145,7 +145,7 @@ each step: its offline run, and the user's live run.
   - [x] **6a · Section 10 · Multi-epoch chip strips** — ACCEPTED 2026-11-14
   - [x] **6b · Section 11 · The labelling table** — ACCEPTED 2026-11-14
   - [x] **6c · Sections 10.2 and 10.3 · Manual samples on the map** (amendment 2026-11-15) — ACCEPTED 2026-11-15
-- [ ] **7 · Section 12 · Findings**
+- [ ] **7 · Section 12 · Findings** (amendment 2026-11-15)
 - [ ] **8 · Close**
 
 ---
@@ -1166,6 +1166,100 @@ re-run keeps a label typed into the table by hand.
 **Settles.** The route by which samples the cadastre does not hold enter the
 validation reference, with their source recorded, so the bias toward
 registered buildings can be measured instead of assumed.
+
+---
+
+### 2026-11-15 · step 7: findings generated from the run, the manual pass outside this block
+
+The user's decisions of 2026-11-15, taken before step 7 opens. They make
+Step 7's criterion concrete; its objective and what it settles stand. Step 7
+runs **in one exchange and one live run**.
+
+**Decisions.**
+
+- **No manual labelling in this block.** EXP-001 question 4 is therefore
+  marked **not answered**, with that reason, and step 7 is not repeated after a
+  later pass: section 12 is written so that re-running it is enough.
+- The labels now in `candidates.csv` (two, from the 6c tests) are removed by
+  the user by hand when they choose. Section 12 does not treat what the table
+  holds as a measurement of labelling.
+- Duplicate cadastral replies in `out/vectors/` (each run stores a body that
+  differs from the previous one only in the service timestamp and the order of
+  features) are fixed in **step 8**, not here.
+- EXP-001's Analysis and Conclusion are the orchestrator's, written from
+  `summary.md` after step 7 is accepted, not in the notebook.
+
+#### Criteria, replacing Step 7's
+
+1. **Figures are generated, never typed.** No figure measured by a previous
+   section is written as a literal in a markdown cell: a re-run on another day
+   or extent must not leave stale numbers in prose. Section 12 is one short
+   markdown cell, then **one code cell that renders 12.1, 12.2 and the four
+   questions as Markdown** from what the run produced, then a static
+   markdown cell for 12.3.
+2. **Where each figure comes from.** From the versioned files on disk
+   whenever they hold it — `strips.csv`, `candidates.csv`,
+   `manual_samples.csv`, `ladder.csv`, `extent.json`, `manifest.csv` — and
+   otherwise from `MEASURED`, by the keys the sections already write
+   (`capabilities`, `epochs`, `resolution`, `quality`, `cadastre_request`,
+   `cadastre_attributes`, `feature_types`, `elevation`, `extent`,
+   `examples`, `strips`, `manual_strips`, `labelling`). Each item says its
+   source in a short tag. A key missing from `MEASURED` prints, for its
+   section, **"no medido en esta ejecución"** with the section number, never a
+   silent gap and never an exception (as 6c showed, re-running the first cells
+   empties `MEASURED`).
+3. **12.1 · Qué se puede extraer — medido.** One line per finding: orthophoto
+   years with imagery and the usable series, the measured resolution and its
+   bounds, image quality flags, the spectral reach, the cadastral footprints
+   and what their attributes can and cannot label, the storey count's
+   location, the elevation products and their grids, the example strips and
+   chips kept, the manual samples (inside and outside the extent), and the
+   table's size.
+4. **12.2 · Problemas encontrados — medido.** One line per problem the run
+   shows, each with the figure that shows it, for example: no near infrared;
+   years present only at an edge of the extent (from `strips.csv`); blank,
+   low-contrast or unmeasurable years; footprints too large for one tile; the
+   coverage grid resampled and heights in whole metres; the cadastre declaring
+   no `numberReturned`/`numberMatched`; manual samples with no imagery in any
+   year. Only problems this run's data supports; a problem known from an
+   earlier run but not visible in this one is not listed.
+5. **The four questions.** A table of EXP-001's four questions, each
+   **answered**, **partly answered** or **not answered**, with the reason
+   beside it, built from the same sources. Question 4 is **not answered**:
+   *pasada manual fuera de este bloque (decisión del usuario, 2026-11-15)*.
+   Its row also states what the table holds (rows, rows with a `label`,
+   minutes recorded) as the state of the table, not as a result.
+6. **12.3 · Variables candidatas de abandono — inferido.** Static markdown
+   under a heading that says it is inferred. For each indicator group of
+   EXP-001's taxonomy — vegetation, roof condition, debris, accessibility,
+   temporal change, height — whether the data measured above makes it
+   computable, from which source, and why not when it is not. No figure that
+   depends on the run; it refers to 12.1 and 12.2 instead. It may exceed the
+   prose budget of criterion 2, which is for prose before a code cell, but stays
+   under 350 words.
+7. **`out/summary.md`**, versioned, written by the code cell: 12.1, 12.2 and
+   the four questions as rendered, under headings that say **Medido**, plus a
+   header with the run's date, the extent and the commit the notebook ran
+   from if it can be read without a subprocess, otherwise left out with no
+   error. The inferred section is not copied into it: the orchestrator reads
+   it from the notebook.
+8. **Offline**, the cell still renders: every section "no medido en esta
+   ejecución", the four questions **not answered** with that reason, and
+   `summary.md` written. The notebook reaches its last cell (criterion 4).
+9. `eda.py` gains the least the section needs, as pure functions over
+   `MEASURED` and the on-disk files, and `--selftest` covers: an empty
+   `MEASURED` gives "no medido" for every section; a full one renders every
+   finding; question 4 is not answered whatever the table holds; a missing
+   on-disk file is reported, not raised; `summary.md` is written with its
+   header.
+
+**Out of scope for step 7:** any change to sections 1 to 11, the duplicate
+replies (step 8), the README (step 8), and EXP-001 itself.
+
+**What the live run must settle:** that every section reports a figure, none
+"no medido", after a full run in order; that `summary.md` reads as a
+standalone account of what was measured; and that 12.3's judgements match
+what the strips and the table actually show.
 
 ---
 
