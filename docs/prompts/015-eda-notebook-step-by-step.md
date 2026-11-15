@@ -140,11 +140,11 @@ each step: its offline run, and the user's live run.
 - [x] **3 · Section 7 · Spectral check** — ACCEPTED 2026-11-06
 - [x] **4 · Section 8 · Cadastral footprints** — ACCEPTED 2026-11-08
 - [x] **5 · Section 9 · Elevation availability** — ACCEPTED 2026-11-11
-- [ ] **6 · Sections 10 and 11 · Example buildings and the labelling table** —
+- [x] **6 · Sections 10 and 11 · Example buildings and the labelling table** — ACCEPTED 2026-11-15 —
   in three parts (amendment 2026-11-14)
   - [x] **6a · Section 10 · Multi-epoch chip strips** — ACCEPTED 2026-11-14
   - [x] **6b · Section 11 · The labelling table** — ACCEPTED 2026-11-14
-  - [ ] **6c · Sections 10.2 and 10.3 · Manual samples on the map** (amendment 2026-11-15)
+  - [x] **6c · Sections 10.2 and 10.3 · Manual samples on the map** (amendment 2026-11-15) — ACCEPTED 2026-11-15
 - [ ] **7 · Section 12 · Findings**
 - [ ] **8 · Close**
 
@@ -635,11 +635,26 @@ and 6b replace the one above. One record per part.
 
 **Record · 6c** — filled in when the part closes (amendment 2026-11-15).
 
-- Date:
-- Restore point:
-- What the live run printed:
-- Corrections applied:
-- Verdict:
+- Date: 2026-11-15
+- Restore point: `7e60fcb26b6083e99f7681366522f66cb127673f`; code committed as
+  `637ae36` and `01420c8`, the last correction in the working tree.
+- What the live run printed: the map opened with the saved samples and saved
+  through the button; **7 manual samples** in `manual_samples.csv`, 3 inside
+  the extent (M-0002 and M-0003 overlapping the 85-part compound) and 4 wholly
+  outside it, each kept with its warning; 6 of 7 above one tile (97.9–170.0 m).
+  Section 10.3: years from section 5, **44 of 63 chips kept, 6 strips of 7
+  samples**; 2012 and 2015 blank everywhere except M-0003; **M-0007 got no
+  strip, all 9 years blank**. Section 11: **787 cadastral + 7 manual rows (794),
+  18 with strip and label year 2023, 2 rows' manual work carried over**
+  (M-0001 keeps `kept`), 0 refused. No error in any cell.
+- Corrections applied, across four live runs: 10.3 takes its years from
+  `strips.csv` when the kernel lost section 5's result; the table is read with
+  BOM tolerance and delimiter detection, and never overwritten when unreadable;
+  a deletion is refused while the table is unreadable; the map loads the file
+  and saves through a button instead of per event (the per-event redraw raced
+  the browser and lost rectangles); samples may lie outside the extent; a
+  manual strip reuses its existing figure.
+- Verdict: ACCEPTED.
 
 ---
 
@@ -1087,6 +1102,19 @@ refusal rule (item 4, second sentence onward), by the user's decision.
      tag was lost.
 
    The rest of item 3, and items 4 to 9, stand.
+
+   *Changed 2026-11-15, after the second live run of 6c, by the user's
+   decision* — **a manual sample may lie outside the extent.** The
+   structures worth finding are not bound to the extent drawn for the
+   cadastral measurement, so item 4's first rule no longer refuses: a
+   rectangle wholly or partly outside the extent is **kept with a warning**
+   saying so, and since the footprints of section 8 cover only the extent, its
+   line says the cadastral overlap was **not checked** outside it. The size
+   bands of item 4 stand (refused above `MANUAL_MAX_SIDE_M`), and a rectangle
+   that cannot be reprojected to the native CRS is still refused. Strips are
+   requested for the same years; a year with no imagery there is dropped by
+   the existing blank rule. Item 9's "a rectangle outside the extent refused"
+   becomes "kept with its warning".
 4. **Rules, each with its own log line.**
    - A rectangle with any part outside the extent is **refused**.
    - A rectangle that overlaps a cadastral footprint's envelope is **kept with a
@@ -1317,3 +1345,54 @@ Notes:
 4. Re-running section 10.1 rewrites `strips.csv`, so a run with failed chips
    would change the `label_year` that section 11 reads; this run left it
    byte-identical.
+
+---
+
+## Verification · Step 6c
+
+Verdict: **ACCEPTED** (2026-11-15)
+
+Files changed: `notebooks/exp-001/eda.py`, the notebook's parameter cell
+(`MANUAL_MAX_SIDE_M`), sections 10.2 and 10.3 (new) and section 11 (its
+regeneration rule); the live run adds the notebook's outputs,
+`out/manual_samples.csv` (new, versioned), and updates `out/strips.csv`,
+`out/candidates.csv`, the manifest and the feature replies under
+`out/vectors/`. Sections 1 to 10.1 unchanged in source. Nothing under `src/`,
+`tests/`, `scripts/` or any protected path.
+
+Gate: `--selftest` passed (131 checks), `--check-notebook` ok,
+`pre-commit run --all-files` 6 of 6 passed, re-run by the orchestrator on the
+delivered tree after every correction. The final live run reached its last cell
+with no error output.
+
+Criteria of 6c, as amended on 2026-11-15, one by one: a separate map that
+never touches `drawing.json` or `extent.json`; footprints and extent outline
+on the map, orthophoto of the newest present year; samples loaded from the
+file and saved through the button with ids kept on edit; the rules of item 4
+on save and on read, outside the extent now kept with a warning; strips framed
+on the squared rectangle with no margin, appended to `strips.csv`;
+regeneration carrying manual work by id (2 carried live) and refusing only
+when a labelled id would disappear (selftest); Run All reaching the last cell
+without a drawing (offline run).
+
+Notes:
+
+1. Accepted deviations: the reconciliation is a pure function in `eda.py`;
+   unchanged samples are compared in the map's own CRS so a load-and-save is a
+   byte-identical no-op; an edit can grow a box by about 2 cm through the
+   reprojection round trip; the `formato normalizado` line carries an English
+   description from `eda.py`.
+2. **M-0007 has no imagery in any year** (easting 741,806 m in
+   `EPSG:25830`, far east of the zone's central meridian). Whether that is the
+   mosaic's coverage or the request CRS that far from the zone is not
+   settled by this run; a sample there keeps its row with empty `strip` and
+   `label_year`. For ADR-004: a pipeline beyond one UTM zone states its CRS.
+3. Manual samples were drawn much larger than a building (6 of 7 above 64 m,
+   up to 170 m), so their strips frame sites rather than buildings — what the
+   user chose, and a difference from the cadastral strips to keep in mind when
+   comparing labels.
+4. The saved output of the 10.2 cell shows its status label empty: the widget
+   state is not stored with the notebook, while the live label was correct.
+5. The per-event design of the first 6c delivery lost rectangles; the rule now
+   recorded in the code is that Python sets the map's drawings only on open and
+   after a save, never inside an event handler.
