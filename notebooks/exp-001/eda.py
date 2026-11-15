@@ -2534,6 +2534,17 @@ def strip_figure(out_dir: Path, fid: str) -> tuple[str, str]:
     the repository never has); more than one gives an empty path and the
     reason, because picking one would be a guess.
     """
+    _, found = _strip_matches(out_dir, fid)
+    if len(found) > 1:
+        names = ", ".join(p.name for p in found)
+        return "", f"{len(found)} strip figures match {fid}: {names}"
+    if not found:
+        return "", ""
+    return str(found[0].relative_to(out_dir)), ""
+
+
+def _strip_matches(out_dir: Path, fid: str) -> tuple[str, list[Path]]:
+    """The safe file stem of ``fid`` and every strip figure already named for it."""
     safe = re.sub(r"[^A-Za-z0-9._-]+", "_", fid)
     pattern = re.compile(r"strip-\d+-" + re.escape(safe) + r"\.png")
     figs = out_dir / "figs"
@@ -2542,12 +2553,25 @@ def strip_figure(out_dir: Path, fid: str) -> tuple[str, str]:
         if figs.is_dir()
         else []
     )
-    if len(found) > 1:
+    return safe, found
+
+
+def strip_figure_path(out_dir: Path, fid: str, number: int) -> tuple[Path, str]:
+    """Where to save ``fid``'s strip, and a line when that choice needs saying.
+
+    One figure already named for the id: its name is reused, so a change in
+    the numbering never leaves two figures for one id. None: the name is built
+    from ``number``. More than one: none is reused, a line names them, and the
+    built name is used; section 11 then reports the ambiguity honestly.
+    """
+    safe, found = _strip_matches(out_dir, fid)
+    built = out_dir / "figs" / f"strip-{number:02d}-{safe}.png"
+    if len(found) == 1:
+        return found[0], ""
+    if found:
         names = ", ".join(p.name for p in found)
-        return "", f"{len(found)} strip figures match {fid}: {names}"
-    if not found:
-        return "", ""
-    return str(found[0].relative_to(out_dir)), ""
+        return built, f"{len(found)} strip figures already match {fid}: {names}"
+    return built, ""
 
 
 def strips_by_id(
@@ -2805,34 +2829,61 @@ def manual_rules(
 def check_manual_box(box: Bbox, rules: ManualRules) -> tuple[bool, list[str]]:
     """Whether a rectangle may be a sample, with one line per rule it touched.
 
-    Refused: any part outside the extent, or a longer side above
-    ``max_side_m``. Kept with a warning: a longer side above one tile, or an
-    overlap with a cadastral footprint's envelope, naming up to three of them,
-    since the person may be marking something the cadastre records badly.
+    Refused: a box that is not four finite numbers (it could not be
+    reprojected), or a longer side above ``max_side_m``. Kept with a warning:
+    any part outside the extent, where the cadastral overlap cannot be checked
+    because the footprints cover only the extent; a longer side above one
+    tile; or an overlap with a cadastral footprint's envelope, naming up to
+    three of them, since the person may be marking something the cadastre
+    records badly.
     """
+    if not all(math.isfinite(value) for value in box) or not (
+        box[0] < box[2] and box[1] < box[3]
+    ):
+        return False, ["refused: the rectangle could not be reprojected"]
     extent = rules.extent
     side = max(box[2] - box[0], box[3] - box[1])
-    if not (
-        box[0] >= extent[0]
-        and box[1] >= extent[1]
-        and box[2] <= extent[2]
-        and box[3] <= extent[3]
-    ):
-        return False, ["refused: part of the rectangle lies outside the extent"]
     if side > rules.max_side_m:
         return False, [
             f"refused: longer side {side:.1f} m above the {rules.max_side_m:g} m limit"
         ]
+    inside = (
+        box[0] >= extent[0]
+        and box[1] >= extent[1]
+        and box[2] <= extent[2]
+        and box[3] <= extent[3]
+    )
+    apart = (
+        box[2] <= extent[0]
+        or box[0] >= extent[2]
+        or box[3] <= extent[1]
+        or box[1] >= extent[3]
+    )
     lines: list[str] = []
+    if apart:
+        lines.append(
+            "warning: wholly outside the extent; the cadastral overlap was not "
+            "checked (the footprints cover only the extent)"
+        )
+    elif not inside:
+        lines.append(
+            "warning: partly outside the extent; the cadastral overlap was not "
+            "checked beyond it (the footprints cover only the extent)"
+        )
     if side > rules.tile_m:
         lines.append(
             f"warning: longer side {side:.1f} m above one tile ({rules.tile_m:g} m)"
         )
-    touched = [
-        fid
-        for fid, env in rules.envelopes
-        if box[0] < env[2] and env[0] < box[2] and box[1] < env[3] and env[1] < box[3]
-    ]
+    touched: list[str] = []
+    if not apart:
+        touched = [
+            fid
+            for fid, env in rules.envelopes
+            if box[0] < env[2]
+            and env[0] < box[2]
+            and box[1] < env[3]
+            and env[1] < box[3]
+        ]
     if touched:
         more = f" and {len(touched) - 3} more" if len(touched) > 3 else ""
         lines.append(
@@ -4810,18 +4861,36 @@ def _selftest() -> int:
             (said_removed, said_kept),
         )
         outside_rows, said_out = save_map(
-            [drawn_feature((390.0, 10.0, 410.0, 20.0))], []
+            [drawn_feature((500.0, 10.0, 520.0, 20.0))], []
+        )
+        partly_rows, said_partly = save_map(
+            [drawn_feature((390.0, 105.0, 410.0, 115.0))], []
         )
         overlap_rows, said_overlap = save_map(
             [drawn_feature((105.0, 105.0, 120.0, 120.0))], []
         )
         check(
-            "10.2 outside the extent refused; overlap with a footprint kept, warned",
-            outside_rows == []
-            and "outside the extent" in said_out[0]
-            and [row["id"] for row in overlap_rows] == ["M-0001"]
-            and any("warning" in s and "fp-1" in s for s in said_overlap),
-            (said_out, said_overlap),
+            "10.2 outside the extent kept with its warning, overlap not checked there",
+            [row["id"] for row in outside_rows] == ["M-0001"]
+            and any("wholly outside" in s and "not checked" in s for s in said_out)
+            and [row["id"] for row in partly_rows] == ["M-0001"]
+            and any("partly outside" in s and "not checked" in s for s in said_partly),
+            (said_out, said_partly),
+        )
+        check(
+            "10.2 inside, an overlap with a footprint is kept with a warning naming it",
+            [row["id"] for row in overlap_rows] == ["M-0001"]
+            and any("warning" in s and "fp-1" in s for s in said_overlap)
+            and not any("outside" in s for s in said_overlap),
+            said_overlap,
+        )
+        unprojectable, said_unprojectable = save_map(
+            [drawn_feature((math.inf, 0.0, math.inf, 10.0))], []
+        )
+        check(
+            "10.2 a rectangle that cannot be reprojected is refused",
+            unprojectable == [] and "could not be reprojected" in said_unprojectable[0],
+            said_unprojectable,
         )
         tile_rows, said_tile = save_map([drawn_feature((0.0, 0.0, 60.0, 50.0))], [])
         wide_rows, said_wide = save_map([drawn_feature((0.0, 0.0, 100.0, 50.0))], [])
@@ -4842,10 +4911,11 @@ def _selftest() -> int:
         )
         bad_edit, said_bad = save_map(
             [
-                drawn_feature((390.0, 50.0, 420.0, 70.0), "M-0001"),
+                drawn_feature((0.0, 0.0, 300.0, 300.0), "M-0001"),
                 drawn_feature((200.0, 200.0, 210.0, 215.0), "M-0002"),
             ],
             two_new,
+            rule_set=replace(manual_rule_set, max_side_m=200.0),
         )
         check(
             "10.2 an edit that breaks a rule keeps the old rectangle",
@@ -4865,12 +4935,12 @@ def _selftest() -> int:
         )
         read_back = read_manual(by_hand, [], manual_rule_set)
         check(
-            "10.2 a hand-written row breaking a rule is refused when read",
+            "10.2 the rules apply again when the file is read, by hand or not",
             read_back is not None
-            and [row["id"] for row in read_back[0]] == ["M-0001", "M-0003"]
-            and len(read_back[1]) == 2
-            and "outside the extent" in read_back[1][0]
-            and "no bbox" in read_back[1][1]
+            and [row["id"] for row in read_back[0]] == ["M-0001", "M-0002", "M-0003"]
+            and len(read_back[1]) == 1
+            and "no bbox" in read_back[1][0]
+            and any("M-0002" in line and "outside" in line for line in read_back[2])
             and any("fp-1" in line for line in read_back[2]),
             read_back,
         )
@@ -5066,6 +5136,26 @@ def _selftest() -> int:
             and samples_file.read_bytes() == samples_before
             and allowed_delete == [],
             (said_delete, allowed_delete),
+        )
+
+        # 10.3: a manual strip reuses the one figure its id already has
+        reuse_dir = root / "strip-reuse"
+        (reuse_dir / "figs").mkdir(parents=True)
+        (reuse_dir / "figs" / "strip-13-M-0001.png").write_bytes(b"")
+        (reuse_dir / "figs" / "strip-02-M-0003.png").write_bytes(b"")
+        (reuse_dir / "figs" / "strip-15-M-0003.png").write_bytes(b"")
+        reused, reused_note = strip_figure_path(reuse_dir, "M-0001", 1)
+        built, built_note = strip_figure_path(reuse_dir, "M-0002", 2)
+        twice, twice_note = strip_figure_path(reuse_dir, "M-0003", 3)
+        check(
+            "10.3 one existing figure reused; none built; two named, not used",
+            reused.name == "strip-13-M-0001.png"
+            and not reused_note
+            and built.name == "strip-02-M-0002.png"
+            and not built_note
+            and twice.name == "strip-03-M-0003.png"
+            and "strip-02-M-0003.png, strip-15-M-0003.png" in twice_note,
+            (reused, built, twice, twice_note),
         )
 
         # 10.3 and 11: the order of the cells is visible, not assumed
