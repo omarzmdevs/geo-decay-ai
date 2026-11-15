@@ -458,11 +458,10 @@ not for roof geometry.
 
 ### Candidate sites
 
-**Chip strips and the empty labelling table produced 2026-11-14 (handoff 015,
-steps 6a and 6b, both ACCEPTED).** Step 6 now runs in three parts (amendment of
-2026-11-14): 6a the strips, 6b the table, 6c manual samples drawn on the map,
-not executable until its own amendment exists — which also decides whether
-regeneration is refused only when manual work would actually be lost.
+**Chip strips, manual samples and the labelling table produced (handoff 015,
+step 6, ACCEPTED 2026-11-15).** Step 6 ran in three parts (amendments of
+2026-11-14 and 2026-11-15): 6a the strips and 6b the table, both ACCEPTED
+2026-11-14, and 6c manual samples drawn on their own map, ACCEPTED 2026-11-15.
 
 - **12 example buildings**, chosen by area tertile and quadrant of the extent
   with a fixed seed. Only the years section 5 found present were requested,
@@ -487,16 +486,30 @@ regeneration is refused only when manual work would actually be lost.
 - **The sample is narrow and includes non-buildings.** The tertiles fall close
   to the 70.9 m² median, so 11 of 12 picks are 57–79 m² row houses, and the
   19.9 m² pick (no. 4) frames a wall and a tree, not a judgeable building.
-- **The labelling table** (step 6b), `out/candidates.csv`, versioned: **787
-  cadastral rows and 0 manual** (no manual-samples file exists yet), **12 with
-  a strip and a `label_year`, 2023 for all 12**. Twelve columns in order: `id`,
+- **Manual samples** (step 6c), `out/manual_samples.csv`, versioned: **7
+  samples, 3 inside the extent and 4 wholly outside it**, each kept with its
+  warning; 6 of 7 above one tile (97.9–170.0 m). Every row records its
+  `source`, because a sample drawn only from the cadastre is biased toward what
+  is registered. Their strips: **44 of 63 chips kept, 6 strips for 7
+  samples**; 2012 and 2015 blank everywhere except M-0003.
+- **M-0007 has no imagery in any year** (easting 741,806 m in `EPSG:25830`, far
+  east of the zone's central meridian). Whether that is the mosaic's coverage
+  or the request CRS that far from the zone is not settled; the sample keeps
+  its row with empty `strip` and `label_year`.
+- **Manual samples frame sites, not buildings**: drawn much larger than a
+  building (6 of 7 above 64 m, up to 170 m), as the user chose — a difference
+  from the cadastral strips to keep in mind when comparing labels.
+- **The labelling table**, `out/candidates.csv`, versioned: written in step 6b
+  with 787 cadastral rows and 0 manual, and since step 6c **794 rows (787
+  cadastral + 7 manual), 18 with a strip and a `label_year`, 2023 for all,
+  with 2 rows' manual work carried over**. Twelve columns in order: `id`,
   `source`, `x`, `y`, `bbox`, `area_m2`, `strip`, `label_year`, `label`,
   `evidence`, `notes`, `minutes_spent`; every row is located by `x`, `y`.
   `label_year` comes from the newest kept chip in `strips.csv`. `label`,
   `evidence`, `notes` and `minutes_spent` are empty, with their vocabulary
   fixed in the section's markdown: `label` is `abandoned`, `kept` or `unsure`,
-  and `minutes_spent` is one figure per row. The write is refused when manual
-  work exists. `strip` points into the git-ignored `out/figs/`, so it is empty
+  and `minutes_spent` is one figure per row. Regeneration carries manual work
+  by id and is refused only when a labelled id would disappear. `strip` points into the git-ignored `out/figs/`, so it is empty
   in a fresh clone that has not run section 10.1, while `label_year` is still
   filled.
 
@@ -528,7 +541,7 @@ section 12). Handoff 015, step 3, ACCEPTED 2026-11-06.
 
 ### What is still unanswered
 
-Of the four questions in the Objective, after five steps and steps 6a and 6b:
+Of the four questions in the Objective, after six steps:
 
 1. **PNOA resolution and years** — **answered**. 9 of the 21 advertised years
    cover the extent (2006–2023), at a measured 0.25 m/px in six of them, with
@@ -552,8 +565,9 @@ Of the four questions in the Objective, after five steps and steps 6a and 6b:
    had here, so the labelling of step 6 stays fully manual and question 4 does
    **not** change shape. How long that manual pass takes is still unmeasured,
    because it is the user's work and that duration is itself a result. The
-   labelling table it is done in exists since step 6b (ACCEPTED 2026-11-14:
-   787 cadastral rows, empty `label` and `minutes_spent`).
+   instrument for that pass is complete since step 6 (ACCEPTED 2026-11-15):
+   794 rows, 787 cadastral and 7 manual, with `label` and `minutes_spent` for
+   the user to fill. Step 7 (findings) is next.
 
 ## Analysis
 

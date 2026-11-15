@@ -86,10 +86,10 @@ consequences of the sandbox shape the acceptance criteria, and are not defects:
   - [x] 3 · Section 7 · Spectral check — ACCEPTED 2026-11-06
   - [x] 4 · Section 8 · Cadastral footprints — ACCEPTED 2026-11-08
   - [x] 5 · Section 9 · Elevation availability — ACCEPTED 2026-11-11
-  - [ ] 6 · Sections 10 and 11 · Example buildings and the labelling table — in three parts (amendment 2026-11-14)
+  - [x] 6 · Sections 10 and 11 · Example buildings and the labelling table — ACCEPTED 2026-11-15 — in three parts (amendment 2026-11-14)
     - [x] 6a · Section 10 · Multi-epoch chip strips — ACCEPTED 2026-11-14
     - [x] 6b · Section 11 · The labelling table — ACCEPTED 2026-11-14
-    - [ ] 6c · Manual samples on the map — not executable until its amendment exists
+    - [x] 6c · Sections 10.2 and 10.3 · Manual samples on the map (amendment 2026-11-15) — ACCEPTED 2026-11-15
   - [ ] 7 · Section 12 · Findings
   - [ ] 8 · Close
 - [x] The user draws the extent on the map and records it in EXP-001 →
@@ -201,7 +201,7 @@ when the measurement exists and is recorded.
   - **Step 6a · Section 10 · Multi-epoch chip strips — ACCEPTED 2026-11-14**,
     from one live run by the user, code committed as `b65e43a`. Step 6 was
     split in three by the amendment of 2026-11-14 (6a strips, 6b table, 6c
-    manual samples, the last not executable until its own amendment). **12
+    manual samples). **12
     example buildings**, chosen by area tertile and quadrant with a fixed seed,
     each get one strip of the present years at 0.25 m/px with the year on every
     chip, and `out/strips.csv` holds one row per building and year asked (108).
@@ -217,12 +217,23 @@ when the measurement exists and is recorded.
     **787 cadastral rows and 0 manual**, 12 with strip and label year (2023 for
     all 12), in twelve columns with every row located by `x`, `y`; the label
     columns are empty, their vocabulary fixed in the section's markdown, and
-    the write is refused when manual work exists. The manual-samples file is
-    read in a provisional format that 6c decides; 6c's amendment also decides
-    whether to refuse regeneration only when manual work would actually be
-    lost. Figures transcribed into
+    the write is refused when manual work exists. Figures transcribed into
     [EXP-001](../experiments/exp-001-data-feasibility.md) → Results;
     verification in the handoff's `## Verification · Step 6b`.
+  - **Step 6c · Sections 10.2 and 10.3 · Manual samples on the map — ACCEPTED
+    2026-11-15**, closing step 6, from the last of four live runs by the user,
+    code committed as `637ae36` and `01420c8`. Amended on 2026-11-15: a
+    separate map that never touches `drawing.json` or `extent.json`, saving
+    through a button, and samples allowed outside the extent with a warning.
+    **7 manual samples**, 3 inside the extent and 4 outside, strips for 6 of 7
+    (44 of 63 chips kept), and the table at **794 rows** (787 cadastral + 7
+    manual) with 2 rows' manual work carried over by id; regeneration is
+    refused only when a labelled id would disappear. M-0007 has no imagery in
+    any year, which leaves ADR-004 to state the CRS of a pipeline beyond one
+    UTM zone, and the manual samples frame sites rather than buildings.
+    Figures transcribed into
+    [EXP-001](../experiments/exp-001-data-feasibility.md) → Results;
+    verification in the handoff's `## Verification · Step 6c`.
 
 ## Notes
 

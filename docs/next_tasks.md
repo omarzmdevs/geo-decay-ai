@@ -47,14 +47,12 @@ table is in [roadmap.md](roadmap.md).
   blocked: it advances one notebook section per session. Instrumented by
   Sprint 5 above;
   the Analysis, the Conclusion and the two `docs/research/` documents are the
-  orchestrator's, written from whatever the user's run measures. Steps 0 to 5
-  of handoff 015 are accepted (step 5 on 2026-11-11), and step 6 is split in
-  three, with parts 6a (the example buildings' chip strips) and 6b (the
-  labelling table) accepted on 2026-11-14: the orthophoto, the cadastral
-  reference and the elevation rasters are measured, and what is still missing
-  from EXP-001 is the manual samples (6c, not executable until its amendment,
-  which also decides when regeneration is refused), the manual labelling pass,
-  and the findings section (step 7).
+  orchestrator's, written from whatever the user's run measures. Steps 0 to 6
+  of handoff 015 are accepted (step 6, in three parts, on 2026-11-15): the
+  orthophoto, the cadastral reference and the elevation rasters are measured,
+  the example strips, manual samples and labelling table exist, and what is
+  still missing from EXP-001 is the manual labelling pass and the findings
+  section (step 7).
 
 Completed sprints of Block 1: Sprint 1 · Foundations and Quality Gate
 (2026-10-14, [log](sprints/sprint-01-foundations.md)), Sprint 2 · Runtime
@@ -133,7 +131,8 @@ Tracked findings from the project review, deferred with their identifiers:
   route and the detection strategy. Required before Block 3. Now written from
   the feasibility experiment above rather than decided up front. For the
   temporal-change indicator it has to state whether epochs are co-registered
-  before differencing (step 6a of handoff 015, verification note 3).
+  before differencing (step 6a of handoff 015, verification note 3). A
+  pipeline beyond one UTM zone states its CRS (step 6c, verification note 2).
 - [x] **E5 · ADR-005** — dependency manager (2026-10-08).
 - [x] **E1 · Write-scope enforcement** — `scripts/policy_guard.py` validating the
   working-tree diff against `.agents/policy.yaml`, plus its pre-commit hook. Scheduled in Sprint 1.
@@ -380,4 +379,4 @@ Tracked findings from the project review, deferred with their identifiers:
 
 ## Last Updated
 
-2026-11-14
+2026-11-15
