@@ -18,7 +18,8 @@ Four concerns live here, each independent of any one country:
 * reading an elevation coverage as a raster: its grid, CRS and no-data share;
 * choosing example buildings, framing their chips and judging each chip;
 * manual samples drawn where the cadastre holds nothing, checked by rule;
-* the labelling table, which never overwrites manual work.
+* the labelling table, which never overwrites manual work;
+* the findings of section 12, generated from what the run produced.
 
 Every output goes under one directory, ``out/`` beside this file by convention,
 with response bodies filed by kind: ``capabilities/``, ``vectors/``,
@@ -49,6 +50,7 @@ from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 from urllib.parse import unquote
 from xml.etree import ElementTree
 
@@ -3294,6 +3296,828 @@ def samples_without_strips(
 
 
 # --------------------------------------------------------------------------
+# Findings: what this run measured, generated from its own outputs
+# --------------------------------------------------------------------------
+
+NOT_MEASURED = "no medido en esta ejecución"
+# Prefixes of the reasons ``resolution_from_ladder`` gives when it returns a
+# bound instead of a figure, as ``ladder.csv`` records them.
+_BOUND_COARSE = "no rung added detail"
+_BOUND_FINE = "the curve had not flattened"
+
+
+@dataclass(frozen=True)
+class Finding:
+    """One line of section 12: which section, what was found, and from where.
+
+    ``measured`` is false for the "no medido" lines, so a caller can count
+    what the run really produced.
+    """
+
+    section: str
+    text: str
+    source: str
+    measured: bool = True
+
+
+def _not_measured(section: str, why: str = "") -> Finding:
+    tail = f" — {why}" if why else ""
+    return Finding(section, f"{NOT_MEASURED} (sección {section}){tail}", "—", False)
+
+
+def read_table(path: Path) -> list[dict[str, str]] | None:
+    """The rows of a versioned CSV under ``out/``, ``None`` if absent or unreadable."""
+    if not path.is_file():
+        return None
+    try:
+        with path.open(newline="", encoding="utf-8-sig") as handle:
+            return list(csv.DictReader(handle))
+    except (OSError, UnicodeDecodeError, csv.Error):
+        return None
+
+
+def read_extent_file(out_dir: Path) -> tuple[Bbox, str] | None:
+    """The bbox and CRS ``extent.json`` registers, or ``None``."""
+    try:
+        data = json.loads((out_dir / "extent.json").read_text(encoding="utf-8"))
+        bbox = tuple(float(v) for v in data["bbox"])
+        return (bbox[0], bbox[1], bbox[2], bbox[3]), str(data["crs"])
+    except (OSError, ValueError, KeyError, TypeError, IndexError):
+        return None
+
+
+def read_commit(start: Path) -> str:
+    """The commit the working tree sits on, read from ``.git`` files; ``""`` if not.
+
+    Read-only and without a subprocess: ``HEAD`` and then the loose ref or the
+    packed one. Anything unexpected gives an empty string, never an error.
+    """
+    try:
+        for folder in (start, *start.parents):
+            git = folder / ".git"
+            if not git.is_dir():
+                continue
+            head = (git / "HEAD").read_text(encoding="utf-8").strip()
+            if not head.startswith("ref: "):
+                return head[:12]
+            ref = head[5:]
+            loose = git / ref
+            if loose.is_file():
+                return loose.read_text(encoding="utf-8").strip()[:12]
+            packed = git / "packed-refs"
+            if packed.is_file():
+                for line in packed.read_text(encoding="utf-8").splitlines():
+                    parts = line.split()
+                    if len(parts) == 2 and parts[1] == ref:
+                        return parts[0][:12]
+            return ""
+    except OSError:
+        return ""
+    return ""
+
+
+def _years(values: Iterable[object]) -> str:
+    years = sorted({int(str(v)) for v in values})
+    return ", ".join(str(y) for y in years) if years else "ninguno"
+
+
+def _strip_stats(rows: list[dict[str, str]], manual: bool) -> dict[str, dict[str, int]]:
+    """Per id: chips asked and kept, for the cadastral or the manual rows."""
+    stats: dict[str, dict[str, int]] = {}
+    for row in rows:
+        if is_manual_id(row.get("id", "")) != manual:
+            continue
+        one = stats.setdefault(row["id"], {"asked": 0, "kept": 0})
+        one["asked"] += 1
+        one["kept"] += row.get("kept") == "yes"
+    return stats
+
+
+def _guarded(
+    section: str, build: Callable[[], Finding | list[Finding] | None]
+) -> list[Finding]:
+    """Run one builder; a missing input or an unreadable value is "no medido"."""
+    try:
+        built = build()
+    except Exception as exc:  # never raise: a broken input is a finding too
+        return [_not_measured(section, f"datos ilegibles ({type(exc).__name__})")]
+    if built is None:
+        return [_not_measured(section)]
+    return built if isinstance(built, list) else [built]
+
+
+# The logical names, in the provider entry, of the feature kind and the
+# attribute the storey finding reads back from disk.
+PART_KIND = "building_parts"
+STOREY_ATTRIBUTE = "floors"
+
+
+def _inside(box: Bbox, extent: Bbox, slack: float = 1.0) -> bool:
+    return (
+        box[0] >= extent[0] - slack
+        and box[1] >= extent[1] - slack
+        and box[2] <= extent[2] + slack
+        and box[3] <= extent[3] + slack
+    )
+
+
+def features_on_disk(
+    out_dir: Path, type_name: str, extent: Bbox
+) -> tuple[tuple[FeatureRecord, ...], int]:
+    """The features of ``type_name`` inside ``extent``, read back from disk.
+
+    Every request for that type whose box lies inside the extent is answered
+    by its **newest** manifest row whose body is still in ``vectors/``: a
+    newer row can point to a body removed as a duplicate, and an older row of
+    the same request then holds an equivalent one. The bodies are merged by
+    feature identity. Returns the features and how many bodies were read;
+    nothing on disk gives ``((), 0)``.
+    """
+    from urllib.parse import parse_qs, urlsplit
+
+    rows = read_table(manifest_path(out_dir)) or []
+    chosen: dict[str, Path] = {}
+    for row in reversed(rows):
+        url = row.get("url", "")
+        if url in chosen or not row.get("md5"):
+            continue
+        query = {k.lower(): v for k, v in parse_qs(urlsplit(url).query).items()}
+        if query.get("typenames", [""])[0] != type_name:
+            continue
+        numbers = query.get("bbox", [""])[0].split(",")[:4]
+        if len(numbers) < 4 or not all(_is_number(n) for n in numbers):
+            continue
+        a, b, c, d = (float(n) for n in numbers)
+        if not (_inside((a, b, c, d), extent) or _inside((b, a, d, c), extent)):
+            continue
+        body = body_for(out_dir, row["md5"], kind="vectors")
+        if body is not None:
+            chosen[url] = body
+    groups = [
+        reply.features
+        for reply in (read_features(path) for path in chosen.values())
+        if not reply.exception
+    ]
+    merged, _ = merge_features(groups)
+    return merged, len(chosen)
+
+
+def extract_findings(
+    measured: Mapping[str, object],
+    findings: Mapping[str, str],
+    out_dir: Path,
+    provider: Provider | None = None,
+) -> list[Finding]:
+    """12.1: what can be extracted, one line per finding, each with its source.
+
+    ``provider`` names the feature type and attribute a finding reads back from
+    the replies on disk; without it, those findings say "no medido".
+    """
+    m: dict[str, Any] = dict(measured)
+    strips = read_table(out_dir / "strips.csv") or []
+    ladder = read_table(out_dir / "ladder.csv") or []
+    samples = read_table(out_dir / "manual_samples.csv")
+    table = read_table(out_dir / "candidates.csv")
+
+    def epochs() -> Finding | None:
+        if "epochs" not in m:
+            return None
+        e = m["epochs"]
+        probed = e.get("probed", [])
+        present = e.get("present_years", [])
+        if not present:
+            return _not_measured("5", "ningún año contestó con imagen")
+        return Finding(
+            "5",
+            f"ortofoto con imagen sobre el extent en {len(present)} de {len(probed)} "
+            f"años sondeados: {_years(present)}",
+            "MEASURED: epochs",
+        )
+
+    def coverage() -> Finding | None:
+        cadastral = [r for r in strips if not is_manual_id(r.get("id", ""))]
+        if not cadastral:
+            return None
+        buildings = {r["id"] for r in cadastral}
+        kept_by_year: dict[str, set[str]] = {}
+        for row in cadastral:
+            ids = kept_by_year.setdefault(row["year"], set())
+            if row.get("kept") == "yes":
+                ids.add(row["id"])
+        full = [
+            y for y, ids in sorted(kept_by_year.items()) if len(ids) == len(buildings)
+        ]
+        rest = [
+            f"{year} en {len(ids)} de {len(buildings)}"
+            for year, ids in sorted(kept_by_year.items())
+            if len(ids) < len(buildings)
+        ]
+        return Finding(
+            "10.1",
+            f"{len(full)} de {len(kept_by_year)} años con chip conservado en los "
+            f"{len(buildings)} edificios de ejemplo ({', '.join(full) or 'ninguno'})"
+            + (f"; el resto sólo en parte: {', '.join(rest)}" if rest else ""),
+            "disco: strips.csv",
+        )
+
+    def resolution() -> Finding | None:
+        if not ladder:
+            return None
+        by_year: dict[str, dict[str, str]] = {}
+        coarsest: dict[str, float] = {}
+        finest: dict[str, float] = {}
+        for row in ladder:
+            by_year.setdefault(row["year"], row)
+            gsd = float(row["gsd_m"])
+            coarsest[row["year"]] = max(gsd, coarsest.get(row["year"], gsd))
+            finest[row["year"]] = min(gsd, finest.get(row["year"], gsd))
+        figures: dict[str, list[str]] = {}
+        bounds: list[str] = []
+        none: list[str] = []
+        for year, row in sorted(by_year.items()):
+            if row.get("measured_gsd_m"):
+                figures.setdefault(f"{float(row['measured_gsd_m']):g}", []).append(year)
+            elif row.get("measured_reason", "").startswith(_BOUND_COARSE):
+                bounds.append(f"{year} ≥ {coarsest[year]:g} m/px")
+            elif row.get("measured_reason", "").startswith(_BOUND_FINE):
+                bounds.append(f"{year} ≤ {finest[year]:g} m/px")
+            else:
+                none.append(year)
+        measured_text = "; ".join(
+            f"{value} m/px en {len(years)} año(s) ({', '.join(years)})"
+            for value, years in figures.items()
+        )
+        return Finding(
+            "6",
+            f"resolución nativa medida: {measured_text or 'ninguna cifra'}"
+            + (f"; sólo cota: {', '.join(bounds)}" if bounds else "")
+            + (f"; sin cifra ni cota: {', '.join(none)}" if none else ""),
+            "disco: ladder.csv",
+        )
+
+    def quality() -> Finding | None:
+        if "quality" not in m:
+            return None
+        rows = m["quality"].get("epochs", [])
+        flags = {
+            name: [r["año"] for r in rows if name in str(r.get("defectos", ""))]
+            for name in ("blanca", "saturada", "bajo contraste")
+        }
+        return Finding(
+            "6.1",
+            f"calidad de {len(rows)} épocas juzgadas como imagen: "
+            + ", ".join(f"{len(v)} {k}" for k, v in flags.items()),
+            "MEASURED: quality",
+        )
+
+    def spectral() -> list[Finding] | None:
+        # The band count is the evidence: it needs an image the service served.
+        # A catalogue search over no catalogue at all is not a measurement.
+        bands = findings.get("7 bandas", "")
+        if not bands or bands.startswith("ABSENT: "):
+            return None
+        lines = [findings[key] for key in ("7 catálogo", "7 bandas") if key in findings]
+        return [
+            Finding("7", line.removeprefix("ABSENT: "), "veredicto de la sección 7")
+            for line in lines
+        ]
+
+    def cadastre() -> list[Finding] | None:
+        if "cadastre_request" not in m:
+            return None
+        c = m["cadastre_request"]
+        out = [
+            Finding(
+                "8",
+                f"{c.get('features', 0)} huellas catastrales en {c.get('crs', '?')}, "
+                f"pedidas en {len(c.get('tiles', []))} teselas bajo un techo de "
+                f"{float(c.get('ceiling_accepted_km2', 0.0)):.3f} km²",
+                "MEASURED: cadastre_request",
+            )
+        ]
+        a = m.get("cadastre_attributes")
+        if a:
+            counts = a.get("condition", {}).get("counts", {})
+            distinct = [v for v in counts if v]
+            name = a.get("condition", {}).get("name", "")
+            verdict = (
+                "uniforme: no sirve como etiqueta débil"
+                if len(distinct) <= 1
+                else f"{len(distinct)} valores: puede discriminar"
+            )
+            values = ", ".join(f"{v or '(vacío)'} {n}" for v, n in counts.items())
+            out.append(
+                Finding(
+                    "8.1",
+                    f"`{name}` — {values or 'sin valores'}; {verdict}",
+                    "MEASURED: cadastre_attributes",
+                )
+            )
+            footprint = a.get("footprint") or {}
+            if footprint:
+                out.append(
+                    Finding(
+                        "8.1",
+                        f"huella mediana {float(footprint['median']):.1f} "
+                        f"{footprint.get('unit', '')} (cuartiles "
+                        f"{float(footprint['p25']):.1f}–{float(footprint['p75']):.1f})",
+                        "MEASURED: cadastre_attributes",
+                    )
+                )
+        types = m.get("feature_types")
+        if types:
+            counts = types.get("counts", {})
+            out.append(
+                Finding(
+                    "8.3",
+                    "otros tipos del catastro: "
+                    + ", ".join(f"{kind} {n}" for kind, n in counts.items()),
+                    "MEASURED: feature_types",
+                )
+            )
+        return out
+
+    def storeys() -> Finding | None:
+        claimed = [
+            row
+            for row in (m.get("cadastre_attributes") or {}).get("claimed", [])
+            if row.get("atributo") == STOREY_ATTRIBUTE
+        ]
+        name = (
+            str(claimed[0].get("nombre real"))
+            if claimed
+            else (provider.attributes.get(STOREY_ATTRIBUTE, "") if provider else "")
+        )
+        if not name:
+            return None
+        on_buildings = (
+            f"en los edificios, con valor en {claimed[0].get('con valor', 0)} de "
+            f"{claimed[0].get('edificios que lo traen', 0)} (MEASURED: "
+            "cadastre_attributes)"
+            if claimed
+            else f"en los edificios, {NOT_MEASURED}"
+        )
+        parts_type = provider.wfs_types.get(PART_KIND, ("", ""))[1] if provider else ""
+        extent = read_extent_file(out_dir)
+        parts: tuple[FeatureRecord, ...] = ()
+        if parts_type and extent is not None:
+            parts, _ = features_on_disk(out_dir, parts_type, extent[0])
+        on_parts = (
+            f"en las partes, con valor en "
+            f"{sum(1 for one in parts if one.values.get(name))} de {len(parts)} "
+            "(disco: manifest.csv + vectors/)"
+            if parts
+            else f"en las partes, {NOT_MEASURED}"
+        )
+        return Finding(
+            "8.1",
+            f"`{name}` {on_buildings}; {on_parts}",
+            "MEASURED y disco",
+        )
+
+    def elevation() -> Finding | None:
+        if "elevation" not in m:
+            return None
+        rows = m["elevation"].get("products", [])
+        if not any(r.get("contestó") == "sí" for r in rows):
+            return _not_measured("9", "ningún producto contestó")
+        parts = [
+            f"{r.get('producto')}: "
+            + (
+                f"paso {r.get('paso entregado (m)')} m, {r.get('tipo')}, "
+                f"{r.get('% sin dato')} sin dato"
+                if r.get("contestó") == "sí"
+                else "no contestó"
+            )
+            for r in rows
+        ]
+        return Finding(
+            "9",
+            f"{sum(1 for r in rows if r.get('contestó') == 'sí')} de {len(rows)} "
+            f"productos de elevación sobre el extent — " + "; ".join(parts),
+            "MEASURED: elevation",
+        )
+
+    def example_strips() -> Finding | None:
+        stats = _strip_stats(strips, manual=False)
+        if not stats:
+            return None
+        asked = sum(one["asked"] for one in stats.values())
+        kept = sum(one["kept"] for one in stats.values())
+        with_strip = sum(1 for one in stats.values() if one["kept"])
+        return Finding(
+            "10.1",
+            f"{with_strip} tiras de edificios de ejemplo: {kept} de {asked} chips "
+            "conservados",
+            "disco: strips.csv",
+        )
+
+    def manual() -> Finding | None:
+        if not samples:
+            return None
+        extent = read_extent_file(out_dir)
+        inside = outside = 0
+        for row in samples:
+            box = parse_bbox(row.get("bbox"))
+            if box is None or extent is None:
+                continue
+            e = extent[0]
+            within = box[0] >= e[0] and box[1] >= e[1] and box[2] <= e[2]
+            if within and box[3] <= e[3]:
+                inside += 1
+            else:
+                outside += 1
+        stats = _strip_stats(strips, manual=True)
+        kept = sum(one["kept"] for one in stats.values())
+        asked = sum(one["asked"] for one in stats.values())
+        chips = (
+            f"{kept} de {asked} chips conservados"
+            if asked
+            else "sin filas en strips.csv: sus tiras no se pidieron"
+        )
+        return Finding(
+            "10.2",
+            f"{len(samples)} muestras manuales, {inside} dentro del extent y "
+            f"{outside} fuera o en su borde; {chips}",
+            "disco: manual_samples.csv, strips.csv, extent.json",
+        )
+
+    def labelling() -> Finding | None:
+        if not table:
+            return None
+        by_source: dict[str, int] = {}
+        for row in table:
+            by_source[row.get("source", "")] = (
+                by_source.get(row.get("source", ""), 0) + 1
+            )
+        return Finding(
+            "11",
+            f"tabla de etiquetado de {len(table)} filas: "
+            + ", ".join(f"{n} {source}" for source, n in sorted(by_source.items()))
+            + f"; {sum(1 for r in table if r.get('strip'))} con tira",
+            "disco: candidates.csv",
+        )
+
+    builders: list[tuple[str, Callable[[], Finding | list[Finding] | None]]] = [
+        ("5", epochs),
+        ("10.1", coverage),
+        ("6", resolution),
+        ("6.1", quality),
+        ("7", spectral),
+        ("8", cadastre),
+        ("8.1", storeys),
+        ("9", elevation),
+        ("10.1", example_strips),
+        ("10.2", manual),
+        ("11", labelling),
+    ]
+    out: list[Finding] = []
+    for section, build in builders:
+        out.extend(_guarded(section, build))
+    return out
+
+
+def problem_findings(
+    measured: Mapping[str, object], findings: Mapping[str, str], out_dir: Path
+) -> list[Finding]:
+    """12.2: one line per problem this run's data shows, each with its figure.
+
+    A section whose input is missing is listed once as "no medido": a problem
+    that cannot be seen in this run is never assumed from an earlier one.
+    """
+    m: dict[str, Any] = dict(measured)
+    strips = read_table(out_dir / "strips.csv") or []
+    ladder = read_table(out_dir / "ladder.csv") or []
+    out: list[Finding] = []
+
+    def spectral() -> list[Finding] | None:
+        bands = findings.get("7 bandas", "")
+        if not bands or bands.startswith("ABSENT: "):
+            return None  # no image counted: the reach was not measured
+        line = findings.get("7 catálogo", "")
+        if not line.startswith("ABSENT: "):
+            return []  # a layer that mentions infrared is not this problem
+        served = f"; {bands}"
+        return [
+            Finding(
+                "7",
+                f"sin infrarrojo: {line.removeprefix('ABSENT: ')}{served}",
+                "veredicto de la sección 7",
+            )
+        ]
+
+    def partial_years() -> list[Finding] | None:
+        cadastral = [r for r in strips if not is_manual_id(r.get("id", ""))]
+        if not cadastral:
+            return None
+        per_year: dict[str, list[int]] = {}
+        for row in cadastral:
+            one = per_year.setdefault(row["year"], [0, 0])
+            one[0] += 1
+            one[1] += row.get("kept") == "yes"
+        found = []
+        for year, (asked, kept) in sorted(per_year.items()):
+            if kept == 0:
+                found.append(
+                    Finding(
+                        "10.1",
+                        f"{year}: ningún chip conservado de {asked} edificios de "
+                        "ejemplo",
+                        "disco: strips.csv",
+                    )
+                )
+            elif kept < asked:
+                found.append(
+                    Finding(
+                        "10.1",
+                        f"{year}: imagen sólo en parte del extent — {kept} de {asked} "
+                        "edificios de ejemplo con chip conservado",
+                        "disco: strips.csv",
+                    )
+                )
+        return found
+
+    def quality() -> list[Finding] | None:
+        if "quality" not in m:
+            return None
+        rows = m["quality"].get("epochs", [])
+        flagged = [r for r in rows if r.get("defectos", "ok") != "ok"]
+        if not flagged:
+            return []
+        return [
+            Finding(
+                "6.1",
+                f"{len(flagged)} de {len(rows)} épocas con defectos como imagen "
+                f"(años {_years(r['año'] for r in flagged)})",
+                "MEASURED: quality",
+            )
+        ]
+
+    def unmeasured() -> list[Finding] | None:
+        if not ladder:
+            return None
+        years = sorted({r["year"] for r in ladder if not r.get("measured_gsd_m")})
+        if not years:
+            return []
+        return [
+            Finding(
+                "6",
+                f"{len(years)} año(s) sin cifra de resolución medida: "
+                f"{', '.join(years)}",
+                "disco: ladder.csv",
+            )
+        ]
+
+    def oversized() -> list[Finding] | None:
+        if "examples" not in m:
+            return None
+        e = m["examples"]
+        excluded = e.get("excluded", [])
+        if not excluded:
+            return []
+        big = excluded[0]
+        return [
+            Finding(
+                "10",
+                f"{len(excluded)} huella(s) con marco mayor que una tesela "
+                f"({float(e.get('max_frame_m', 0.0)):g} m); la mayor, {big['id']}: "
+                f"{big['parts']} partes, {float(big['area_m2']):.0f} m², marco "
+                f"{float(big['frame_m']):.0f} m",
+                "MEASURED: examples",
+            )
+        ]
+
+    def elevation() -> list[Finding] | None:
+        if "elevation" not in m:
+            return None
+        rows = [
+            r for r in m["elevation"].get("products", []) if r.get("contestó") == "sí"
+        ]
+        if not rows:
+            return None  # no product answered: nothing about the grids was measured
+        found = []
+        resampled = [r for r in rows if r.get("¿coincide?") != "✅"]
+        if resampled:
+            found.append(
+                Finding(
+                    "9",
+                    f"{len(resampled)} de {len(rows)} productos entregan un paso "
+                    "distinto del que sugiere su id: "
+                    + ", ".join(
+                        f"{r.get('producto')} {r.get('paso entregado (m)')} m"
+                        for r in resampled
+                    ),
+                    "MEASURED: elevation",
+                )
+            )
+        whole = [r for r in rows if str(r.get("tipo", "")).startswith(("int", "uint"))]
+        if whole:
+            found.append(
+                Finding(
+                    "9",
+                    f"{len(whole)} de {len(rows)} productos en enteros "
+                    f"({', '.join(sorted({str(r.get('tipo')) for r in whole}))}): "
+                    "alturas en metros enteros",
+                    "MEASURED: elevation",
+                )
+            )
+        return found
+
+    def counts() -> list[Finding] | None:
+        if "cadastre_request" not in m:
+            return None
+        c = m["cadastre_request"]
+        silent = int(c.get("tiles_without_declared_counts", 0))
+        if not silent:
+            return []
+        return [
+            Finding(
+                "8",
+                f"{silent} de {len(c.get('tiles', []))} teselas sin "
+                "`numberReturned`/`numberMatched`: la completitud no se puede "
+                "verificar",
+                "MEASURED: cadastre_request",
+            )
+        ]
+
+    def dark_samples() -> list[Finding] | None:
+        stats = _strip_stats(strips, manual=True)
+        if not stats:
+            return None
+        dark = sorted(fid for fid, one in stats.items() if not one["kept"])
+        if not dark:
+            return []
+        return [
+            Finding(
+                "10.3",
+                f"{len(dark)} muestra(s) manual(es) sin imagen en ningún año: "
+                + ", ".join(dark),
+                "disco: strips.csv",
+            )
+        ]
+
+    for section, build in (
+        ("7", spectral),
+        ("10.1", partial_years),
+        ("6.1", quality),
+        ("6", unmeasured),
+        ("10", oversized),
+        ("9", elevation),
+        ("8", counts),
+        ("10.3", dark_samples),
+    ):
+        out.extend(_guarded(section, build))
+    return out
+
+
+def four_questions(
+    measured: Mapping[str, object], findings: Mapping[str, str], out_dir: Path
+) -> list[dict[str, str]]:
+    """EXP-001's four questions, each answered, partly answered or not, and why.
+
+    A section of ``measured`` that is not a mapping counts as not measured, so
+    a broken value never raises here either.
+    """
+    m: dict[str, Any] = {
+        key: value for key, value in measured.items() if isinstance(value, Mapping)
+    }
+    ladder = read_table(out_dir / "ladder.csv") or []
+    table = read_table(out_dir / "candidates.csv")
+    rows: list[dict[str, str]] = []
+
+    present = m.get("epochs", {}).get("present_years", []) if "epochs" in m else []
+    figures = {r["year"] for r in ladder if r.get("measured_gsd_m")}
+    if present and figures:
+        q1 = (
+            "contestada",
+            f"{len(present)} años con imagen; resolución medida en "
+            f"{len(figures)} (12.1, secciones 5 y 6)",
+        )
+    elif present or figures:
+        q1 = ("parcialmente", "sólo años o sólo resolución medidos (12.1)")
+    else:
+        q1 = ("no contestada", f"{NOT_MEASURED} (secciones 5 y 6)")
+    rows.append(
+        {"pregunta": "1 · Resolución y años de PNOA", "estado": q1[0], "motivo": q1[1]}
+    )
+
+    products = m.get("elevation", {}).get("products", []) if "elevation" in m else []
+    answered = [r for r in products if r.get("contestó") == "sí"]
+    if answered:
+        q2 = (
+            "parcialmente",
+            f"{len(answered)} de {len(products)} rásters medidos "
+            "(12.1, sección 9); nube de puntos no perseguida (9.2)",
+        )
+    else:
+        q2 = ("no contestada", f"{NOT_MEASURED} (sección 9)")
+    rows.append(
+        {"pregunta": "2 · Productos de elevación", "estado": q2[0], "motivo": q2[1]}
+    )
+
+    inputs = [present, answered, m.get("cadastre_attributes", {}).get("claimed")]
+    if any(inputs):
+        q3 = (
+            "parcialmente",
+            "lo medido está en 12.1 y 12.2; la viabilidad por "
+            "grupo de indicadores es inferida (12.3)",
+        )
+    else:
+        q3 = ("no contestada", f"{NOT_MEASURED} (secciones 5, 8 y 9)")
+    rows.append(
+        {"pregunta": "3 · Indicadores computables", "estado": q3[0], "motivo": q3[1]}
+    )
+
+    if table is None:
+        state = "candidates.csv no está en disco"
+    else:
+        labelled = sum(1 for r in table if (r.get("label") or "").strip())
+        minutes = sum(
+            float(r["minutes_spent"])
+            for r in table
+            if _is_number(r.get("minutes_spent"))
+        )
+        state = (
+            f"estado de la tabla, no resultado: {len(table)} filas, {labelled} con "
+            f"`label`, {minutes:g} minutos anotados"
+        )
+    rows.append(
+        {
+            "pregunta": "4 · Etiquetado manual y etiquetas débiles",
+            "estado": "no contestada",
+            "motivo": "pasada manual fuera de este bloque (decisión del usuario, "
+            f"2026-11-15); {state}",
+        }
+    )
+    return rows
+
+
+def render_findings(items: Iterable[Finding]) -> str:
+    """Findings as a Markdown list, each with its section and its source."""
+    return "\n".join(
+        f"- **{item.section}** — {item.text}"
+        + (f" · _fuente: {item.source}_" if item.measured else "")
+        for item in items
+    )
+
+
+def render_questions(rows: Iterable[Mapping[str, str]]) -> str:
+    """The four questions as a Markdown table."""
+    lines = ["| Pregunta | Estado | Motivo |", "|---|---|---|"]
+    lines.extend(
+        f"| {r['pregunta']} | **{r['estado']}** | {r['motivo']} |" for r in rows
+    )
+    return "\n".join(lines)
+
+
+def write_summary_md(
+    out_dir: Path,
+    extract: list[Finding],
+    problems: list[Finding],
+    questions: list[dict[str, str]],
+    *,
+    run_date: str,
+    commit: str,
+) -> Path:
+    """Write ``out_dir/summary.md``: a header, then what was measured.
+
+    The inferred section is deliberately absent: it lives in the notebook.
+    """
+    extent = read_extent_file(out_dir)
+    header = [
+        "# EXP-001 · Resumen de la ejecución",
+        "",
+        f"- Fecha: {run_date}",
+        "- Extent: "
+        + (
+            f"`{' '.join(f'{v:.2f}' for v in extent[0])}` en `{extent[1]}`"
+            if extent
+            else "sin `extent.json`"
+        ),
+    ]
+    if commit:
+        header.append(f"- Commit: `{commit}`")
+    body = [
+        "",
+        "## Medido · 12.1 · Qué se puede extraer",
+        "",
+        render_findings(extract),
+        "",
+        "## Medido · 12.2 · Problemas encontrados",
+        "",
+        render_findings(problems) or "- ninguno visible en esta ejecución",
+        "",
+        "## Medido · Las cuatro preguntas de EXP-001",
+        "",
+        render_questions(questions),
+        "",
+    ]
+    path = out_dir / "summary.md"
+    path.write_text("\n".join([*header, *body]), encoding="utf-8")
+    return path
+
+
+# --------------------------------------------------------------------------
 # Notebook checker
 # --------------------------------------------------------------------------
 
@@ -5173,6 +5997,273 @@ def _selftest() -> int:
         check(
             "11 a manual sample with no strip rows is named",
             samples_without_strips(["M-0001", "M-0002"], on_disk_rows) == ["M-0002"],
+        )
+
+        # 12: findings generated from the run, never typed
+        bare_out = prepare_out(root / "findings-empty")
+        empty_extract = extract_findings({}, {}, bare_out)
+        empty_problems = problem_findings({}, {}, bare_out)
+        empty_questions = four_questions({}, {}, bare_out)
+        check(
+            "12 an empty MEASURED and no files give 'no medido' for every section",
+            empty_extract
+            and not any(item.measured for item in empty_extract)
+            and all(NOT_MEASURED in item.text for item in empty_extract)
+            and not any(item.measured for item in empty_problems)
+            and [q["estado"] for q in empty_questions] == ["no contestada"] * 4,
+            (empty_extract, empty_problems, empty_questions),
+        )
+        full_out = prepare_out(root / "findings-full")
+        (full_out / "extent.json").write_text(
+            json.dumps({"bbox": [0.0, 0.0, 400.0, 400.0], "crs": "EPSG:25830"}),
+            encoding="utf-8",
+        )
+        write_strips(
+            [
+                {"id": "ES.1", "year": 2006, "kept": "yes"},
+                {"id": "ES.1", "year": 2012, "kept": "no"},
+                {"id": "ES.2", "year": 2006, "kept": "yes"},
+                {"id": "ES.2", "year": 2012, "kept": "yes"},
+                {"id": "M-0001", "year": 2006, "kept": "yes"},
+                {"id": "M-0002", "year": 2006, "kept": "no"},
+            ],
+            full_out,
+        )
+        write_ladder(
+            [
+                {"year": 2006, "size_px": 128, "gsd_m": 0.5, "measured_reason":
+                 "no rung added detail above the floor: no finer than"},
+                {"year": 2006, "size_px": 256, "gsd_m": 0.25, "measured_reason":
+                 "no rung added detail above the floor: no finer than"},
+                {"year": 2012, "size_px": 128, "gsd_m": 0.5, "measured_gsd_m": 0.25},
+            ],
+            full_out,
+        )  # fmt: skip
+        write_manual_samples(
+            [
+                manual_row("M-0001", (10.0, 10.0, 30.0, 30.0)),
+                manual_row("M-0002", (390.0, 10.0, 420.0, 30.0)),
+            ],
+            full_out / "manual_samples.csv",
+        )
+        write_candidates(
+            [
+                {"id": "ES.1", "source": "cadastre", "strip": "figs/strip-01-ES.1.png"},
+                {"id": "M-0001", "source": "manual"},
+            ],
+            full_out,
+        )
+        full_measured: dict[str, object] = {
+            "epochs": {"probed": [{}, {}, {}], "present_years": [2006, 2012]},
+            "quality": {
+                "epochs": [
+                    {"año": 2006, "defectos": "ok"},
+                    {"año": 2004, "defectos": "blanca · bajo contraste (σ 0.0 < 10)"},
+                ]
+            },
+            "cadastre_request": {
+                "features": 2,
+                "crs": "EPSG:25830",
+                "tiles": [{}, {}],
+                "ceiling_accepted_km2": 0.975,
+                "tiles_without_declared_counts": 2,
+            },
+            "cadastre_attributes": {
+                "condition": {"name": "conditionOfConstruction",
+                              "counts": {"functional": 2}},
+                "footprint": {"median": 70.9, "p25": 50.0, "p75": 90.0, "unit": "m²"},
+                "claimed": [{"atributo": "floors",
+                             "nombre real": "numberOfFloorsAboveGround",
+                             "edificios que lo traen": 2, "con valor": 0}],
+            },
+            "feature_types": {"counts": {"buildings": 2, "parts": 9}},
+            "elevation": {
+                "products": [
+                    {"producto": "terrain", "contestó": "sí", "¿coincide?": "❌",
+                     "paso entregado (m)": "4.99 × 5.01", "tipo": "int16",
+                     "% sin dato": "0.0%"},
+                ]
+            },
+            "examples": {
+                "max_frame_m": 64.0,
+                "excluded": [
+                    {"id": "ES.9", "parts": 85, "area_m2": 61439.0, "frame_m": 801.0}
+                ],
+            },
+        }  # fmt: skip
+        full_verdicts = {
+            "7 catálogo": "ABSENT: ninguna de las 59 capas menciona infrarrojo",
+            "7 bandas": "3 bandas de color + alfa",
+        }
+        # The building parts, read back from the replies on disk: the newest
+        # row of the request points to a body that is gone, an older one holds it.
+        parts_type = PROVIDERS["es-pnoa"].wfs_types[PART_KIND][1]
+        storey_name = PROVIDERS["es-pnoa"].attributes[STOREY_ATTRIBUTE]
+
+        def part(fid: str, storeys: str) -> str:
+            return (
+                "  <wfs:member>\n"
+                f'    <bu:BuildingPart gml:id="{fid}">\n'
+                f"      <bu:{storey_name}>{storeys}</bu:{storey_name}>\n"
+                "      <bu:geometry><gml:Surface><gml:exterior><gml:LinearRing>\n"
+                "        <gml:posList>10 10 20 10 20 20 10 20 10 10</gml:posList>\n"
+                "      </gml:LinearRing></gml:exterior></gml:Surface></bu:geometry>\n"
+                "    </bu:BuildingPart>\n"
+                "  </wfs:member>\n"
+            )
+
+        parts_body = (
+            '<?xml version="1.0"?>\n<wfs:FeatureCollection xmlns:wfs="urn:t:wfs" '
+            'xmlns:gml="urn:t:gml" xmlns:bu="urn:t:bu">\n'
+            + part("p.1", "2")
+            + part("p.2", "1")
+            + part("p.3", "")
+            + "</wfs:FeatureCollection>\n"
+        ).encode("utf-8")
+        parts_md5 = hashlib.md5(parts_body, usedforsecurity=False).hexdigest()
+        (full_out / "vectors" / f"{parts_md5}.xml").write_bytes(parts_body)
+        parts_url = (
+            requests.Request(
+                "GET",
+                f"{_SCHEME}://example.invalid/wfs",
+                params={"TYPENAMES": parts_type, "BBOX": "0.0,0.0,200.0,400.0"},
+            )
+            .prepare()
+            .url
+            or ""
+        )
+        outside_url = parts_url.replace("200.0", "900.0")
+        for stamp, md5 in (("1", parts_md5), ("2", "0" * 32)):
+            _append_manifest(
+                full_out, Fetch(parts_url, 200, 1, md5, 0.0, None, ""), stamp
+            )
+        _append_manifest(
+            full_out, Fetch(outside_url, 200, 1, parts_md5, 0.0, None, ""), "3"
+        )
+        on_disk_parts, bodies_read = features_on_disk(
+            full_out, parts_type, (0.0, 0.0, 400.0, 400.0)
+        )
+        check(
+            "12 the newest manifest row whose body exists answers, inside the extent",
+            [one.fid for one in on_disk_parts] == ["p.1", "p.2", "p.3"]
+            and bodies_read == 1
+            and features_on_disk(bare_out, parts_type, (0.0, 0.0, 400.0, 400.0))
+            == ((), 0),
+            (on_disk_parts, bodies_read),
+        )
+        full_extract = extract_findings(
+            full_measured, full_verdicts, full_out, PROVIDERS["es-pnoa"]
+        )
+        storey_line = next(
+            (item.text for item in full_extract if storey_name in item.text), ""
+        )
+        no_parts_line = next(
+            (
+                item.text
+                for item in extract_findings(
+                    full_measured, full_verdicts, bare_out, PROVIDERS["es-pnoa"]
+                )
+                if storey_name in item.text
+            ),
+            "",
+        )
+        check(
+            "12 storeys: empty on buildings, filled on parts read back from disk",
+            "en los edificios, con valor en 0 de 2" in storey_line
+            and "en las partes, con valor en 2 de 3" in storey_line
+            and f"en las partes, {NOT_MEASURED}" in no_parts_line,
+            (storey_line, no_parts_line),
+        )
+        check(
+            "12 coverage per year: every example building, or how many",
+            any(
+                "1 de 2 años con chip conservado en los 2 edificios de ejemplo "
+                "(2006); el resto sólo en parte: 2012 en 1 de 2" in item.text
+                for item in full_extract
+            ),
+            [item.text for item in full_extract if item.section == "10.1"],
+        )
+        full_problems = problem_findings(full_measured, full_verdicts, full_out)
+        problem_text = " ".join(item.text for item in full_problems)
+        check(
+            "12 a full MEASURED renders every finding, each with its source",
+            all(item.measured and item.source != "—" for item in full_extract)
+            and {item.section for item in full_extract}
+            >= {"5", "6", "6.1", "7", "8", "8.1", "8.3", "9", "10.1", "10.2", "11"}
+            and any("2006 ≥ 0.5 m/px" in item.text for item in full_extract)
+            and any(
+                "1 dentro del extent y 1 fuera" in item.text for item in full_extract
+            ),
+            full_extract,
+        )
+        check(
+            "12 the problems shown are the ones the data supports, with figures",
+            all(item.measured for item in full_problems)
+            and "sin infrarrojo" in problem_text
+            and "2012: imagen sólo en parte del extent — 1 de 2" in problem_text
+            and "1 huella(s) con marco mayor que una tesela" in problem_text
+            and "int16" in problem_text
+            and "2 de 2 teselas sin" in problem_text
+            and "M-0002" in problem_text,
+            full_problems,
+        )
+        labelled_out = prepare_out(root / "findings-labelled")
+        with (labelled_out / "candidates.csv").open("w", encoding="utf-8") as handle:
+            handle.write(",".join(CANDIDATES_HEADER) + "\n")
+            handle.write("a,cadastre,1,2,,,,2023,abandoned,roof,,7\n")
+        labelled_q = four_questions(full_measured, full_verdicts, labelled_out)
+        full_q = four_questions(full_measured, full_verdicts, full_out)
+        check(
+            "12 question 4 is not answered whatever the table holds",
+            labelled_q[3]["estado"] == "no contestada"
+            and full_q[3]["estado"] == "no contestada"
+            and "2026-11-15" in labelled_q[3]["motivo"]
+            and "1 con `label`, 7 minutos" in labelled_q[3]["motivo"]
+            and full_q[0]["estado"] == "contestada",
+            (labelled_q, full_q),
+        )
+        broken_measured: dict[str, object] = {"epochs": "not a mapping"}
+        no_files = root / "findings-nothing"
+        broken = extract_findings(broken_measured, {}, no_files)
+        check(
+            "12 a missing file or an unreadable value is reported, not raised",
+            any("datos ilegibles" in item.text for item in broken)
+            and any(item.section == "11" and not item.measured for item in broken)
+            and four_questions(broken_measured, {}, no_files)[3]["motivo"].endswith(
+                "candidates.csv no está en disco"
+            ),
+            broken,
+        )
+        summary_md = write_summary_md(
+            full_out,
+            full_extract,
+            full_problems,
+            full_q,
+            run_date="2026-11-15",
+            commit="abc123",
+        )
+        summary_text = summary_md.read_text(encoding="utf-8")
+        no_commit = write_summary_md(
+            bare_out,
+            empty_extract,
+            [],
+            empty_questions,
+            run_date="2026-11-15",
+            commit="",
+        ).read_text(encoding="utf-8")
+        check(
+            "12 summary.md is written with its header and only what was measured",
+            summary_text.startswith("# EXP-001")
+            and "- Fecha: 2026-11-15" in summary_text
+            and "`0.00 0.00 400.00 400.00` en `EPSG:25830`" in summary_text
+            and "- Commit: `abc123`" in summary_text
+            and "## Medido · 12.1" in summary_text
+            and "## Medido · Las cuatro preguntas" in summary_text
+            and "Inferido" not in summary_text
+            and "12.3 ·" not in summary_text
+            and "Commit" not in no_commit
+            and "sin `extent.json`" in no_commit,
+            summary_text,
         )
 
         # 1: the output layout the ignore rules depend on
