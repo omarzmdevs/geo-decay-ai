@@ -146,7 +146,7 @@ each step: its offline run, and the user's live run.
   - [x] **6b · Section 11 · The labelling table** — ACCEPTED 2026-11-14
   - [x] **6c · Sections 10.2 and 10.3 · Manual samples on the map** (amendment 2026-11-15) — ACCEPTED 2026-11-15
 - [x] **7 · Section 12 · Findings** (amendment 2026-11-15) — ACCEPTED 2026-11-16
-- [ ] **8 · Close** (amendment 2026-11-16)
+- [x] **8 · Close** (amendment 2026-11-16) — ACCEPTED 2026-11-16
 
 ---
 
@@ -706,12 +706,15 @@ Two decisions are **put to the user**, not taken here: whether
 experiment is self-contained, and whether `notebooks/exp-001/_draft/` stays on
 disk.
 
-**Record** — filled in when the step closes.
+**Record** — filled in when the step closes (criteria of the amendment of
+2026-11-16).
 
-- Date:
-- What the live run printed:
-- Corrections applied:
-- Verdict:
+- Date: 2026-11-16
+- Restore point: `4b6b73ca80c70283a8ee357f21b07e3e7ddf8560`.
+- What the live run printed: none — by the amendment, step 8 makes no request
+  and needs no live run.
+- Corrections applied: none.
+- Verdict: ACCEPTED.
 
 ---
 
@@ -1300,10 +1303,7 @@ measurement is finished**: step 8 makes no request and needs no live run.
    and 11 (187). The closing cells **9.2 and 12.3 are exempt**: they precede no
    code cell, and 12.3 keeps its own 350-word limit. The pass shortens; it does
    not change what a cell says the code does, and no code cell changes.
-2. **The one English line in Spanish output**: the format description that
-   `eda.py` puts into section 11's «formato normalizado» line is given in
-   Spanish. No other code change.
-3. **README** (`notebooks/exp-001/README.md`), finished: what the experiment
+2. **README** (`notebooks/exp-001/README.md`), finished: what the experiment
    measures; how to run it, including that the notebook must be run **in
    order, top to bottom**, after a kernel restart, since re-running the first
    cells alone empties what later sections read; every output under `out/`,
@@ -1317,11 +1317,11 @@ measurement is finished**: step 8 makes no request and needs no live run.
    manifest rows without a body (EDA-DEDUP), the map's status label saved
    empty in the notebook, and section 12 needing a full run in order. English,
    as the README already is.
-4. The full gate passes and `git status --short` shows only files inside
+3. The full gate passes and `git status --short` shows only files inside
    `notebooks/exp-001/`.
 
-**Out of scope for step 8:** any request to a service, any change to a code
-cell, any figure, EXP-001, and deleting anything.
+**Out of scope for step 8:** any request to a service, any code change, any
+figure, EXP-001, and deleting anything.
 
 ---
 
@@ -1536,8 +1536,7 @@ Notes:
 1. Accepted deviations: the reconciliation is a pure function in `eda.py`;
    unchanged samples are compared in the map's own CRS so a load-and-save is a
    byte-identical no-op; an edit can grow a box by about 2 cm through the
-   reprojection round trip; the `formato normalizado` line carries an English
-   description from `eda.py`.
+   reprojection round trip.
 2. **M-0007 has no imagery in any year** (easting 741,806 m in
    `EPSG:25830`, far east of the zone's central meridian). Whether that is the
    mosaic's coverage or the request CRS that far from the zone is not
@@ -1593,3 +1592,35 @@ Notes:
    in `eda.py`.
 4. EXP-001's Analysis and Conclusion are the orchestrator's, from
    `out/summary.md`, after this verification.
+
+---
+
+## Verification · Step 8
+
+Verdict: **ACCEPTED** (2026-11-16)
+
+Files changed: `notebooks/exp-001/01-eda-pnoa-catastro.ipynb` (seven markdown
+cells: the opening cell, 2, 2.1, 3, 3.1, 10.3 and 11) and
+`notebooks/exp-001/README.md`. Every code cell's
+source, outputs and execution count, and the notebook metadata, are
+byte-identical to the restore point, checked by the orchestrator. No request,
+no deletion. Nothing outside `notebooks/exp-001/` beyond an unrelated change of
+the user's under `docs/tfm/`, not part of this step.
+
+Gate: `--selftest` passed, `--check-notebook` ok, `pre-commit run --all-files`
+6 of 6 passed, re-run by the orchestrator.
+
+Criteria of the amendment, one by one: the seven cells now run 146 to 175
+words, each with its `**Qué mirar:**` line, and every markdown cell that
+precedes a code cell is within 120 to 180 words; 9.2 (246) and 12.3 (311) are
+exempt as the amendment states; the README covers what the experiment
+measures, running in order after a kernel restart, every output under `out/` and whether it is versioned, manual samples,
+the labelling table's format and carry-over rule, and its known limitations
+(EDA-DEDUP, the status label saved empty, section 12 needing a full run).
+
+Notes:
+
+1. **Handoff 015 is complete**: steps 0 to 8 are accepted. What remains of
+   EXP-001 is outside it — the orchestrator's Analysis and Conclusion, and
+   ADR-004 from them. The manual labelling pass is outside this block by the
+   user's decision of 2026-11-15.
