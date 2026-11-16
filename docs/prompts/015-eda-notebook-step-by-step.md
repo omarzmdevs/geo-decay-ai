@@ -145,7 +145,7 @@ each step: its offline run, and the user's live run.
   - [x] **6a · Section 10 · Multi-epoch chip strips** — ACCEPTED 2026-11-14
   - [x] **6b · Section 11 · The labelling table** — ACCEPTED 2026-11-14
   - [x] **6c · Sections 10.2 and 10.3 · Manual samples on the map** (amendment 2026-11-15) — ACCEPTED 2026-11-15
-- [ ] **7 · Section 12 · Findings** (amendment 2026-11-15)
+- [x] **7 · Section 12 · Findings** (amendment 2026-11-15) — ACCEPTED 2026-11-16
 - [ ] **8 · Close**
 
 ---
@@ -672,12 +672,22 @@ appear here.
 
 **Settles.** The sprint's deliverable: the measurement exists and is readable.
 
-**Record** — filled in when the step closes.
+**Record** — filled in when the step closes (criteria of the amendment of
+2026-11-15).
 
-- Date:
-- What the live run printed:
-- Corrections applied:
-- Verdict:
+- Date: 2026-11-16
+- Restore point: `a85301f036968083da497a1e96403257e30729c5`; code committed as
+  `92da400`.
+- What the live run printed: a full run in order, no error in any cell;
+  **15 of 15 findings measured and 10 problems, none "no medido"**; the four
+  questions: 1 answered, 2 and 3 partly answered, 4 not answered by the user's
+  decision; `out/summary.md` written with date, extent and commit `92da400`.
+- Corrections applied, before the live run: the year coverage counts the
+  years with a kept chip for every example building instead of calling any
+  year with one chip "usable"; the storey count is reported on buildings and
+  on building parts, the latter read back from disk; one leftover wording in
+  12.3.
+- Verdict: ACCEPTED.
 
 ---
 
@@ -1490,3 +1500,44 @@ Notes:
 5. The per-event design of the first 6c delivery lost rectangles; the rule now
    recorded in the code is that Python sets the map's drawings only on open and
    after a save, never inside an event handler.
+
+---
+
+## Verification · Step 7
+
+Verdict: **ACCEPTED** (2026-11-16)
+
+Files changed: `notebooks/exp-001/eda.py` and the notebook's section 12 (one
+markdown cell, one code cell, the static 12.3), committed as `92da400`; the
+live run adds the notebook's outputs, `out/summary.md` (new, versioned),
+manifest rows, and two cadastral replies whose content differs from every
+reply already versioned. Two further replies of this run, identical to
+versioned ones except for the service timestamp and feature order, were
+removed before commit, as after step 6c. Sections 1 to 11 unchanged in source.
+
+Gate: `--selftest` passed (140 checks), `--check-notebook` ok,
+`pre-commit run --all-files` 6 of 6 passed, re-run by the orchestrator after
+each correction. The live run reached its last cell with no error output.
+
+Criteria of the amendment, one by one: no measured figure typed into
+markdown; every line tagged with its source, disk first and then `MEASURED`;
+12.1 and 12.2 complete after a full run; the four questions marked with their
+reasons, question 4 not answered with the table's state beside it; 12.3
+static, marked inferred, 308 words, no run-dependent figure; `summary.md` with
+its header and the measured part only; offline, every `MEASURED`-backed
+section "no medido" and the notebook reaching its last cell.
+
+Notes:
+
+1. Accepted deviations: offline, the manual samples and the table still
+   report what the versioned files hold, since criterion 2 reads disk first;
+   question 2 is "parcialmente" because the point cloud was not pursued (9.2);
+   an empty result counts as not measured rather than as a zero; section 7,
+   which writes no `MEASURED` key, is read from its own verdict lines.
+2. The storey count on parts (6,355 of 6,355) is read back from the newest
+   manifest row whose reply is still in `out/vectors/`, because section 8.3
+   records it only in printed output.
+3. The duplicate replies are still produced by every run; step 8 fixes that
+   in `eda.py`.
+4. EXP-001's Analysis and Conclusion are the orchestrator's, from
+   `out/summary.md`, after this verification.
