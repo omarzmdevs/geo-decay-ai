@@ -10,7 +10,31 @@ table is in [roadmap.md](roadmap.md).
 
 ## Active Sprint
 
-- [ ] **Sprint 5 · Feasibility Instrumentation** (gate of Block 3) — make
+No sprint is active: the entry to Block 3 is ADR-004.
+
+- [ ] **EXP-001 concluded 2026-11-16 → ADR-004 being drafted** — the
+  feasibility experiment measured what the data supports for one bounding box
+  (`EPSG:25830`, 1.20 km², `notebooks/exp-001/out/extent.json`): PNOA
+  resolution and available years, the cadastral footprints and their
+  attributes, and the elevation products. Its Results, Analysis and Conclusion
+  are in [exp-001-data-feasibility.md](experiments/exp-001-data-feasibility.md),
+  the Analysis and Conclusion written by the orchestrator on 2026-11-16.
+  ADR-004 follows from the Conclusion, is drafted by the orchestrator (Proposed
+  until the user reviews it), is required before Sprint 8, and also decides the
+  elevation route (Sprint 9), the detection strategy (Sprints 11–12) and
+  whether the fine-tuning arm of Sprint 18 is viable. The manual labelling pass
+  is outside this block, by the user's decision of 2026-11-15, so question 4
+  stays not answered.
+
+Completed sprints of Block 1: Sprint 1 · Foundations and Quality Gate
+(2026-10-14, [log](sprints/sprint-01-foundations.md)), Sprint 2 · Runtime
+Foundations (2026-10-21, [log](sprints/sprint-02-runtime-foundations.md),
+handoffs 007 and 008 ACCEPTED) and Sprint 3 · CI/CD (2026-10-25,
+[log](sprints/sprint-03-cicd.md), handoff 009 ACCEPTED). Block 1 closed 2026-10-25.
+
+## Completed Sprints
+
+- [x] **Sprint 5 · Feasibility Instrumentation** (gate of Block 3, completed 2026-11-16) — make
   [EXP-001](experiments/exp-001-data-feasibility.md) measurable, and
   re-measurable by a third party: one helper module and one notebook under
   `notebooks/`, outside `src/`, measuring PNOA epoch availability and image
@@ -33,38 +57,10 @@ table is in [roadmap.md](roadmap.md).
   pass** (EXP-001 step 6) is the user's work, because how long it takes is
   itself one of the results.
 
-  Progress: handoffs 013 and 015 accepted; **handoff 015 complete 2026-11-16**
-  (steps 0 to 8), so the instrument is finished. The manual labelling pass is
-  outside this block, by the user's decision of 2026-11-15.
-
-- [ ] **Feasibility experiment → ADR-004** — measure what the data supports for
-  one bounding box: PNOA resolution and available years, the cadastral
-  footprints and the attributes that arrive with them, which elevation products
-  exist for the extent and in what form, and a manually located set of candidate
-  sites to reuse as a validation reference. ADR-004 follows from it, is required
-  before Sprint 8, and also decides the elevation route (Sprint 9), the detection
-  strategy (Sprints 11–12) and whether the fine-tuning arm of Sprint 18 is
-  viable. Methodology in
-  [exp-001-data-feasibility.md](experiments/exp-001-data-feasibility.md);
-  the extent is chosen and committed since 2026-11-04 (`EPSG:25830`, 1.20 km²,
-  in `notebooks/exp-001/out/extent.json`), so the measurement is no longer
-  blocked: it advances one notebook section per session. Instrumented by
-  Sprint 5 above;
-  the Analysis, the Conclusion and the two `docs/research/` documents are the
-  orchestrator's, written from whatever the user's run measures. Handoff 015
-  is complete (steps 0 to 8 accepted, the last on 2026-11-16; findings in
-  `notebooks/exp-001/out/summary.md`). What is still missing from EXP-001 is
-  the orchestrator's Analysis and Conclusion, then ADR-004 from them. The
-  manual labelling pass is outside this block, by the user's decision of
-  2026-11-15, so question 4 stays not answered.
-
-Completed sprints of Block 1: Sprint 1 · Foundations and Quality Gate
-(2026-10-14, [log](sprints/sprint-01-foundations.md)), Sprint 2 · Runtime
-Foundations (2026-10-21, [log](sprints/sprint-02-runtime-foundations.md),
-handoffs 007 and 008 ACCEPTED) and Sprint 3 · CI/CD (2026-10-25,
-[log](sprints/sprint-03-cicd.md), handoff 009 ACCEPTED). Block 1 closed 2026-10-25.
-
-## Completed Sprints
+  Closed 2026-11-16: handoffs 013 and 014 ACCEPTED 2026-11-04, handoff 015
+  complete 2026-11-16 (steps 0 to 8), the instrument finished and EXP-001
+  measured, analysed and concluded. The manual labelling pass is outside this
+  block, by the user's decision of 2026-11-15.
 
 - [x] **Sprint 4 · MLflow** (Block 2) — experiment tracking in place before the
   first experiment exists: a tracking port in the domain, an MLflow adapter

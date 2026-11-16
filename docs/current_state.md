@@ -4,73 +4,28 @@
 
 ## Active Block
 
-Block 3 · GIS Core, entered through its gate: Sprint 5 · Feasibility Instrumentation is
-active ([log](sprints/sprint-05-feasibility-instrumentation.md)). Block 2 · MLOps and Data
-Infrastructure closed 2026-10-27 ([roadmap.md](roadmap.md)). Block 3 depends on ADR-004,
-which follows from the feasibility experiment ([next_tasks.md](next_tasks.md)).
+Block 3 · GIS Core, at its entry: Sprint 5 · Feasibility Instrumentation, its gate, completed
+2026-11-16 ([log](sprints/sprint-05-feasibility-instrumentation.md)). Block 2 · MLOps and Data
+Infrastructure closed 2026-10-27 ([roadmap.md](roadmap.md)). Block 3 depends on ADR-004, which
+follows from the concluded feasibility experiment ([next_tasks.md](next_tasks.md)).
 
 ## Active Sprint
 
-Sprint 5 · Feasibility Instrumentation — active, started 2026-11-04. Handoff 013 (EDA helper
-module and provider configuration) ACCEPTED 2026-11-04. Handoff 014 (exploratory notebook)
-ACCEPTED 2026-11-04, but **its deliverable was discarded by the user** the same day, after the
-first live run showed the extent selector did not work; it is superseded by handoff 015, which
-rebuilds the notebook one section at a time, in Spanish, each section confirmed against the
-live services before the next is written. **Handoff 015 is in progress**: step 0 (the
-self-contained folder in `notebooks/exp-001/`) ACCEPTED 2026-11-04, step 1 (section 4 ·
-provider capabilities) ACCEPTED 2026-11-05 and step 2 (sections 5 and 6 · epoch availability
-and image quality) ACCEPTED 2026-11-06, from a live run the user committed with its outputs,
-step 3 (section 7 · the spectral check) ACCEPTED 2026-11-06 — no near infrared is served —
-and step 4 (sections 8 to 8.3 · the cadastral footprints) ACCEPTED 2026-11-08, from four
-live runs: the cadastre serves 787 buildings over the extent, only in tiles under an area
-ceiling it enforces, and its condition attribute is uniform, so it is **not** a weak label
-source and the manual labelling pass stands. All five feature sources it publishes have
-now been asked, and the storey count lives on the building parts, not on the buildings.
-**Step 5 (section 9 · elevation availability) ACCEPTED 2026-11-11**, from a live run by the user
-that measured elevation through two WCS 2.0.1 services: four raster products cover the whole
-extent (terrain and surface ≈5 m, building and vegetation height ≈2.5 m; first LiDAR coverage,
-one epoch, whole metres, resampled cells). `mdsn_e025` is building height and `mdsn_v025`
-vegetation height, read from the footprint overlay of section 9.1 (cells above zero inside vs
-outside footprints: 82.4 % vs 6.4 % for building height, 8.3 % vs 28.5 % for vegetation). The
-point cloud was not pursued, by the user's decision, and a raster-only route exists, so PDAL is
-not needed for anything measured. Step 6 (sections 10 and 11 · example buildings and the
-labelling table) was split in three on 2026-11-14: **6a (section 10 · multi-epoch chip
-strips) ACCEPTED 2026-11-14**, from a live run by the user: 12 example buildings by area
-tertile and quadrant, one strip each with the year on every chip, and `out/strips.csv` with
-one row per building and year asked (108); 86 of 108 chips kept. 2012 and 2015 cover only the east edge, and the
-epochs are not co-registered to the footprint to the same degree. **6b (section 11 · the
-labelling table) ACCEPTED 2026-11-14**: `out/candidates.csv` with 787 cadastral rows, 0 manual,
-12 with strip and label year (2023), and empty label columns for the manual pass. 6c (sections
-10.2 and 10.3 · manual samples on their own map) ACCEPTED 2026-11-15: 7 manual samples, 3 inside
-the extent and 4 outside, strips for 6 of 7, and the table at 794 rows with 2 rows' manual work
-carried. Step 6 ACCEPTED 2026-11-15. **Step 7 (section 12 · findings) ACCEPTED 2026-11-16**:
-the findings are generated from the run and the measured part written to `out/summary.md`, with
-15 findings and 10 problems, none unmeasured; questions 1 answered, 2 and 3 partly answered, and
-4 not answered, because the manual labelling pass is outside this block by the user's decision of
-2026-11-15. **Step 8 (close · prose pass and README) ACCEPTED 2026-11-16**, with no request and
-no live run; the duplicate cadastral replies are not fixed and are tracked as EDA-DEDUP. **Handoff
-015 is complete (steps 0 to 8), and with it Sprint 5's instrument.** Next: the orchestrator's
-EXP-001 Analysis and Conclusion, then ADR-004 from them; the manual labelling pass is outside this
-block. The sprint produces no production code:
-it makes EXP-001 measurable and re-measurable by the user's own run. The extent is no longer
-open: it was drawn and committed on 2026-11-04 as `notebooks/exp-001/out/extent.json`
-(`EPSG:25830`, 1.204224 km², 21 × 14 tiles).
+None. The entry to Block 3 is **ADR-004**, being drafted by the orchestrator from EXP-001's
+Conclusion; its status stays Proposed until the user reviews it.
 
-Sprint 4 · MLflow — complete 2026-10-27 ([log](sprints/sprint-04-mlflow.md)). It
-delivered a tracking port in the domain, an MLflow adapter and a null adapter in the data
-layer, and `geo-decay tracking-smoke`, which records a run with the ADR-008 keys in a local
-file store.
-
-The feasibility experiment that produces ADR-004 (`docs/experiments/exp-001-*.md`) is in
-progress through this sprint. ADR-004 still follows from its measured figures, and it gates
-Block 3. The bounding box is a configuration variable (Sprint 2) and its value is now chosen
-and committed, so the experiment advances one notebook section per session. The provider
-capabilities, the per-epoch figures and the cadastral reference are settled — about
-7 usable epochs of the 21 advertised at a measured 0.25 m/px, and 787 buildings with a
-median footprint of 70.9 m² whose attributes cannot label them — while the elevation figures are
-measured (step 5), the example chip strips, the manual samples and the labelling table exist (step 6),
-and the findings are written (step 7). The labelling figures stay unmeasured: the manual pass is
-outside this block.
+Sprint 5 · Feasibility Instrumentation — complete 2026-11-16
+([log](sprints/sprint-05-feasibility-instrumentation.md)). Handoffs 013 (EDA helper module and
+provider configuration) and 014 (exploratory notebook) ACCEPTED 2026-11-04, 014's deliverable
+discarded by the user the same day; handoff 015 rebuilt the notebook one section at a time in
+`notebooks/exp-001/`, each step accepted from the user's committed live run, and is complete
+(steps 0 to 8, the last on 2026-11-16). EXP-001 is measured, analysed and concluded
+(Analysis and Conclusion by the orchestrator, 2026-11-16): about 7 usable epochs of the 21
+advertised at a measured 0.25 m/px, 787 cadastral buildings with a median footprint of 70.9 m²
+whose attributes cannot label them, no near infrared, and four elevation rasters covering the
+extent (terrain and surface ≈5 m, building and vegetation height ≈2.5 m, one epoch). The manual
+labelling pass is outside this block, by the user's decision of 2026-11-15, so EXP-001 question 4
+stays not answered. The sprint produced no production code.
 
 ## Completed Sprints
 
@@ -79,19 +34,17 @@ Sprint 1 · Foundations and Quality Gate — completed 2026-10-14 ([log](sprints
 Sprint 2 · Runtime Foundations — completed 2026-10-21 ([log](sprints/sprint-02-runtime-foundations.md)); handoffs 007 (ACCEPTED 2026-10-16) and 008 (ACCEPTED 2026-10-17) committed.
 Sprint 3 · CI/CD — completed 2026-10-25 ([log](sprints/sprint-03-cicd.md)); handoff 009 ACCEPTED 2026-10-21, closed on the first green GitHub run.
 Sprint 4 · MLflow — completed 2026-10-27 ([log](sprints/sprint-04-mlflow.md)); handoffs 010, 011 and 012 ACCEPTED 2026-10-27.
+Sprint 5 · Feasibility Instrumentation — completed 2026-11-16 ([log](sprints/sprint-05-feasibility-instrumentation.md)); handoffs 013 and 014 ACCEPTED 2026-11-04, 015 complete 2026-11-16; EXP-001 concluded.
 
 ## Current Milestone
 
-Experiment tracking is in place before the first experiment exists (Sprint 4): a tracking
-port in the domain, an MLflow adapter confined to the data layer by an import-linter
-contract, a null adapter, and composition in delivery, configured through the
-`GEO_DECAY_TRACKING_*` variables. Blocks 1 and 2 are closed. Sprint 5 has accepted handoffs
-013 (the EDA helper module and provider configuration) and 014 (the notebook, whose deliverable
-the user then discarded), and is now rebuilding the notebook section by section under handoff
-015, now complete (steps 0 to 8 accepted 2026-11-16). The
-feasibility experiment (ADR-004) is still open and gates Block 3, on top of the
-Sprint 2 baseline (validated `Settings`, `BoundingBox` configuration, logging
-configured once per process) and the Sprint 1 baseline (skeleton, reference container
+The feasibility experiment is concluded (Sprint 5, 2026-11-16): a self-contained notebook in
+`notebooks/exp-001/` measures, re-measurably, what the data supports for one extent, and EXP-001
+carries its Results, Analysis and Conclusion. ADR-004, which gates Block 3, is being drafted
+from it. Blocks 1 and 2 are closed: experiment tracking (Sprint 4: a tracking port in the
+domain, an MLflow adapter confined to the data layer, a null adapter, composition in
+delivery), on top of the Sprint 2 baseline (validated `Settings`, `BoundingBox` configuration,
+logging configured once per process) and the Sprint 1 baseline (skeleton, reference container
 with GDAL at system level, enforced quality gate, write-scope guard and pre-commit hook).
 
 ## Development Model

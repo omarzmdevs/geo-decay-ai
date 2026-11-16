@@ -96,14 +96,19 @@ consequences of the sandbox shape the acceptance criteria, and are not defects:
       Configuration from the lines the notebook prints — drawn 2026-11-04 and
       committed as `notebooks/exp-001/out/extent.json`; transcribed into
       EXP-001 → Configuration by the documenter on 2026-11-05
-- [ ] The user runs the notebook and commits it with its outputs
+- [x] The user runs the notebook and commits it with its outputs — every step
+      of handoff 015 was accepted from the user's committed live run (see each
+      step's Verification)
 - [ ] The user completes the manual labelling pass (EXP-001 step 6) from the
       table the notebook writes — outside this block, by the user's decision
       of 2026-11-15
-- [ ] Orchestrator: EXP-001 Analysis and Conclusion from the measured figures
-- [ ] Orchestrator: draft ADR-004
+- [x] Orchestrator: EXP-001 Analysis and Conclusion from the measured figures —
+      written 2026-11-16, commit `f2fe404`
+- [ ] Orchestrator: draft ADR-004 — moved to the entry of Block 3; the
+      Deliverable states ADR-004 is not part of this sprint
 - [ ] Orchestrator: `docs/research/feasibility-assessment-exp-001.md` and
-      `docs/research/infrastructure-status-2026-11.md`
+      `docs/research/infrastructure-status-2026-11.md` — not produced in this
+      sprint; carried over
 
 ## Deliverable
 
@@ -310,13 +315,13 @@ answered it for rasters on 2026-11-11.
 - [sprint-05 log](sprint-05-feasibility-instrumentation.md) — created by the orchestrator at sprint start; tasks and handoffs recorded by the documenter.
 - [013 · EDA helper module and provider configuration](../prompts/013-eda-toolkit-and-provider-config.md) — handoff with Run Record and Verification (ACCEPTED 2026-11-04).
 - [014 · The exploratory analysis notebook](../prompts/014-eda-notebook.md) — handoff with Run Record and Verification (ACCEPTED 2026-11-04); deliverable discarded by the user the same day.
-- [015 · The EDA notebook, one section at a time](../prompts/015-eda-notebook-step-by-step.md) — handoff written by the orchestrator on 2026-11-04; step-by-step, with its checkboxes and records inside it. Records of step 0 (ACCEPTED 2026-11-04), step 1 (ACCEPTED 2026-11-05), step 2 and step 3 (both ACCEPTED 2026-11-06) filled in by the orchestrator.
-- [prompts index](../prompts/README.md) — handoffs 013 and 014 listed; further edits uncommitted in the working tree.
-- [next_tasks.md](../next_tasks.md) — orchestrator edits: active slice updated and debt entries EDA-GSD and SANDBOX-SYNC added; the 014 → 015 supersession and the extent no longer blocking added 2026-11-05 (uncommitted). Bounding-box blocker marked resolved by the documenter.
-- [EXP-001](../experiments/exp-001-data-feasibility.md) — orchestrator edits to Reproduction and Portability Constraints from handoff 013 (uncommitted); status, Configuration and Results updated by the documenter from the step 0, step 1, step 2 and step 3 records of handoff 015.
-- [current_state.md](../current_state.md) — updated by the documenter for handoff 013, then for handoff 015 steps 0, 1, 2 and 3.
-- [notebooks/exp-001/README.md](../../notebooks/exp-001/README.md) — created by the developer in step 0 of handoff 015; states what the experiment measures, how to run it and which outputs are versioned. Finished in step 8.
-- `docs/tfm/informe_01_muestra_datos_y_viabilidad.md` — thesis-side report for the supervisor, written 2026-11-05; untracked and pending the user's commit. `docs/tfm/**` is protected, so no agent reads or edits it.
+- [015 · The EDA notebook, one section at a time](../prompts/015-eda-notebook-step-by-step.md) — written by the orchestrator on 2026-11-04 and amended per step; the records and verifications of steps 0 to 8 (6 in parts 6a, 6b and 6c) filled in by the orchestrator, the last on 2026-11-16.
+- [prompts index](../prompts/README.md) — handoffs of the sprint listed.
+- [EXP-001](../experiments/exp-001-data-feasibility.md) — Reproduction and Portability Constraints by the orchestrator from handoff 013; status, Configuration and Results by the documenter from each step of handoff 015; Analysis and Conclusion by the orchestrator on 2026-11-16.
+- [next_tasks.md](../next_tasks.md) — active slice kept current; debt entries found during the sprint added by the orchestrator (EDA-GSD, SANDBOX-SYNC, EDA-ELEV, EDA-WCSGRID, EDA-DEDUP, EDA-DOWNLOADS and the other EDA-* entries); progress marked by the documenter.
+- [current_state.md](../current_state.md) — updated by the documenter for handoff 013 and every step of handoff 015, and at sprint close.
+- [notebooks/exp-001/README.md](../../notebooks/exp-001/README.md) — created by the developer in step 0 of handoff 015 and finished in step 8: what the experiment measures, how to run it, every output and whether it is versioned, and its known limitations.
+- `docs/tfm/` — the user's thesis material; protected, so no agent reads or edits it.
 
 ## Date Started
 
@@ -324,4 +329,4 @@ answered it for rasters on 2026-11-11.
 
 ## Date Completed
 
-<!-- YYYY-MM-DD -->
+2026-11-16 — the instrument exists and EXP-001 is measured, analysed and concluded.
