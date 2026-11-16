@@ -47,12 +47,12 @@ table is in [roadmap.md](roadmap.md).
   blocked: it advances one notebook section per session. Instrumented by
   Sprint 5 above;
   the Analysis, the Conclusion and the two `docs/research/` documents are the
-  orchestrator's, written from whatever the user's run measures. Steps 0 to 6
-  of handoff 015 are accepted (step 6, in three parts, on 2026-11-15): the
-  orthophoto, the cadastral reference and the elevation rasters are measured,
-  the example strips, manual samples and labelling table exist, and what is
-  still missing from EXP-001 is the manual labelling pass and the findings
-  section (step 7).
+  orchestrator's, written from whatever the user's run measures. Steps 0 to 7
+  of handoff 015 are accepted (step 7, the findings section, on 2026-11-16,
+  written to `notebooks/exp-001/out/summary.md`). What is still missing from
+  EXP-001 is step 8 (close) and the orchestrator's Analysis and Conclusion.
+  The manual labelling pass is outside this block, by the user's decision of
+  2026-11-15, so question 4 stays not answered.
 
 Completed sprints of Block 1: Sprint 1 · Foundations and Quality Gate
 (2026-10-14, [log](sprints/sprint-01-foundations.md)), Sprint 2 · Runtime
@@ -379,4 +379,4 @@ Tracked findings from the project review, deferred with their identifiers:
 
 ## Last Updated
 
-2026-11-15
+2026-11-16

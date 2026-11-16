@@ -90,7 +90,7 @@ consequences of the sandbox shape the acceptance criteria, and are not defects:
     - [x] 6a · Section 10 · Multi-epoch chip strips — ACCEPTED 2026-11-14
     - [x] 6b · Section 11 · The labelling table — ACCEPTED 2026-11-14
     - [x] 6c · Sections 10.2 and 10.3 · Manual samples on the map (amendment 2026-11-15) — ACCEPTED 2026-11-15
-  - [ ] 7 · Section 12 · Findings
+  - [x] 7 · Section 12 · Findings (amendment 2026-11-15) — ACCEPTED 2026-11-16
   - [ ] 8 · Close
 - [x] The user draws the extent on the map and records it in EXP-001 →
       Configuration from the lines the notebook prints — drawn 2026-11-04 and
@@ -234,6 +234,17 @@ when the measurement exists and is recorded.
     Figures transcribed into
     [EXP-001](../experiments/exp-001-data-feasibility.md) → Results;
     verification in the handoff's `## Verification · Step 6c`.
+  - **Step 7 · Section 12 · Findings — ACCEPTED 2026-11-16**, from one live
+    run by the user, code committed as `92da400`. Amended on 2026-11-15: the
+    findings are generated from the run, never typed, each tagged with its
+    source, and the manual labelling pass is outside this block by the user's
+    decision. The run gave **15 findings and 10 problems, none "no medido"**,
+    written with the four questions to `out/summary.md` (new, versioned);
+    question 1 answered, 2 and 3 partly answered, 4 not answered. 12.3, the
+    candidate abandonment variables, is static and marked inferred. The
+    duplicate cadastral replies every run still produces are fixed in step 8.
+    Recorded in [EXP-001](../experiments/exp-001-data-feasibility.md) →
+    Results; verification in the handoff's `## Verification · Step 7`.
 
 ## Notes
 

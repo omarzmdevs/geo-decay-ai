@@ -4,8 +4,7 @@
 
 <!-- Filled when the measurement is taken -->
 
-Status: **methodology fixed, extent chosen, measurement in progress.** It is no
-longer blocked on the bounding box: the extent was drawn on the notebook's map
+Status: **measurement taken; Analysis and Conclusion pending.** The extent was drawn on the notebook's map
 and committed on 2026-11-04 as `notebooks/exp-001/out/extent.json` —
 `469120.0, 4482944.0, 470464.0, 4483840.0` in `EPSG:25830`, 1344 × 896 m,
 1.204224 km², an exact fit of 21 × 14 tiles of 256 px at 0.25 m/px (since
@@ -13,9 +12,11 @@ measured; see Results). The measurement is instrumented by
 [Sprint 5](../sprints/sprint-05-feasibility-instrumentation.md), so that every
 figure it produces can be re-measured by a third party, and it advances one
 notebook section per session under
-[handoff 015](../prompts/015-eda-notebook-step-by-step.md): steps 0, 1 and 2 are
-ACCEPTED (2026-11-04, 2026-11-05 and 2026-11-06), so the provider capabilities
-and the per-epoch figures are settled and the spectral check is next.
+[handoff 015](../prompts/015-eda-notebook-step-by-step.md): steps 0 to 7 are
+ACCEPTED (step 7, the findings section, on 2026-11-16), so every figure below
+is measured and the run's findings are written to `out/summary.md`. Step 8
+(close) is next; the manual labelling pass is outside this block by the user's
+decision of 2026-11-15.
 
 ## Objective
 
@@ -242,10 +243,18 @@ here to inputs.
 
 <!-- Filled as each step of handoff 015 closes. One subsection per methodology step. -->
 
-**Two steps have closed so far**
-([handoff 015](../prompts/015-eda-notebook-step-by-step.md)): provider
-capabilities (step 1, ACCEPTED 2026-11-05) and orthophoto coverage (step 2,
-ACCEPTED 2026-11-06). Everything below them is still unmeasured and says so.
+**Steps 1 to 7 have closed**
+([handoff 015](../prompts/015-eda-notebook-step-by-step.md)); each subsection
+below cites the step that measured it. The visual inspection and the manual
+labelling pass are not done and say so.
+
+**Findings.** Section 12 of the notebook (step 7, ACCEPTED 2026-11-16, code
+`92da400`) generates the findings from the run, never typed, each tagged with
+its source: 12.1 what can be extracted and 12.2 the problems found, both
+measured, and 12.3 the candidate abandonment variables, marked inferred. The
+measured part is written to `notebooks/exp-001/out/summary.md` (versioned):
+**15 findings and 10 problems, none "no medido"**, and the four questions
+below with their status.
 
 ### Service capabilities
 
@@ -541,33 +550,32 @@ section 12). Handoff 015, step 3, ACCEPTED 2026-11-06.
 
 ### What is still unanswered
 
-Of the four questions in the Objective, after six steps:
+Of the four questions in the Objective, as section 12 marks them (step 7,
+ACCEPTED 2026-11-16):
 
 1. **PNOA resolution and years** — **answered**. 9 of the 21 advertised years
    cover the extent (2006–2023), at a measured 0.25 m/px in six of them, with
    2006 a bound and 2012 and 2015 unmeasurable; about 7 usable epochs.
-2. **Elevation products** — **answered for rasters.** Terrain and surface at
+2. **Elevation products** — **partly answered.** Terrain and surface at
    5 m, building and vegetation height at 2.5 m, one epoch, full coverage,
-   whole metres. The point cloud is not pursued, by decision.
+   whole metres. Partly, because the point cloud was not pursued, by decision.
 3. **Which indicators are computable** — **partly answered**. The spectral reach
-   is settled (no NIR by this route). What remains is which RGB surrogates
-   separate an abandoned building from a kept one, which needs the example
-   buildings of sections 10 and 11 (step 6), then step 7. The chip strips of
-   section 10 exist (step 6a, ACCEPTED 2026-11-14); for the temporal-change
-   indicator, ADR-004 has to state whether epochs are co-registered before
-   differencing, since they are not co-registered to the footprint to the same
-   degree.
-4. **Manual labelling viability and cadastral weak labels** — **half
-   answered, and the half that is answered is a no.** The condition attribute
+   is settled (no NIR by this route), and what was measured is in 12.1 and
+   12.2; the viability per indicator group is inferred (12.3), not measured.
+   For the temporal-change indicator, ADR-004 has to state whether epochs are
+   co-registered before differencing, since they are not co-registered to the
+   footprint to the same degree.
+4. **Manual labelling viability and cadastral weak labels** — **not
+   answered**: the manual pass is outside this block, by the user's decision
+   of 2026-11-15. The cadastral half is a no. The condition attribute
    has now been seen across **all three** building types the cadastre
    publishes: `functional` in all 787 buildings, and published empty in all
    6,355 parts and all 124 other constructions. There is no weak label to be
    had here, so the labelling of step 6 stays fully manual and question 4 does
-   **not** change shape. How long that manual pass takes is still unmeasured,
-   because it is the user's work and that duration is itself a result. The
-   instrument for that pass is complete since step 6 (ACCEPTED 2026-11-15):
-   794 rows, 787 cadastral and 7 manual, with `label` and `minutes_spent` for
-   the user to fill. Step 7 (findings) is next.
+   **not** change shape. How long that manual pass takes stays unmeasured.
+   The instrument for it is complete since step 6 (ACCEPTED 2026-11-15): 794
+   rows, 787 cadastral and 7 manual; what the table holds is its state, not a
+   result.
 
 ## Analysis
 
