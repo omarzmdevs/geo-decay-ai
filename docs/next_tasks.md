@@ -33,6 +33,10 @@ table is in [roadmap.md](roadmap.md).
   pass** (EXP-001 step 6) is the user's work, because how long it takes is
   itself one of the results.
 
+  Progress: handoffs 013 and 015 accepted; **handoff 015 complete 2026-11-16**
+  (steps 0 to 8), so the instrument is finished. The manual labelling pass is
+  outside this block, by the user's decision of 2026-11-15.
+
 - [ ] **Feasibility experiment → ADR-004** — measure what the data supports for
   one bounding box: PNOA resolution and available years, the cadastral
   footprints and the attributes that arrive with them, which elevation products
@@ -47,11 +51,11 @@ table is in [roadmap.md](roadmap.md).
   blocked: it advances one notebook section per session. Instrumented by
   Sprint 5 above;
   the Analysis, the Conclusion and the two `docs/research/` documents are the
-  orchestrator's, written from whatever the user's run measures. Steps 0 to 7
-  of handoff 015 are accepted (step 7, the findings section, on 2026-11-16,
-  written to `notebooks/exp-001/out/summary.md`). What is still missing from
-  EXP-001 is step 8 (close) and the orchestrator's Analysis and Conclusion.
-  The manual labelling pass is outside this block, by the user's decision of
+  orchestrator's, written from whatever the user's run measures. Handoff 015
+  is complete (steps 0 to 8 accepted, the last on 2026-11-16; findings in
+  `notebooks/exp-001/out/summary.md`). What is still missing from EXP-001 is
+  the orchestrator's Analysis and Conclusion, then ADR-004 from them. The
+  manual labelling pass is outside this block, by the user's decision of
   2026-11-15, so question 4 stays not answered.
 
 Completed sprints of Block 1: Sprint 1 · Foundations and Quality Gate

@@ -47,9 +47,11 @@ carried. Step 6 ACCEPTED 2026-11-15. **Step 7 (section 12 · findings) ACCEPTED 
 the findings are generated from the run and the measured part written to `out/summary.md`, with
 15 findings and 10 problems, none unmeasured; questions 1 answered, 2 and 3 partly answered, and
 4 not answered, because the manual labelling pass is outside this block by the user's decision of
-2026-11-15. **Step 8 (close) is next** — the duplicate cadastral replies fixed in `eda.py` and the
-folder's README — then the orchestrator's EXP-001 Analysis and Conclusion, and ADR-004. The
-sprint produces no production code:
+2026-11-15. **Step 8 (close · prose pass and README) ACCEPTED 2026-11-16**, with no request and
+no live run; the duplicate cadastral replies are not fixed and are tracked as EDA-DEDUP. **Handoff
+015 is complete (steps 0 to 8), and with it Sprint 5's instrument.** Next: the orchestrator's
+EXP-001 Analysis and Conclusion, then ADR-004 from them; the manual labelling pass is outside this
+block. The sprint produces no production code:
 it makes EXP-001 measurable and re-measurable by the user's own run. The extent is no longer
 open: it was drawn and committed on 2026-11-04 as `notebooks/exp-001/out/extent.json`
 (`EPSG:25830`, 1.204224 km², 21 × 14 tiles).
@@ -86,7 +88,7 @@ contract, a null adapter, and composition in delivery, configured through the
 `GEO_DECAY_TRACKING_*` variables. Blocks 1 and 2 are closed. Sprint 5 has accepted handoffs
 013 (the EDA helper module and provider configuration) and 014 (the notebook, whose deliverable
 the user then discarded), and is now rebuilding the notebook section by section under handoff
-015, with steps 0 to 7 accepted. The
+015, now complete (steps 0 to 8 accepted 2026-11-16). The
 feasibility experiment (ADR-004) is still open and gates Block 3, on top of the
 Sprint 2 baseline (validated `Settings`, `BoundingBox` configuration, logging
 configured once per process) and the Sprint 1 baseline (skeleton, reference container

@@ -12,11 +12,10 @@ measured; see Results). The measurement is instrumented by
 [Sprint 5](../sprints/sprint-05-feasibility-instrumentation.md), so that every
 figure it produces can be re-measured by a third party, and it advances one
 notebook section per session under
-[handoff 015](../prompts/015-eda-notebook-step-by-step.md): steps 0 to 7 are
-ACCEPTED (step 7, the findings section, on 2026-11-16), so every figure below
-is measured and the run's findings are written to `out/summary.md`. Step 8
-(close) is next; the manual labelling pass is outside this block by the user's
-decision of 2026-11-15.
+[handoff 015](../prompts/015-eda-notebook-step-by-step.md), complete since
+2026-11-16 (steps 0 to 8 ACCEPTED), so every figure below is measured and the
+run's findings are written to `out/summary.md`. The manual labelling pass is
+outside this block by the user's decision of 2026-11-15.
 
 ## Objective
 

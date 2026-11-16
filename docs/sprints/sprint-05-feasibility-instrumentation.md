@@ -78,7 +78,7 @@ consequences of the sandbox shape the acceptance criteria, and are not defects:
 - [x] [013 · EDA helper module and provider configuration](../prompts/013-eda-toolkit-and-provider-config.md)
 - [x] [014 · The exploratory analysis notebook](../prompts/014-eda-notebook.md) — ACCEPTED; its deliverable was later discarded by the user and is
       superseded by 015
-- [ ] [015 · The EDA notebook, one section at a time](../prompts/015-eda-notebook-step-by-step.md) — in progress, one step per
+- [x] [015 · The EDA notebook, one section at a time](../prompts/015-eda-notebook-step-by-step.md) — complete 2026-11-16, one step per
       session, tracked by the checkboxes inside the handoff:
   - [x] 0 · The self-contained folder — ACCEPTED 2026-11-04
   - [x] 1 · Section 4 · Provider capabilities — ACCEPTED 2026-11-05
@@ -91,14 +91,15 @@ consequences of the sandbox shape the acceptance criteria, and are not defects:
     - [x] 6b · Section 11 · The labelling table — ACCEPTED 2026-11-14
     - [x] 6c · Sections 10.2 and 10.3 · Manual samples on the map (amendment 2026-11-15) — ACCEPTED 2026-11-15
   - [x] 7 · Section 12 · Findings (amendment 2026-11-15) — ACCEPTED 2026-11-16
-  - [ ] 8 · Close
+  - [x] 8 · Close (amendment 2026-11-16) — ACCEPTED 2026-11-16
 - [x] The user draws the extent on the map and records it in EXP-001 →
       Configuration from the lines the notebook prints — drawn 2026-11-04 and
       committed as `notebooks/exp-001/out/extent.json`; transcribed into
       EXP-001 → Configuration by the documenter on 2026-11-05
 - [ ] The user runs the notebook and commits it with its outputs
 - [ ] The user completes the manual labelling pass (EXP-001 step 6) from the
-      table the notebook writes
+      table the notebook writes — outside this block, by the user's decision
+      of 2026-11-15
 - [ ] Orchestrator: EXP-001 Analysis and Conclusion from the measured figures
 - [ ] Orchestrator: draft ADR-004
 - [ ] Orchestrator: `docs/research/feasibility-assessment-exp-001.md` and
@@ -242,9 +243,22 @@ when the measurement exists and is recorded.
     written with the four questions to `out/summary.md` (new, versioned);
     question 1 answered, 2 and 3 partly answered, 4 not answered. 12.3, the
     candidate abandonment variables, is static and marked inferred. The
-    duplicate cadastral replies every run still produces are fixed in step 8.
+    duplicate cadastral replies every run still produces were deferred to
+    step 8, which left them as EDA-DEDUP.
     Recorded in [EXP-001](../experiments/exp-001-data-feasibility.md) →
     Results; verification in the handoff's `## Verification · Step 7`.
+  - **Step 8 · Close — ACCEPTED 2026-11-16**, with no request and no live
+    run, by the amendment of 2026-11-16. A prose pass brings the seven
+    over-budget markdown cells to 146–175 words, each keeping its
+    `**Qué mirar:**` line, with no code cell changed; and
+    `notebooks/exp-001/README.md` is
+    finished, including running in order after a kernel restart, every output
+    under `out/` and whether it is versioned, and its known limitations. The
+    duplicate cadastral replies are **not fixed**: recorded as a known
+    limitation and tracked as EDA-DEDUP. **Handoff 015 is complete** (steps 0
+    to 8); what remains of EXP-001 is the orchestrator's Analysis and
+    Conclusion, then ADR-004. Verification in the handoff's
+    `## Verification · Step 8`.
 
 ## Notes
 
