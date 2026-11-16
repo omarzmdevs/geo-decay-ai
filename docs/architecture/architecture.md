@@ -5,7 +5,7 @@
 ## Overview
 
 The system is a pipeline exposed through a web platform. Given a bounding box, it
-downloads PNOA orthophotos and LiDAR point clouds, prepares and tiles them,
+downloads PNOA orthophotos and elevation rasters, prepares and tiles them,
 detects infrastructure, extracts indicators for each detection and combines them
 into an abandonment index, which the platform shows on a map and summarises in a
 generated report.
@@ -15,7 +15,7 @@ Four layers, kept independent so that business logic never depends on delivery:
 | Layer | Responsibility |
 |---|---|
 | **Domain** | Abandonment indicators and index, detection and tile entities, data contracts. No I/O. |
-| **Data** | PNOA and LiDAR acquisition, GIS processing, tiling, persistence (MVP 1.0: files; PostGIS deferred). |
+| **Data** | PNOA and elevation acquisition (MVP 1.0: WCS rasters; LiDAR point clouds in a later version), GIS processing, tiling, persistence (MVP 1.0: files; PostGIS deferred). |
 | **Application** | Detection, indicator extraction, assessment and report generation (deferred), orchestrating domain and data. |
 | **Delivery** | FastAPI, the map frontend (MVP 1.0: one MapLibre page; React deferred) and the CLI. Interchangeable. |
 
@@ -62,7 +62,7 @@ MapLibre page and report generation is deferred.
 graph TD
     User([User]) --> Frontend[Frontend React + MapLibre]
     Frontend --> API[API FastAPI]
-    API --> Download[PNOA & LiDAR Download]
+    API --> Download[PNOA & Elevation WCS Download]
     API --> GIS[GIS Processing & Tiles]
     API --> Detect[Infrastructure Detection]
     API --> Assess[Abandonment Assessment]
@@ -99,14 +99,17 @@ graph TD
    holds the extent to cover, from the CLI, or from the map, where the user
    draws it and the frontend posts it to the API. All three fill the same
    four coordinates and CRS.
-2. **Acquisition.** Orthophotos and LiDAR tiles are downloaded for that extent
-   and versioned on arrival, so every later result traces back to a known input.
-3. **Preparation.** Rasters and point clouds are processed into analysis-ready
+2. **Acquisition.** Orthophotos and elevation rasters are downloaded for that
+   extent and versioned on arrival, so every later result traces back to a
+   known input. MVP 1.0 takes elevation from the WCS raster services, with the
+   limits ADR-004 records (one epoch, whole metres, 2.5 m height); LiDAR point
+   clouds remain the elevation architecture's extension for a later version.
+3. **Preparation.** Rasters are processed into analysis-ready
    data, and the area is split into fixed-size tiles for parallel work.
 4. **Detection.** Each tile is run through the selected detection methodology,
    and every detection becomes an independent geospatial entity in PostGIS.
 5. **Assessment.** For each entity, indicators are extracted — vegetation, roof
-   condition, debris, accessibility, temporal change and LiDAR-derived features —
+   condition, debris, accessibility, temporal change and elevation-derived features —
    and combined into an explainable abandonment index, accompanied by the
    per-indicator contributions and by the groups that were unavailable.
 6. **Delivery.** Entities and indices are served through the API, shown on the
@@ -131,13 +134,11 @@ Recorded:
   configured declaratively in the composition root.
 - [ADR-007](adr/adr-007-mvp-1-0-scope.md) — MVP 1.0 scope: what is executed
   now, what is reduced or deferred, and why.
-
-Pending:
-
-- **ADR-004** — coordinate reference system, tile size and the data contracts
-  between pipeline stages, plus the elevation route and the detection strategy.
-  The decision most expensive to change later; produced from the feasibility
-  experiment and required before the GIS core (Block 3).
+- [ADR-004](adr/adr-004-crs-tiling-and-data-contracts.md) — **Proposed**:
+  the provider's native CRS, 256 px tiles at 0.25 m with a 40 px overlap to be
+  tested, the data contracts between stages, the raster elevation route (LiDAR
+  as a later extension) and two detection routes, from the feasibility
+  experiment EXP-001.
 
 ## Deployment Architecture
 
@@ -145,8 +146,9 @@ Development and execution both run in containers, so the C-level GIS dependencie
 (GDAL, PDAL, Rasterio) are identical everywhere:
 
 - A **DevContainer** provides the development environment, with GDAL installed
-  at system level. PDAL is not installed; whether it is needed is decided by
-  ADR-004.
+  at system level. PDAL is not installed: MVP 1.0 takes elevation from WCS
+  rasters, which need only GDAL, and PDAL comes with the LiDAR extension of a
+  later version (ADR-004).
 - **Docker Compose** composes the application image with PostgreSQL/PostGIS
   (deferred in MVP 1.0) and the MLflow tracking server (MVP 1.0: a local file
   store, no server).

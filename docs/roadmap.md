@@ -63,16 +63,16 @@ be re-measured by a third party. Tracked in [next_tasks.md](next_tasks.md).
 | 6 · Reproducibility | absorbed — seeds and externalised configuration in Sprint 2; the environment is already fixed by the lockfile and the container |
 | 7 · Spatial Database | deferred — results are files until a query workload exists |
 | 8 · Data Download | **in** — adds the acquisition manifest |
-| 9 · GIS Processing | **in** — PDAL conditional, decided by ADR-004 |
+| 9 · GIS Processing | **in** — raster elevation only; PDAL deferred to the LiDAR extension of a later version (ADR-004) |
 | 10 · Tiling System | **in** |
-| 11 · Comparative Research | reduced — the detection strategy is chosen in ADR-004 from measured evidence rather than from a full benchmark |
+| 11 · Comparative Research | reduced — the detection strategy is chosen in ADR-004 from measured evidence rather than from a full benchmark; tests the pretrained detector on unregistered structures |
 | 12 · Detector Implementation | **in** |
 | 13 · Individual Extraction | **in** |
 | 14 · Indicator Definition | **in** |
 | 15 · Automatic Extraction | **in** |
 | 16 · Assessment Engine | **in** |
 | 17 · Zero-shot System | absorbed — Sprints 12 and 16 already are the untrained pipeline (pretrained detector, GIS analysis, heuristic rules); Sprint 19 compares against it rather than rebuilding it |
-| 18 · Fine-Tuning | conditional — only if the feasibility experiment shows enough labelled examples can be produced |
+| 18 · Fine-Tuning | conditional — viable by the user's decision (ADR-004); depends on a manual labelling pass scheduled before it |
 | 19 · Scientific Comparison | **in** — indicator ablation at minimum |
 | 20 · API | **in**, reduced to a small documented endpoint set |
 | 21 · Frontend | reduced — one MapLibre page: draw the bounding box, launch the run, see the results; no React project |
@@ -200,16 +200,22 @@ Build the system's geospatial infrastructure.
 
 **Deliverable.** Processed data plus scripts for visual inspection.
 
-Includes PDAL at system level in the container image, built from a pinned
-source release (ADR-005 amendment 2026-10-14). Whether PDAL is needed at all is
-decided by ADR-004: the raster elevation route requires only GDAL
-(ADR-005 amendment 2026-10-15).
+Elevation comes from the WCS raster services, which need only GDAL
+(ADR-004, Proposed): **PDAL is not part of MVP 1.0**, and arrives with the LiDAR
+point-cloud extension of a later version, built from a pinned source release
+(ADR-005 amendment 2026-10-14). The sprint also aligns the orthophoto epochs
+before any comparison across years, choosing the method and recording it in
+the epoch contract (ADR-004).
 
 ## Sprint 10 · Tiling System
 
 **Objective.** Split the study area automatically.
 
 **Deliverable.** A complete tile generation system.
+
+Tiles of 256 px at the provider's ground sample distance, the extent snapped
+outward to whole tiles; the 40 px overlap of ADR-004 is tested here and
+confirmed or changed, with the result recorded.
 
 ---
 
@@ -223,6 +229,11 @@ Detect infrastructure automatically.
 building the definitive system.
 
 **Deliverable.** A documented comparison that selects the methodology.
+
+Reduced by ADR-007 and framed by ADR-004: registered structures come from the
+cadastral footprints, so the sprint tests whether the chosen **pretrained
+detector, used without retraining**, finds unregistered structures, against
+the manual samples of the labelling table, before Sprint 12 relies on it.
 
 ## Sprint 12 · Detector Implementation
 
@@ -279,6 +290,10 @@ recorded in MLflow and its artefacts versioned with DVC.
 **Objective.** Train the model's final stage.
 
 **Deliverable.** A fine-tuned model with a documented comparison.
+
+Viable by the user's decision recorded in ADR-004: the manual labels it needs
+are produced before it, since the cadastre provides no weak label. That
+labelling pass has to be scheduled ahead of this sprint.
 
 ## Sprint 19 · Scientific Comparison
 
