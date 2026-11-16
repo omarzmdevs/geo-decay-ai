@@ -4,7 +4,7 @@
 
 <!-- Filled when the measurement is taken -->
 
-Status: **measurement taken; Analysis and Conclusion pending.** The extent was drawn on the notebook's map
+Status: **measurement taken; Analysis and Conclusion written 2026-11-16.** The extent was drawn on the notebook's map
 and committed on 2026-11-04 as `notebooks/exp-001/out/extent.json` —
 `469120.0, 4482944.0, 470464.0, 4483840.0` in `EPSG:25830`, 1344 × 896 m,
 1.204224 km², an exact fit of 21 × 14 tiles of 256 px at 0.25 m/px (since
@@ -462,7 +462,8 @@ not for roof geometry.
 
 ### Visual inspection
 
-**Not done yet** — methodology step 5, the user's own pass in QGIS.
+**Replaced for this experiment** by the multi-epoch strips of section 10
+(see Analysis); a QGIS pass at tile scale stays open for the project.
 
 ### Candidate sites
 
@@ -578,16 +579,108 @@ ACCEPTED 2026-11-16):
 
 ## Analysis
 
-<!-- Filled by the orchestrator -->
+Written by the orchestrator on 2026-11-16 from the accepted Results above and
+the run's `notebooks/exp-001/out/summary.md` (commit `92da400`). What was
+measured is in Results; this section says what it means, and marks where it
+infers rather than measures.
+
+**The orthophoto series is shorter than it is advertised.** Of 21 advertised
+years, 9 return imagery over the extent and 7 cover every example building at
+a measured 0.25 m/px (2009–2023); 2006 is coarser (a bound, ≥ 0.5 m/px), and
+2012 and 2015 reach only the east edge. A temporal indicator therefore works
+on about seven epochs over fourteen years, unevenly spaced, and has to treat a
+year as present **per building**, not per extent. The epochs are also not
+co-registered to the footprint to the same degree — offsets of a metre or two
+were seen in 2006 and 2009 — so any differencing across years needs the
+epochs aligned first; a per-pixel comparison of raw epochs would read
+misregistration as change.
+
+**The cadastre is the best geometry available and no label at all.** It
+supplies 787 footprints with stable identifiers, which is exactly what an
+entity needs, but its condition attribute is `functional` on every building,
+so it cannot say which are abandoned. The storey count lives on the 6,355
+building parts rather than on buildings, so a per-building height from it
+requires aggregating parts — a data-contract decision, not a measurement. The
+service itself is not to be trusted blind: it caps a request near 1 km², does
+not declare whether a reply is complete, and its spatial filter returns
+features up to about 90 m outside the box. Footprint sizes concentrate tightly
+(median 70.9 m², quartiles 64.0–77.9), while 26 compounds are too large for
+one tile, the largest 85 parts and 61,439 m².
+
+**Elevation answers the "how tall" question and nothing finer.** Four raster
+products cover the extent with no gaps; building and vegetation height at
+2.5 m separate cleanly against the footprints (82.4 % vs 6.4 % positive cells
+inside vs outside for building height). But there is one epoch, in whole
+metres, on a resampled grid: one height per building is supported (a median
+building covers about 11 cells), roof geometry and height change are not.
+
+**Detection works at a small scale, in colour only.** A median footprint is
+about 8.4 m across, about 34 px at 0.25 m/px — a small object inside a
+256 px tile, with three bands and no near infrared. *Inferred, not measured:*
+EXP-001 ran no detector, so nothing here shows how a pretrained model behaves
+on these objects.
+
+**The reference set is biased toward what is registered, and that is now
+measurable.** The cadastre, by definition, holds only registered buildings,
+while the structures this project most wants to find may be unregistered.
+The labelling table records each row's source, and the seven manual samples
+(four outside the extent) are the route for what the cadastre lacks, so the
+bias can be measured once labels exist.
+
+**Visual inspection (methodology step 5)** was replaced, for this experiment,
+by the multi-epoch strips of section 10, which show the area at building
+scale and across years. A QGIS pass at tile scale stays open for the project.
+
+**Limits of the evidence.** One extent, mostly residential and of uniform
+building size; no labels, so the manual cost of question 4 is unmeasured; no
+detector run; and four declared products (false-colour orthophoto, NDVI,
+NDWI, Landsat mosaics) never reached over OGC (EDA-DOWNLOADS). Every
+conclusion below inherits these limits.
 
 ## Conclusion
 
-<!-- Filled by the orchestrator. Must state, explicitly:
-     - the CRS and tile size ADR-004 will fix
-     - whether the elevation route is raster-derived or needs point-cloud tooling
-     - the detection strategy, and whether pretrained weights are usable as-is
-     - whether the Sprint 18 fine-tuning arm is viable
-     - which indicator groups are expected to be unavailable -->
+Decisions follow, each to be fixed by **ADR-004**. Where one rests on a
+decision of the user's rather than on a measurement, it says so.
+
+1. **CRS.** The provider's native projected CRS, taken from its entry and
+   never written as a constant: **`EPSG:25830`** for this provider and extent.
+   A run whose extent leaves the zone states its CRS explicitly; a manual
+   sample 741 km east in this CRS returned no imagery in any year (M-0007),
+   which is the warning sign.
+2. **Tiling.** **256 px at 0.25 m/px, a 64 m tile**, as used throughout the
+   experiment, with the extent snapped outward to whole tiles. **Overlap of
+   40 px (10 m), adopted to be tested** in Sprint 10: it lets a building up to
+   the upper quartile (about 8.8 m across) fall whole inside at least one
+   tile. Compounds wider than a tile are handled as entities, not as tiles.
+3. **Elevation route.** **Raster-derived, through the WCS services.** No
+   point-cloud tooling is needed; PDAL is no longer conditional and stays out
+   of the image. One height per building, from the building-height raster or
+   from aggregated storey counts, is the most this route supports.
+4. **Detection strategy.** **Two routes**, the user's decision of 2026-11-16:
+   registered structures are taken as **entities from the cadastral
+   footprints**, cropped per footprint as in section 10, with no detector;
+   unregistered structures are sought with a **pretrained detector used
+   without retraining**, validated against the manual samples. **Whether
+   pretrained weights are usable as-is is not measured** by this experiment;
+   Sprint 11 (reduced) has to test it on the labelling table before Sprint 12
+   relies on it.
+5. **Fine-tuning arm (Sprint 18).** **Viable, by the user's decision of
+   2026-11-16**: the manual labels it needs will be produced when that sprint
+   approaches. Not measured here — the cadastre offers no weak label, and the
+   manual pass, and therefore its cost per building, is outside this block.
+   Sprint 18 therefore depends on that pass being scheduled before it.
+6. **Indicator groups expected to be unavailable or limited.**
+   - **Vegetation**: no near infrared, so no NDVI; RGB surrogates only, plus a
+     single-epoch vegetation-height raster.
+   - **Temporal change**: available over about seven aligned epochs, per
+     building; **height change is unavailable** (one elevation epoch).
+   - **Roof condition**: available from the orthophoto in the well-resolved
+     years; **roof geometry is unavailable** (2.5 m height).
+   - **Height**: available, one value per building.
+   - **Debris**: uncertain; it needs decimetre texture, which only the
+     well-resolved years give, and no strip has been judged for it yet.
+   - **Accessibility**: **unavailable as measured** — no road network was
+     requested; the cadastre's parcels and addresses are at most a surrogate.
 
 ## Related
 
