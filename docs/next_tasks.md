@@ -222,6 +222,15 @@ Tracked findings from the project review, deferred with their identifiers:
   `DescribeCoverage` gives, and treats height as 1 m quantised. Found
   2026-11-11, step 5 of handoff 015.
 
+- [ ] **EDA-DEDUP · Every run stores duplicate cadastral replies** — a
+  feature reply that differs from an earlier one only in the service timestamp
+  and the order of features is stored again under a new name, and the manifest
+  rows of the replies removed as duplicates after steps 6c and 7 of handoff 015
+  point to no body. Not fixed in the experiment, by the user's decision of
+  2026-11-16. Trigger: Sprint 8, if it reuses `notebooks/exp-001/eda.py`'s
+  request code — store a reply only when no equivalent one exists for the same
+  request, and record which body a row refers to.
+
 - [ ] **EDA-DOWNLOADS · Three datasets are blocked on the same missing route** —
   the instrument speaks WMS and WFS, and the three datasets that would answer
   open questions are none of those: the **lidar** that EXP-001 question 2 needs

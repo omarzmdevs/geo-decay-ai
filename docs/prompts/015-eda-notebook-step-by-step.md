@@ -146,7 +146,7 @@ each step: its offline run, and the user's live run.
   - [x] **6b · Section 11 · The labelling table** — ACCEPTED 2026-11-14
   - [x] **6c · Sections 10.2 and 10.3 · Manual samples on the map** (amendment 2026-11-15) — ACCEPTED 2026-11-15
 - [x] **7 · Section 12 · Findings** (amendment 2026-11-15) — ACCEPTED 2026-11-16
-- [ ] **8 · Close**
+- [ ] **8 · Close** (amendment 2026-11-16)
 
 ---
 
@@ -1270,6 +1270,58 @@ replies (step 8), the README (step 8), and EXP-001 itself.
 "no medido", after a full run in order; that `summary.md` reads as a
 standalone account of what was measured; and that 12.3's judgements match
 what the strips and the table actually show.
+
+---
+
+### 2026-11-16 · step 8: close with the prose pass and the README only
+
+The user's decisions of 2026-11-16, taken before step 8 opens. **The
+measurement is finished**: step 8 makes no request and needs no live run.
+
+**Decisions.**
+
+- **The duplicate replies are not fixed in this handoff.** Every run stores a
+  cadastral reply that differs from an earlier one only in the service
+  timestamp and the order of features, and some manifest rows point to bodies
+  removed as duplicates after steps 6c and 7. Both are **recorded as a known
+  limitation** and tracked as EDA-DEDUP in `next_tasks.md`, to be fixed if the
+  project reuses this module's request code; the manifest's history is not
+  rewritten. This replaces the step 7 amendment's deferral to step 8.
+- Loose leftovers on disk — `out/.uv-cache/`, the empty `out/vectors/.claude/`
+  and `notebooks/exp-001/_draft/` — are removed by the user by hand. Step 8's
+  open decision on `_draft/` is closed by that.
+
+#### Criteria, replacing Step 8's
+
+1. **Prose pass.** Every markdown cell that precedes a code cell, and the
+   notebook's opening cell, is brought within the 120-to-180-word budget of
+   criterion 2, keeping its closing `**Qué mirar:**` line. Over budget now:
+   the opening cell (451), 2 (191), 2.1 (204), 3 (298), 3.1 (321), 10.3 (181)
+   and 11 (187). The closing cells **9.2 and 12.3 are exempt**: they precede no
+   code cell, and 12.3 keeps its own 350-word limit. The pass shortens; it does
+   not change what a cell says the code does, and no code cell changes.
+2. **The one English line in Spanish output**: the format description that
+   `eda.py` puts into section 11's «formato normalizado» line is given in
+   Spanish. No other code change.
+3. **README** (`notebooks/exp-001/README.md`), finished: what the experiment
+   measures; how to run it, including that the notebook must be run **in
+   order, top to bottom**, after a kernel restart, since re-running the first
+   cells alone empties what later sections read; every output under `out/`,
+   which are versioned (`manifest.csv`, `extent.json`, `drawing.json`,
+   `ladder.csv`, `strips.csv`, `candidates.csv`, `manual_samples.csv`,
+   `summary.md`, `capabilities/`, `vectors/`) and which are git-ignored; how
+   manual samples are drawn, saved with the button and kept outside or inside
+   the extent; that the labelling table is comma-separated UTF-8 and tolerates
+   a spreadsheet's `;` or BOM, and that manual work is carried over by id; and
+   a short **Known limitations** section: the duplicate replies and the
+   manifest rows without a body (EDA-DEDUP), the map's status label saved
+   empty in the notebook, and section 12 needing a full run in order. English,
+   as the README already is.
+4. The full gate passes and `git status --short` shows only files inside
+   `notebooks/exp-001/`.
+
+**Out of scope for step 8:** any request to a service, any change to a code
+cell, any figure, EXP-001, and deleting anything.
 
 ---
 
